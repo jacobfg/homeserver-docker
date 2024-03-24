@@ -63,8 +63,6 @@ secrets:
     file: $SECRETSDIR/diun_mqtt_mosquitto_user
   diun_mqtt_mosquitto_password:
     file: $SECRETSDIR/diun_mqtt_mosquitto_password
-  diun_mqtt_mosquitto_url:
-    file: $SECRETSDIR/diun_mqtt_mosquitto_url
 
 ########################### EXTENSION FIELDS
 # Helps eliminate repetition of sections
