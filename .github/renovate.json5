@@ -1,7 +1,30 @@
 {
-  "extends": ["config:base"],
+  /***** General settings *****/
+
+  // Use recommended defaults
+  "extends": [
+    "config:base"
+  ],
+
+  "automerge": true,
+  // Run on a monthly schedule to keep interruptions to a minimum,
+  // but always open vulnerability-fixing pull requests immediately
+  // "vulnerabilityAlerts": {
+  //   "labels": ["security"],
+  //   "schedule": "at any time"
+  // },
+
+  // Add your custom labels to pull requests
+  "labels": ["ready for review"],
+
+  // Avoid updating to unstable versions
+  "ignoreUnstable": true,
+  "stabilityDays": 7,
+
+  /***** Docker settings *****/
   "enabled": true,
-  "enabledManagers": ["docker-compose", "github-actions"],
+  "enabledManagers": ["docker-compose"],
+  //, "github-actions"],
   "packageRules": [
     {
       "matchDatasources": ["docker"],
