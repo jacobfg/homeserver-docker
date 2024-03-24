@@ -19,12 +19,12 @@
 
   "baseBranches": ["main"],
   // "rebaseWhen": "conflicted",
+
+
+  // Add your custom labels to pull requests
   "labels": ["dependencies", "bot"],
 
   // "automergeStrategy": "rebase",
-
-  // Add your custom labels to pull requests
-  "labels": ["ready for review"],
 
   // Avoid updating to unstable versions
   // "ignoreUnstable": true,
