@@ -17,6 +17,12 @@
   //   "schedule": "at any time"
   // },
 
+  "baseBranches": ["main"],
+  // "rebaseWhen": "conflicted",
+  "labels": ["dependencies", "bot"],
+
+  // "automergeStrategy": "rebase",
+
   // Add your custom labels to pull requests
   "labels": ["ready for review"],
 
@@ -44,6 +50,7 @@
         "ghcr.io/esphome/esphome",
       ],
       "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$",
+      // "automerge": true,
     },
     // same format as above, but I want to be more picky on ESPHome version updates
     {
