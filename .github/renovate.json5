@@ -3,7 +3,7 @@
 
   // Use recommended defaults
   "extends": [
-    "config:base"
+    "config:recommended"
   ],
 
   "autodiscover": true,
