@@ -683,7 +683,6 @@ services:
     secrets:
       - diun_mqtt_mosquitto_user
       - diun_mqtt_mosquitto_password
-      - diun_mqtt_mosquitto_url
     environment:
       - "TZ=$TZ"
       - "DIUN_WATCH_WORKERS=20"
