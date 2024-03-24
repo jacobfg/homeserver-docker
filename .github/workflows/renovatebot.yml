@@ -1,12 +1,12 @@
 name: Renovate Bot
 on:
-#  schedule:
-#    # The "*" (#42, asterisk) character has special semantics in YAML, so this
-#    # string has to be quoted.
-#    - cron: '0/15 * * * *'
-  push:
-    branches:
-      - dev
+  schedule:
+   # The "*" (#42, asterisk) character has special semantics in YAML, so this
+   # string has to be quoted.
+   - cron: '0/15 * * * *'
+  # push:
+  #   branches:
+  #     - dev
 
 jobs:
   renovate:
@@ -26,4 +26,4 @@ jobs:
           RENOVATE_ONBOARDING: "false"
           # Git commit author used, must match GitHub App
           RENOVATE_GIT_AUTHOR: "Renovate Bot for me <10949267+jacobfg@users.noreply.github.com>"
-          LOG_LEVEL: 'debug'
+          # LOG_LEVEL: 'debug'
