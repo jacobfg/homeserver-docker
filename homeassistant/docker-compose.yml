@@ -666,7 +666,7 @@ services:
 
   esphome:
     container_name: esphome
-    image: ghcr.io/esphome/esphome:2023.12.9
+    image: ghcr.io/esphome/esphome:2024.3.0
     volumes:
       - $DOCKERDIR/volumes/esphome/config:/config
       - /etc/localtime:/etc/localtime:ro
