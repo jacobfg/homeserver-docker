@@ -59,6 +59,10 @@ secrets:
     file: $SECRETSDIR/wud_trigger_mqtt_mosquitto_password
   wud_trigger_mqtt_mosquitto_url:
     file: $SECRETSDIR/wud_trigger_mqtt_mosquitto_url
+  diun_mqtt_mosquitto_user:
+    file: $SECRETSDIR/diun_mqtt_mosquitto_user
+  diun_mqtt_mosquitto_password:
+    file: $SECRETSDIR/diun_mqtt_mosquitto_password
 
 ########################### EXTENSION FIELDS
 # Helps eliminate repetition of sections
@@ -663,6 +667,38 @@ services:
       - "traefik.http.routers.wud-api-rtr.middlewares=middlewares-api-no-auth@file,chain-no-auth@file"
       # HTTP Services
       - "traefik.http.routers.wud-api-rtr.service=wud-svc"
+
+  # Wud self tracking :)
+  # TODO: use tcp://socket-proxy:2375
+  diun:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
+    image: ghcr.io/crazy-max/diun:4.27.0
+    container_name: diun
+    command: serve
+    networks:
+      - t2_proxy
+      - socket_proxy
+    volumes:
+      - $DOCKERDIR/volumes/diun/data:/data
+    secrets:
+      - diun_mqtt_mosquitto_user
+      - diun_mqtt_mosquitto_password
+    environment:
+      - "TZ=$TZ"
+      - "DIUN_WATCH_WORKERS=20"
+      - "DIUN_WATCH_SCHEDULE=0 */6 * * *"
+      - DIUN_WATCH_JITTER=30s
+      - DIUN_PROVIDERS_DOCKER=true
+      - DIUN_PROVIDERS_DOCKER_ENDPOINT=tcp://socket-proxy:2375
+      - DIUN_NOTIF_MQTT_HOST=192.168.90.252
+      - DIUN_NOTIF_MQTT_CLIENT=diun
+      - DIUN_NOTIF_MQTT_TOPIC=docker/diun
+      - DIUN_NOTIF_MQTT_USERNAMEFILE=/run/secrets/diun_mqtt_mosquitto_user
+      - DIUN_NOTIF_MQTT_PASSWORDFILE=/run/secrets/diun_mqtt_mosquitto_password
+    labels:
+      - "diun.enable=true"
+      - 'wud.tag.include=^\d+\.\d+\.\d+$$'
+      - 'wud.link.template=https://github.com/fmartinou/whats-up-docker/releases/tag/$${major}.$${minor}.$${patch}'
 
   esphome:
     container_name: esphome
