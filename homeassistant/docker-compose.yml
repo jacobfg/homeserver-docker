@@ -674,7 +674,7 @@ services:
   # TODO: use tcp://socket-proxy:2375
   diun:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
-    image: fghcr.io/crazy-max/diun:4.27.0
+    image: ghcr.io/crazy-max/diun:4.27.0
     container_name: diun
     command: serve
     networks:
@@ -694,7 +694,6 @@ services:
       - DIUN_PROVIDERS_DOCKER=true
       - DIUN_PROVIDERS_DOCKER_ENDPOINT=tcp://socket-proxy:2375
       - DIUN_NOTIF_MQTT_HOST=192.168.90.252
-      # - DIUN_NOTIF_MQTT_PORT=1883
       - DIUN_NOTIF_MQTT_CLIENT=diun
       - DIUN_NOTIF_MQTT_TOPIC=docker/diun
       - DIUN_NOTIF_MQTT_USERNAMEFILE=/run/secrets/diun_mqtt_mosquitto_user
