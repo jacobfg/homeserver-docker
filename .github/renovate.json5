@@ -3,7 +3,7 @@
 
   // Use recommended defaults
   "extends": [
-    "config:recommended"
+    "config:recommended",
   ],
 
   // "autodiscover": true,
@@ -17,8 +17,14 @@
   //   "schedule": "at any time"
   // },
 
+  "baseBranches": ["main"],
+  // "rebaseWhen": "conflicted",
+
+
   // Add your custom labels to pull requests
-  "labels": ["ready for review"],
+  "labels": ["dependencies", "bot"],
+
+  // "automergeStrategy": "rebase",
 
   // Avoid updating to unstable versions
   // "ignoreUnstable": true,
@@ -43,7 +49,17 @@
         "fmartinou/whats-up-docker",
         "ghcr.io/esphome/esphome",
       ],
-      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$"
+      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$",
+      // "automerge": true,
+    },
+    // same format as above, but I want to be more picky on ESPHome version updates
+    {
+      "matchDatasources": ["docker"],
+      "matchPackageNames": [
+        "ghcr.io/esphome/esphome",
+      ],
+      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$",
+      "enabled": false,
     },
     {
       "matchDatasources": ["docker"],
@@ -52,12 +68,12 @@
         "saspus/duplicacy-web",
         "b4bz/homer"
       ],
-      "versioning": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$"
+      "versioning": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$",
     },
     {
       "matchDatasources": ["docker"],
       "matchPackageNames": ["nodered/node-red"],
-      "versioning": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-18-minimal$"
-    }
+      "versioning": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-18-minimal$",
+    },
   ]
 }
