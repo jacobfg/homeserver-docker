@@ -21,8 +21,8 @@
   "labels": ["ready for review"],
 
   // Avoid updating to unstable versions
-  "ignoreUnstable": true,
-  "stabilityDays": 7,
+  // "ignoreUnstable": true,
+  // "stabilityDays": 7,
 
   /***** Docker settings *****/
   "enabled": true,
