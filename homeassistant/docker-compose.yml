@@ -100,7 +100,7 @@ services:
   traefik:
     <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: traefik
-    image: traefik:$CONTAINER_TRAEFIK_TAG
+    image: traefik:2.11.0
     command: # CLI arguments
       - --global.checkNewVersion=true
       - --global.sendAnonymousUsage=false
@@ -189,7 +189,7 @@ services:
   socket-proxy:
     <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: socket-proxy
-    image: tecnativa/docker-socket-proxy:$CONTAINER_DOCKER_SOCKET_PROXY_TAG
+    image: tecnativa/docker-socket-proxy:0.1.1
     networks:
       socket_proxy:
         ipv4_address: 192.168.91.254 # You can specify a static IP
@@ -238,7 +238,7 @@ services:
   # TODO: try adblock
   blocky:
     <<: *common-keys-core # See EXTENSION FIELDS at the top
-    image: spx01/blocky:$CONTAINER_BLOCKY_TAG
+    image: spx01/blocky:v0.22
     container_name: blocky
     restart: always
     ports:
@@ -267,7 +267,7 @@ services:
   authelia:
     <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: authelia
-    image: authelia/authelia:$CONTAINER_AUTHELIA_TAG
+    image: authelia/authelia:4.38.6
     restart: always
     networks:
       - t2_proxy
@@ -305,7 +305,7 @@ services:
   homeassistant:
     <<: *common-keys-apps-hostmode # See EXTENSION FIELDS at the top
     container_name: homeassistant
-    image: homeassistant/home-assistant:$CONTAINER_HOME_ASSISTANT_TAG
+    image: homeassistant/home-assistant:2024.3.1
     # depends_on:
     #   - influxdb
     network_mode: host
@@ -323,7 +323,7 @@ services:
   portainer:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
     container_name: portainer
-    image: portainer/portainer-ce:$CONTAINER_PORTAINER_TAG
+    image: portainer/portainer-ce:2.20.0
     restart: always
     command: -H tcp://socket-proxy:2375
     environment:
@@ -368,7 +368,7 @@ services:
   static-web-server:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
     container_name: static-web-sever
-    image: joseluisq/static-web-server:$CONTAINER_STATIC_WEB_SERVER_TAG
+    image: joseluisq/static-web-server:2.28.0
     volumes:
       - $DOCKERDIR/volumes/static-web-server/public:/public
     logging:
@@ -404,7 +404,7 @@ services:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
     container_name: duplicacy
     hostname: 4eb908d4f748 # for licensing
-    image: saspus/duplicacy-web:$CONTAINER_DUPLICACY_WEB_TAG
+    image: saspus/duplicacy-web:v1.8.0
     environment:
       - TZ=$TZ
       - USR_ID=0
@@ -439,7 +439,7 @@ services:
   influxdb:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
     container_name: influxdb
-    image: influxdb:$CONTAINER_INFLUXDB_TAG
+    image: influxdb:2.7.5
     environment:
       - TZ=$TZ
       - DOCKER_INFLUXDB_INIT_MODE=setup
@@ -482,7 +482,7 @@ services:
     # TODO: mosquito tls (really not needed on a private hosted based network)
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
     container_name: mosquitto
-    image: eclipse-mosquitto:$CONTAINER_MOSQUITTO_TAG
+    image: eclipse-mosquitto:2.0.18
     networks:
       t2_proxy:
         ipv4_address: 192.168.90.252 # You can specify a static IP
@@ -500,7 +500,7 @@ services:
   zigbee2mqtt:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
     container_name: zigbee2mqtt
-    image: koenkk/zigbee2mqtt:$CONTAINER_ZIGBEE2MQTT_TAG
+    image: koenkk/zigbee2mqtt:1.36.0
     volumes:
       - $DOCKERDIR/volumes/zigbee2mqtt/data:/app/data
       - /run/udev:/run/udev:ro
@@ -530,7 +530,7 @@ services:
   # NodeRED
   node-red:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
-    image: nodered/node-red:$CONTAINER_NODE_RED_TAG
+    image: nodered/node-red:3.1.7-18-minimal
     container_name: node-red
     environment:
       - TZ=$TZ
@@ -557,7 +557,7 @@ services:
   # Homer
   homer:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
-    image: b4bz/homer:$CONTAINER_HOMER_TAG
+    image: b4bz/homer:v23.10.1
     container_name: homer
     volumes:
       - $DOCKERDIR/volumes/homer/assets/:/www/assets
@@ -601,7 +601,7 @@ services:
   # TODO: use tcp://socket-proxy:2375
   whatsupdocker:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
-    image: fmartinou/whats-up-docker:$CONTAINER_WHATS_UP_DOCKER_TAG
+    image: fmartinou/whats-up-docker:6.3.0
     container_name: whatsupdocker
     networks:
       - t2_proxy
@@ -666,7 +666,7 @@ services:
 
   esphome:
     container_name: esphome
-    image: ghcr.io/esphome/esphome:$CONTAINER_ESPHOME_TAG
+    image: ghcr.io/esphome/esphome:2023.12.9
     volumes:
       - $DOCKERDIR/volumes/esphome/config:/config
       - /etc/localtime:/etc/localtime:ro
