@@ -6,6 +6,7 @@
     "config:base"
   ],
 
+  "autodiscover": true,
   "autodiscoverFilter": ["jacobfg/homeserver-docker"],
 
   "automerge": true,
