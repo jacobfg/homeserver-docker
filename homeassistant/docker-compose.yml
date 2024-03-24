@@ -1,0 +1,682 @@
+version: '3.9'
+
+########################### NETWORKS
+# There is no need to create any networks outside this docker-compose file.
+# You may customize the network subnets (192.168.90.0/24 and 91.0/24) below as you please.
+# Docker Compose version 3.5 or higher required to define networks this way.
+
+networks:
+  t2_proxy:
+    name: t2_proxy
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.90.0/24
+  default:
+    driver: bridge
+  socket_proxy:
+    name: socket_proxy
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.91.0/24
+
+########################### SECRETS
+secrets:
+  authelia_jwt_secret:
+    file: $SECRETSDIR/authelia_jwt_secret
+  authelia_session_secret:
+    file: $SECRETSDIR/authelia_session_secret
+  authelia_storage_encryption_key:
+    file: $SECRETSDIR/authelia_storage_encryption_key
+  authelia_identity_providers_oidc_hmac_secret_file:
+    file: $SECRETSDIR/authelia_identity_providers_oidc_hmac_secret_file
+  authelia_identity_providers_oidc_issuer_certificate_chain_file:
+    file: $SECRETSDIR/authelia_identity_providers_oidc_issuer_certificate_chain_file
+  authelia_identity_providers_oidc_issuer_private_key_file:
+    file: $SECRETSDIR/authelia_identity_providers_oidc_issuer_private_key_file
+  cf_email:
+    file: $SECRETSDIR/cf_email
+  cf_api_key:
+    file: $SECRETSDIR/cf_api_key
+  cf_token:
+    file: $SECRETSDIR/cf_token
+  influxdb_user:
+    file: $SECRETSDIR/influxdb_user
+  influxdb_password:
+    file: $SECRETSDIR/influxdb_password
+  influxdb_admin_token:
+    file: $SECRETSDIR/influxdb_admin_token
+  zigbee2mqtt_secrets.yaml:
+    file: $SECRETSDIR/zigbee2mqtt_secrets.yaml
+  wud_auth_oidc_authelia_clientid:
+    file: $SECRETSDIR/wud_auth_oidc_authelia_clientid
+  wud_auth_oidc_authelia_clientsecret:
+    file: $SECRETSDIR/wud_auth_oidc_authelia_clientsecret
+  wud_trigger_mqtt_mosquitto_user:
+    file: $SECRETSDIR/wud_trigger_mqtt_mosquitto_user
+  wud_trigger_mqtt_mosquitto_password:
+    file: $SECRETSDIR/wud_trigger_mqtt_mosquitto_password
+  wud_trigger_mqtt_mosquitto_url:
+    file: $SECRETSDIR/wud_trigger_mqtt_mosquitto_url
+
+########################### EXTENSION FIELDS
+# Helps eliminate repetition of sections
+# More Info on how to use this: https://github.com/htpcBeginner/docker-traefik/pull/228
+ 
+# Common environment values
+x-environment: &default-tz-puid-pgid
+  TZ: $TZ
+  PUID: $PUID
+  PGID: $PGID
+ 
+# Keys common to some of the core services that we always to automatically restart on failure
+x-common-keys-core: &common-keys-core
+  networks:
+    - t2_proxy
+  security_opt:
+    - no-new-privileges:true
+  restart: always
+ 
+# Keys common to some of the dependent services/apps
+x-common-keys-apps: &common-keys-apps
+  networks:
+    - t2_proxy
+  security_opt:
+    - no-new-privileges:true
+  restart: unless-stopped
+ 
+# Keys common to some of the dependent services/apps
+x-common-keys-apps-hostmode: &common-keys-apps-hostmode
+  security_opt:
+    - no-new-privileges:true
+  restart: unless-stopped
+
+########################### SERVICES
+services:
+
+  ############################# FRONTENDS
+  # Traefik 2 - Reverse Proxy
+  traefik:
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
+    container_name: traefik
+    image: traefik:$CONTAINER_TRAEFIK_TAG
+    command: # CLI arguments
+      - --global.checkNewVersion=true
+      - --global.sendAnonymousUsage=false
+      # - --entryPoints.http.address=:80
+      - --entryPoints.https.address=:443
+      # Allow these IPs to set the X-Forwarded-* headers - Cloudflare IPs: https://www.cloudflare.com/ips/
+      - --entrypoints.https.forwardedHeaders.trustedIPs=$CLOUDFLARE_IPS,$LOCAL_IPS
+      - --entryPoints.traefik.address=:8080
+      - --api=true
+      - --api.dashboard=true
+      - --log=true
+      - --log.filePath=/logs/traefik.log
+      - --log.level=ERROR # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
+      - --accessLog=false # change if/when public
+      - --accessLog.filePath=/logs/access.log
+      - --accessLog.bufferingSize=100 # Configuring a buffer of 100 lines
+      - --accessLog.filters.statusCodes=204-299,400-499,500-599
+      - --providers.docker=true
+      # - --providers.docker.endpoint=unix:///var/run/docker.sock # Use Docker Socket Proxy instead for improved security
+      - --providers.docker.endpoint=tcp://socket-proxy:2375 # Use this instead of the previous line if you have socket proxy.
+      - --providers.docker.exposedByDefault=false
+      - --entrypoints.https.http.tls.options=tls-opts@file
+      # Add dns-cloudflare as default certresolver for all services. Also enables TLS and no need to specify on individual services
+      - --entrypoints.https.http.tls.certresolver=dns-cloudflare
+      - --entrypoints.https.http.tls.domains[0].main=$DOMAINNAME_CLOUD_SERVER
+      - --entrypoints.https.http.tls.domains[0].sans=*.$DOMAINNAME_CLOUD_SERVER
+      # - --entrypoints.https.http.tls.domains[1].main=$DOMAINNAME2 # Pulls main cert for second domain
+      # - --entrypoints.https.http.tls.domains[1].sans=*.$DOMAINNAME2 # Pulls wildcard cert for second domain
+      - --providers.docker.network=t2_proxy
+      - --providers.docker.swarmMode=false
+      - --providers.file.directory=/rules # Load dynamic configuration from one or more .toml or .yml files in a directory
+      - --providers.file.watch=true # Only works on top level files in the rules folder
+      # - --certificatesResolvers.dns-cloudflare.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory # LetsEncrypt Staging Server - uncomment when testing
+      - --certificatesResolvers.dns-cloudflare.acme.email=$CLOUDFLARE_EMAIL
+      - --certificatesResolvers.dns-cloudflare.acme.storage=/acme.json
+      - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.provider=cloudflare
+      - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.resolvers=1.1.1.1:53,1.0.0.1:53
+      - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.delayBeforeCheck=90 # To delay DNS check and reduce LE hitrate
+    networks:
+      t2_proxy:
+        ipv4_address: 192.168.90.254 # You can specify a static IP
+      socket_proxy:
+    ports:
+      - target: 443
+        published: 443
+        protocol: tcp
+        mode: host
+    volumes:
+      - $DOCKERDIR/volumes/traefik2/rules/cloudserver:/rules # file provider directory
+      - $DOCKERDIR/volumes/traefik2/acme/acme.json:/acme.json # cert location - you must create this empty file and change permissions to 600
+      - $DOCKERDIR/volumes/traefik2/logs/cloudserver/traefik:/logs # for fail2ban or crowdsec
+      # - /var/run/docker.sock:/var/run/docker.sock:ro # If you use Docker Socket Proxy, comment this line out
+    environment:
+      - TZ
+      - CF_API_EMAIL_FILE=/run/secrets/cf_email
+      - CF_API_KEY_FILE=/run/secrets/cf_api_key
+      - DOMAINNAME_CLOUD_SERVER # Passing the domain name to the traefik container to be able to use the variable in rules.
+      - DOCKER_SERVER_IP # Passing the docker server IP to the traefik container to be able to use the variable in rules.
+    secrets:
+      - cf_email
+      - cf_api_key
+    labels:
+      - 'wud.tag.include=^\d+\.\d+\.\d+$$'
+      - 'wud.link.template=https://github.com/traefik/traefik/releases/tag/v$${major}.$${minor}.$${patch}'
+      - "traefik.enable=true"
+      # # HTTP-to-HTTPS Redirect
+      # - "traefik.http.routers.http-catchall.entrypoints=http"
+      # - "traefik.http.routers.http-catchall.rule=HostRegexp(`{host:.+}`)"
+      # - "traefik.http.routers.http-catchall.middlewares=redirect-to-https"
+      # - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      # HTTP Routers
+      - "traefik.http.routers.traefik-rtr.entrypoints=https"
+      - "traefik.http.routers.traefik-rtr.rule=Host(`traefik.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.traefik-rtr.tls=true" # Some people had 404s without this
+      # - "traefik.http.routers.traefik-rtr.tls.certresolver=dns-cloudflare" # Comment out this line after first run of traefik to force the use of wildcard certs
+      - "traefik.http.routers.traefik-rtr.tls.domains[0].main=$DOMAINNAME_CLOUD_SERVER"
+      - "traefik.http.routers.traefik-rtr.tls.domains[0].sans=*.$DOMAINNAME_CLOUD_SERVER"
+      # - "traefik.http.routers.traefik-rtr.tls.domains[1].main=$DOMAINNAME2" # Pulls main cert for second domain
+      # - "traefik.http.routers.traefik-rtr.tls.domains[1].sans=*.$DOMAINNAME2" # Pulls wildcard cert for second domain
+      ## Services - API
+      - "traefik.http.routers.traefik-rtr.service=api@internal"
+      ## Middlewares
+      - "traefik.http.routers.traefik-rtr.middlewares=chain-authelia@file"
+
+   # Docker Socket Proxy - Security Enchanced Proxy for Docker Socket
+  socket-proxy:
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
+    container_name: socket-proxy
+    image: tecnativa/docker-socket-proxy:$CONTAINER_DOCKER_SOCKET_PROXY_TAG
+    networks:
+      socket_proxy:
+        ipv4_address: 192.168.91.254 # You can specify a static IP
+    # privileged: true # true for VM. False for unprivileged LXC container.
+    ports:
+      - 127.0.0.1:2375:2375 # Port 2375 should only ever get exposed to the internal network. When possible use this line.
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - LOG_LEVEL=warning # debug,info,notice,warning,err,crit,alert,emerg
+      ## Variables match the URL prefix (i.e. AUTH blocks access to /auth/* parts of the API, etc.).
+      # 0 to revoke access.
+      # 1 to grant access.
+      ## Granted by Default
+      - EVENTS=1
+      - PING=1
+      - VERSION=1
+      ## Revoked by Default
+      # Security critical
+      - AUTH=0
+      - SECRETS=0
+      - POST=1 # Watchtower
+      # Not always needed
+      - BUILD=0
+      - COMMIT=0
+      - CONFIGS=0
+      - CONTAINERS=1 # Traefik, portainer, etc.
+      - DISTRIBUTION=0
+      - EXEC=0
+      - IMAGES=1 # Portainer
+      - INFO=1 # Portainer
+      - NETWORKS=1 # Portainer
+      - NODES=0
+      - PLUGINS=0
+      - SERVICES=1 # Portainer
+      - SESSION=0
+      - SWARM=0
+      - SYSTEM=0
+      - TASKS=1 # Portainer
+      - VOLUMES=1 # Portainer
+    labels:
+      - 'wud.tag.include=^\d+\.\d+\.\d+$$'
+      - 'wud.link.template=https://github.com/Tecnativa/docker-socket-proxy/releases/tag/v$${major}.$${minor}.$${patch}'
+
+  # Light Split Horizon / Ad Blocking DNS Server
+  # TODO: try adblock
+  blocky:
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
+    image: spx01/blocky:$CONTAINER_BLOCKY_TAG
+    container_name: blocky
+    restart: always
+    ports:
+      - 53:53/tcp
+      - 53:53/udp
+    environment:
+      - TZ
+    volumes:
+      - $DOCKERDIR/volumes/blocky/config.yml:/app/config.yml
+    labels:
+      - 'wud.tag.include=^v\d+\.\d+\.\d+$$'
+      - 'wud.link.template=https://github.com/0xERR0R/blocky/releases/tag/$${major}.$${minor}.$${patch}'
+      - "traefik.enable=false"
+    extra_hosts:
+      - "auth.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      - "duplicacy.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      - "portainer.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      - "homeassistant.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      - "static.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      - "traefik.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      - "zigbee2mqtt.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      - "home.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      - "wud.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+
+  # Authelia (Lite) - Self-Hosted Single Sign-On and Two-Factor Authentication
+  authelia:
+    <<: *common-keys-core # See EXTENSION FIELDS at the top
+    container_name: authelia
+    image: authelia/authelia:$CONTAINER_AUTHELIA_TAG
+    restart: always
+    networks:
+      - t2_proxy
+    volumes:
+      - $DOCKERDIR/volumes/authelia:/config
+    environment:
+      - TZ=$TZ
+      - AUTHELIA_JWT_SECRET_FILE=/run/secrets/authelia_jwt_secret
+      - AUTHELIA_SESSION_SECRET_FILE=/run/secrets/authelia_session_secret
+      - AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE=/run/secrets/authelia_storage_encryption_key
+      - AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE=/run/secrets/authelia_identity_providers_oidc_hmac_secret_file
+      - AUTHELIA_IDENTITY_PROVIDERS_OIDC_ISSUER_CERTIFICATE_CHAIN_FILE=/run/secrets/authelia_identity_providers_oidc_issuer_certificate_chain_file
+      - AUTHELIA_IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY_FILE=/run/secrets/authelia_identity_providers_oidc_issuer_private_key_file
+    secrets:
+      - authelia_jwt_secret
+      - authelia_session_secret
+      - authelia_storage_encryption_key
+      - authelia_identity_providers_oidc_hmac_secret_file
+      - authelia_identity_providers_oidc_issuer_certificate_chain_file
+      - authelia_identity_providers_oidc_issuer_private_key_file
+    labels:
+      - 'wud.tag.include=^\d+\.\d+\.\d+$$'
+      - 'wud.link.template=https://github.com/tauthelia/authelia/releases/tag/v$${major}.$${minor}.$${patch}'
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.authelia-rtr.entrypoints=https"
+      - "traefik.http.routers.authelia-rtr.rule=HostHeader(`auth.$DOMAINNAME_CLOUD_SERVER`)"
+      ## Middlewares
+      - "traefik.http.routers.authelia-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.authelia-rtr.service=authelia-svc"
+      - "traefik.http.services.authelia-svc.loadbalancer.server.port=9091"
+  
+  # https://www.home-assistant.io/installation/raspberrypi
+  homeassistant:
+    <<: *common-keys-apps-hostmode # See EXTENSION FIELDS at the top
+    container_name: homeassistant
+    image: homeassistant/home-assistant:$CONTAINER_HOME_ASSISTANT_TAG
+    # depends_on:
+    #   - influxdb
+    network_mode: host
+    environment:
+      - TZ=Australia/Sydney
+    volumes:
+      - $DOCKERDIR/volumes/homeassistant:/config
+    labels:
+      - 'wud.tag.include=^\d+\.\d+\.\d+$$'
+      - 'wud.link.template=https://github.com/home-assistant/core/releases/tag/$${major}.$${minor}.$${patch}'
+      - "traefik.enable=true"
+      # traefik config in file as url cannot be set via label and HA needs to be host mode
+
+  # https://www.homeautomationguy.io/home-assistant-tips/installing-docker-home-assistant-and-portainer-on-ubuntu-linux/
+  portainer:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
+    container_name: portainer
+    image: portainer/portainer-ce:$CONTAINER_PORTAINER_TAG
+    restart: always
+    command: -H tcp://socket-proxy:2375
+    environment:
+      - TZ=$TZ
+      # - DOCKER_HOST=socket-proxy:2375
+    volumes:
+      - $DOCKERDIR/volumes/portainer:/data
+    networks:
+      - t2_proxy
+      - socket_proxy
+    ports:
+      - 9000:9000/tcp # don't need to others
+    logging:
+      driver: none
+    labels:
+      - 'wud.tag.include=^\d+\.\d+\.\d+$$'
+      - 'wud.link.template=https://github.com/portainer/portainer/releases/tag/$${major}.$${minor}.$${patch}'
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.portainer-rtr.entrypoints=https"
+      - "traefik.http.routers.portainer-rtr.priority=1"
+      - "traefik.http.routers.portainer-rtr.rule=Host(`portainer.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.portainer-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.portainer-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.portainer-rtr.service=portainer-svc"
+      - "traefik.http.services.portainer-svc.loadbalancer.server.port=9000"
+      ## Homer access to API - Allow access without auth to /api/ using using homer
+      ## HTTP Routers
+      - "traefik.http.routers.portainer-api-rtr.entrypoints=https"
+      - "traefik.http.routers.portainer-api-rtr.priority=99"
+      - "traefik.http.routers.portainer-api-rtr.rule=Host(`portainer.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.0.0/16`) && PathPrefix(`/api/`) && Headers(`Origin`,`https://home.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.portainer-api-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.portainer-api-rtr.middlewares=middlewares-api-no-auth@file,chain-no-auth@file"
+      ## HTTP Services
+      - "traefik.http.routers.portainer-api-rtr.service=portainer-svc"
+    extra_hosts:
+      - "auth.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP" # required for oidc auth
+
+  static-web-server:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
+    container_name: static-web-sever
+    image: joseluisq/static-web-server:$CONTAINER_STATIC_WEB_SERVER_TAG
+    volumes:
+      - $DOCKERDIR/volumes/static-web-server/public:/public
+    logging:
+      driver: none
+    networks:
+      - t2_proxy
+    labels:
+      - 'wud.tag.include=^\d+\.\d+\.\d+$$'
+      - 'wud.link.template=https://github.com/static-web-server/static-web-server/releases/tag/v$${major}.$${minor}.$${patch}'
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.staticserver-rtr.entrypoints=https"
+      - "traefik.http.routers.staticserver-rtr.priority=1"
+      - "traefik.http.routers.staticserver-rtr.rule=Host(`static.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.staticserver-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.staticserver-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.staticserver-rtr.service=staticserver-svc"
+      - "traefik.http.services.staticserver-svc.loadbalancer.server.port=80"
+      ## LOCAL ACCESS - Allow local (home) access without auth
+      ## HTTP Routers
+      - "traefik.http.routers.staticserver-api-rtr.entrypoints=https"
+      - "traefik.http.routers.staticserver-api-rtr.priority=99"
+      - "traefik.http.routers.staticserver-api-rtr.rule=Host(`static.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.0.0/16`)"
+      - "traefik.http.routers.staticserver-api-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.staticserver-api-rtr.middlewares=chain-no-auth@file"
+      ## HTTP Services
+      - "traefik.http.routers.staticserver-api-rtr.service=staticserver-svc"
+
+  duplicacy:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
+    container_name: duplicacy
+    hostname: 4eb908d4f748 # for licensing
+    image: saspus/duplicacy-web:$CONTAINER_DUPLICACY_WEB_TAG
+    environment:
+      - TZ=$TZ
+      - USR_ID=0
+      - GRP_ID=0
+    volumes:
+      - $DOCKERDIR/volumes/duplicacy/config:/config
+      - $DOCKERDIR/volumes/duplicacy/logs:/logs
+      - $DOCKERDIR/volumes/duplicacy/cache:/cache
+      - ./:/source/docker:ro
+      - /etc/systemd/system/docker-compose-app.service:/source/etc/systemd/system/docker-compose-app.service:ro
+      - /etc/docker/daemon.json:/source/etc/docker/daemon.json:ro
+      - /opt/dockge:/source/opt/dockge:ro
+    networks:
+      - t2_proxy
+    labels:
+      # https://bitbucket.org/saspus/duplicacy-web-docker-container/src/mini/
+      - 'wud.tag.include=^v\d+\.\d+\.\d+$$'
+      # - 'wud.link.template=https://github.com/Koenkk/zigbee2mqtt/releases/tag/$${major}.$${minor}.$${patch}'
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.duplicacy-rtr.entrypoints=https"
+      - "traefik.http.routers.duplicacy-rtr.rule=Host(`duplicacy.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.duplicacy-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.duplicacy-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.duplicacy-rtr.service=duplicacy-svc"
+      - "traefik.http.services.duplicacy-svc.loadbalancer.server.port=3875"
+    extra_hosts:
+      - "homeassistant.$DOMAINNAME_CLOUD_SERVER:192.168.90.254"
+
+  influxdb:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
+    container_name: influxdb
+    image: influxdb:$CONTAINER_INFLUXDB_TAG
+    environment:
+      - TZ=$TZ
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME_FILE=/run/secrets/influxdb_user
+      - DOCKER_INFLUXDB_INIT_PASSWORD_FILE=/run/secrets/influxdb_password
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN_FILE=/run/secrets/influxdb_admin_token
+      - DOCKER_INFLUXDB_INIT_ORG=${INFLUXDB_ORG}
+      - DOCKER_INFLUXDB_INIT_BUCKET=${INFLUXDB_BUCKET}
+      # - DOCKER_INFLUXDB_INIT_RETENTION=2y
+    secrets:
+      - influxdb_user
+      - influxdb_password
+      - influxdb_admin_token
+    networks:
+      t2_proxy:
+        ipv4_address: 192.168.90.253 # You can specify a static IP
+    volumes:
+      - $DOCKERDIR/volumes/influxdb/data:/var/lib/influxdb2
+      - $DOCKERDIR/volumes/influxdb/config/:/etc/influxdb2
+    ulimits:
+      nofile:
+        soft: 32768
+        hard: 32768
+    labels:
+      - 'wud.tag.include=^\d+\.\d+\.\d+$$'
+      # - 'wud.link.template=https://github.com/Koenkk/zigbee2mqtt/releases/tag/$${major}.$${minor}.$${patch}'
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.influxdb-rtr.entrypoints=https"
+      - "traefik.http.routers.influxdb-rtr.rule=Host(`influxdb.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.influxdb-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.influxdb-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.influxdb-rtr.service=influxdb-svc"
+      - "traefik.http.services.influxdb-svc.loadbalancer.server.port=8086"
+
+  # Zigbee & MQTT
+  mosquitto:
+    # TODO: mosquito tls (really not needed on a private hosted based network)
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
+    container_name: mosquitto
+    image: eclipse-mosquitto:$CONTAINER_MOSQUITTO_TAG
+    networks:
+      t2_proxy:
+        ipv4_address: 192.168.90.252 # You can specify a static IP
+    volumes:
+      - $DOCKERDIR/volumes/mosquitto/config:/mosquitto/config
+    ports:
+      - 1883:1883/tcp
+      # - 9001:9001 # not using websockets
+    command: "mosquitto -c /mosquitto/config/mosquitto.conf"
+    labels:
+      - 'wud.tag.include=^\d+\.\d+\.\d+$$'
+      - 'wud.link.template=https://github.com/eclipse/mosquitto/releases/tag/v$${major}.$${minor}.$${patch}'
+      # - "traefik.enable=false"
+
+  zigbee2mqtt:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
+    container_name: zigbee2mqtt
+    image: koenkk/zigbee2mqtt:$CONTAINER_ZIGBEE2MQTT_TAG
+    volumes:
+      - $DOCKERDIR/volumes/zigbee2mqtt/data:/app/data
+      - /run/udev:/run/udev:ro
+    ports:
+      - 8080:8080/tcp
+    environment:
+      - TZ=$TZ
+      - ZIGBEE2MQTT_CONFIG_permit_join=true
+    secrets:
+      - zigbee2mqtt_secrets.yaml
+    devices:
+      - /dev/ttyUSB0:/dev/ttyUSB0
+    labels:
+      - 'wud.tag.include=^\d+\.\d+\.\d+$$'
+      - 'wud.link.template=https://github.com/Koenkk/zigbee2mqtt/releases/tag/v$${major}.$${minor}.$${patch}'
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.zigbee2mqtt-rtr.entrypoints=https"
+      - "traefik.http.routers.zigbee2mqtt-rtr.rule=Host(`zigbee2mqtt.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.zigbee2mqtt-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.zigbee2mqtt-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.zigbee2mqtt-rtr.service=zigbee2mqtt-svc"
+      - "traefik.http.services.zigbee2mqtt-svc.loadbalancer.server.port=8080"
+
+  # NodeRED
+  node-red:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
+    image: nodered/node-red:$CONTAINER_NODE_RED_TAG
+    container_name: node-red
+    environment:
+      - TZ=$TZ
+    ports:
+      - "1880:1880/tcp"
+    volumes:
+      - $DOCKERDIR/volumes/nodered/data:/data
+    labels:
+      - 'wud.tag.include=^\d+\.\d+\.\d+-18-minimal$$' # node18
+      - 'wud.link.template=https://github.com/node-red/node-red/releases/tag/v$${major}.$${minor}.$${patch}'
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.nodered-rtr.entrypoints=https"
+      - "traefik.http.routers.nodered-rtr.rule=Host(`nodered.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.nodered-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.nodered-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.nodered-rtr.service=nodered-svc"
+      - "traefik.http.services.nodered-svc.loadbalancer.server.port=1880"
+    extra_hosts:
+      - "homeassistant.$DOMAINNAME_CLOUD_SERVER:192.168.90.254"
+
+  # Homer
+  homer:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
+    image: b4bz/homer:$CONTAINER_HOMER_TAG
+    container_name: homer
+    volumes:
+      - $DOCKERDIR/volumes/homer/assets/:/www/assets
+    ports:
+      - 8081:8080/tcp
+    user: 1000:1000 # default
+    environment:
+      - INIT_ASSETS=1 # default
+    labels:
+      - 'wud.tag.include=^v\d+\.\d+\.\d+$$'
+      - 'wud.link.template=https://github.com/b4bz/homer/releases/tag/$${major}.$${minor}.$${patch}'
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.homer-rtr.entrypoints=https"
+      - "traefik.http.routers.homer-rtr.rule=Host(`home.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.homer-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.homer-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.homer-rtr.service=homer-svc"
+      - "traefik.http.services.homer-svc.loadbalancer.server.port=8080"
+
+  # Docker Socket Proxy - Security Enchanced Proxy for Docker Socket
+  # using node-red
+  # rss-proxy:
+  #   <<: *common-keys-core # See EXTENSION FIELDS at the top
+  #   container_name: rss-proxy
+  #   image: ghcr.io/jacobfg/rss_proxy:0.0.4
+  #   networks:
+  #     t2_proxy:
+  #       ipv4_address: 192.168.90.251
+  #   ports:
+  #     - 127.0.0.1:8888:8888/tcp
+  #   labels:
+  #     - 'wud.tag.include=^\d+\.\d+\.\d+$$'
+  #     - 'wud.link.template=https://github.com/jacobfg/rss_proxy/releases/tag/$${major}.$${minor}.$${patch}'
+  #     - "traefik.enable=false"
+
+  ############################# MAINTENANCE
+  # Wud self tracking :)
+  # TODO: use tcp://socket-proxy:2375
+  whatsupdocker:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
+    image: fmartinou/whats-up-docker:$CONTAINER_WHATS_UP_DOCKER_TAG
+    container_name: whatsupdocker
+    networks:
+      - t2_proxy
+      - socket_proxy
+    volumes:
+      # - /var/run/docker.sock:/var/run/docker.sock
+      - $DOCKERDIR/volumes/whatsupdocker/store:/store
+    ports:
+      - 3000:3000
+    secrets:
+      - wud_auth_oidc_authelia_clientid
+      - wud_auth_oidc_authelia_clientsecret
+      - wud_trigger_mqtt_mosquitto_user
+      - wud_trigger_mqtt_mosquitto_password
+      - wud_trigger_mqtt_mosquitto_url
+    environment:
+      # Disable authelia auth in wud, until API keys can be used
+      # traefik will still enforce authentication
+      # - WUD_AUTH_OIDC_AUTHELIA_CLIENTID__FILE=/run/secrets/wud_auth_oidc_authelia_clientid
+      # - WUD_AUTH_OIDC_AUTHELIA_CLIENTSECRET__FILE=/run/secrets/wud_auth_oidc_authelia_clientsecret
+      # - WUD_AUTH_OIDC_AUTHELIA_DISCOVERY=$WUD_AUTH_OIDC_AUTHELIA_DISCOVERY
+      # - WUD_AUTH_OIDC_AUTHELIA_REDIRECT=true
+      # - WUD_PUBLIC_URL=$WUD_PUBLIC_URL
+      - WUD_LOG_LEVEL=$WUD_LOG_LEVEL
+      - WUD_TRIGGER_MQTT_MOSQUITTO_USER__FILE=/run/secrets/wud_trigger_mqtt_mosquitto_user
+      - WUD_TRIGGER_MQTT_MOSQUITTO_PASSWORD__FILE=/run/secrets/wud_trigger_mqtt_mosquitto_password
+      - WUD_TRIGGER_MQTT_MOSQUITTO_URL__FILE=/run/secrets/wud_trigger_mqtt_mosquitto_url
+      - WUD_TRIGGER_MQTT_MOSQUITTO_HASS_ENABLED=$WUD_TRIGGER_MQTT_MOSQUITTO_HASS_ENABLED
+      - WUD_WATCHER_socketproxy_HOST=socket-proxy
+      - WUD_WATCHER_socketproxy_PORT=2375
+    healthcheck:
+      test: wget --no-verbose --tries=1 --no-check-certificate --spider http://localhost:3000
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 10s       
+    labels:
+      - 'wud.tag.include=^\d+\.\d+\.\d+$$'
+      - 'wud.link.template=https://github.com/fmartinou/whats-up-docker/releases/tag/$${major}.$${minor}.$${patch}'
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.wud-rtr.entrypoints=https"
+      - "traefik.http.routers.wud-rtr.priority=1"
+      - "traefik.http.routers.wud-rtr.rule=Host(`wud.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.wud-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.wud-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.wud-rtr.service=wud-svc"
+      - "traefik.http.services.wud-svc.loadbalancer.server.port=3000"
+      ## LOCAL ACCESS - Allow local (home) access without auth
+      ## HTTP Routers
+      - "traefik.http.routers.wud-api-rtr.entrypoints=https"
+      - "traefik.http.routers.wud-api-rtr.priority=99"
+      - "traefik.http.routers.wud-api-rtr.rule=Host(`wud.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.0.0/16`) && PathPrefix(`/api/containers`) && Method(`GET`)"
+      - "traefik.http.routers.wud-api-rtr.tls=true"
+      ## Middlewares
+      # restrict to GET ?
+      - "traefik.http.routers.wud-api-rtr.middlewares=middlewares-api-no-auth@file,chain-no-auth@file"
+      # HTTP Services
+      - "traefik.http.routers.wud-api-rtr.service=wud-svc"
+
+  esphome:
+    container_name: esphome
+    image: ghcr.io/esphome/esphome:$CONTAINER_ESPHOME_TAG
+    volumes:
+      - $DOCKERDIR/volumes/esphome/config:/config
+      - /etc/localtime:/etc/localtime:ro
+    restart: always
+    # privileged: true # TODO check, needed for USB ?
+    network_mode: host # for discovery
+#    environment:
+#      - USERNAME=test
+#      - PASSWORD=ChangeMe
+    labels:
+      - 'wud.tag.include=^\d+\.\d+\.\d+$$'
+      - 'wud.link.template=https://esphome/esphome/tag/$${major}.$${minor}.$${patch}'
+      - "traefik.enable=true"
