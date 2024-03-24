@@ -6,6 +6,8 @@
     "config:recommended"
   ],
 
+  "autodiscoverFilter": ["jacobfg/homeserver-docker"],
+
   "automerge": true,
   // Run on a monthly schedule to keep interruptions to a minimum,
   // but always open vulnerability-fixing pull requests immediately
