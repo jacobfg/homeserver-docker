@@ -724,11 +724,6 @@ services:
     restart: always
     # privileged: true # TODO check, needed for USB ?
     network_mode: host # for discovery
-#    environment:
-#      - USERNAME=test
-#      - PASSWORD=ChangeMe
     labels:
-      - 'diun.include_tags=^\d+\.\d+\.\d+$$'
-      - 'wud.tag.include=^\d+\.\d+\.\d+$$'
-      - 'wud.link.template=https://esphome/esphome/tag/$${major}.$${minor}.$${patch}'
+      - 'wud.watch=false'
       - "traefik.enable=true"
