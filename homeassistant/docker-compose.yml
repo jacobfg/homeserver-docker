@@ -726,4 +726,5 @@ services:
     network_mode: host # for discovery
     labels:
       - 'wud.watch=false'
+      - 'diun.enable=false'
       - "traefik.enable=true"
