@@ -717,7 +717,7 @@ services:
 
   esphome:
     container_name: esphome
-    image: ghcr.io/esphome/esphome:2023.12.9
+    image: ghcr.io/esphome/esphome:2023.12.9@sha256:310919056ef06f35aa815efce8b2c7c160b6adc1bfb7285afccabc432de38d86
     volumes:
       - $DOCKERDIR/volumes/esphome/config:/config
       - /etc/localtime:/etc/localtime:ro
