@@ -34,9 +34,10 @@
   "enabled": true,
   "enabledManagers": ["docker-compose", "github-actions"],
   "packageRules": [
+    // default
     {
       "matchDatasources": ["docker"],
-      "matchPackagePatterns": ["^.*"],
+      // "matchPackagePatterns": ["^.*"],
       // "matchPackageNames": [
       //   "traefik",
       //   "tecnativa/docker-socket-proxy",
@@ -59,7 +60,6 @@
       "matchPackageNames": [
         "ghcr.io/esphome/esphome",
       ],
-      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$",
       "enabled": false,
     },
     {
@@ -74,7 +74,7 @@
     {
       "matchDatasources": ["docker"],
       "matchPackageNames": ["nodered/node-red"],
-      "versioning": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-18-minimal$",
+      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-18-minimal$",
     },
   ]
 }
