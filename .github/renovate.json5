@@ -49,7 +49,7 @@
       //   "koenkk/zigbee2mqtt",
       //   "fmartinou/whats-up-docker",
       //   "ghcr.io/esphome/esphome",
-      ],
+      // ],
       "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$",
       // "automerge": true,
     },
