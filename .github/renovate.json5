@@ -4,6 +4,7 @@
   // Use recommended defaults
   "extends": [
     "config:recommended",
+    ":pinDependencies",
   ],
 
   // "autodiscover": true,
