@@ -30,6 +30,11 @@
   "enabled": true,
   "enabledManagers": ["docker-compose", "github-actions"],
   "packageRules": [
+    // {
+    //   "description": "v prefix workaround for docker",
+    //   "matchDepTypes": ["docker"],
+    //   "versioning": "semver-coerce"
+    // },
     // default
     {
       "matchDatasources": ["docker"],
