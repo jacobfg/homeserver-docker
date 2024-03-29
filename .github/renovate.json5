@@ -3,8 +3,7 @@
 
   // Use recommended defaults
   "extends": [
-    // "config:recommended",
-    // ":pinDependencies",
+    "config:best-practices",
   ],
 
   // "autodiscover": true,
@@ -19,13 +18,9 @@
   // },
 
   "baseBranches": ["main"],
-  // "rebaseWhen": "conflicted",
-
 
   // Add your custom labels to pull requests
   "labels": ["dependencies", "bot"],
-
-  // "automergeStrategy": "rebase",
 
   // Avoid updating to unstable versions
   // "ignoreUnstable": true,
@@ -38,24 +33,9 @@
     // default
     {
       "matchDatasources": ["docker"],
-      // "matchPackagePatterns": ["^.*"],
-      // "matchPackageNames": [
-      //   "traefik",
-      //   "tecnativa/docker-socket-proxy",
-      //   "authelia/authelia",
-      //   "homeassistant/home-assistant",
-      //   "portainer/portainer-ce",
-      //   "joseluisq/static-web-server",
-      //   "influxdb",
-      //   "eclipse-mosquitto",
-      //   "koenkk/zigbee2mqtt",
-      //   "fmartinou/whats-up-docker",
-      //   "ghcr.io/esphome/esphome",
-      // ],
       "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$",
-      // "automerge": true,
     },
-    // same format as above, but I want to be more picky on ESPHome version updates
+    // don't raise PR's managed manually
     {
       "matchDatasources": ["docker"],
       "matchPackageNames": [
@@ -77,5 +57,11 @@
       "matchPackageNames": ["nodered/node-red"],
       "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-18-minimal$",
     },
-  ]
+  ],
+
+  "docker-compose": {
+    "digest": {
+      "enabled": false
+    },
+  },
 }
