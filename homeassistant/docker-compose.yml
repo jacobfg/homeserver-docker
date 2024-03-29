@@ -104,7 +104,7 @@ services:
   traefik:
     <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: traefik
-    image: traefik:2.11.0
+    image: traefik:2.11.0@sha256:0a5157f742d2900389da6ce60ea80cc476801dc951917a993cd848d982f58265
     command: # CLI arguments
       - --global.checkNewVersion=true
       - --global.sendAnonymousUsage=false
@@ -194,7 +194,7 @@ services:
   socket-proxy:
     <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: socket-proxy
-    image: tecnativa/docker-socket-proxy:0.1.1
+    image: tecnativa/docker-socket-proxy:0.1.1@sha256:6c22b9545adc95258af9deffdde6c0ce0a0a70716771e5a4e02d24d1b6e0dda1
     networks:
       socket_proxy:
         ipv4_address: 192.168.91.254 # You can specify a static IP
@@ -244,7 +244,7 @@ services:
   # TODO: try adblock
   blocky:
     <<: *common-keys-core # See EXTENSION FIELDS at the top
-    image: spx01/blocky:v0.22
+    image: spx01/blocky:v0.22@sha256:ba17812054a15b58ac80772afe404e7caa1da8c972f0c9ff7754eb3924fd5f57
     container_name: blocky
     restart: always
     ports:
@@ -274,7 +274,7 @@ services:
   authelia:
     <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: authelia
-    image: authelia/authelia:4.38.6
+    image: authelia/authelia:4.38.6@sha256:06e3153d46b4b6fdb90caf94f2303ab57773016ad025eacd64e00a5576105bbe
     restart: always
     networks:
       - t2_proxy
@@ -313,7 +313,7 @@ services:
   homeassistant:
     <<: *common-keys-apps-hostmode # See EXTENSION FIELDS at the top
     container_name: homeassistant
-    image: homeassistant/home-assistant:2024.3.3
+    image: homeassistant/home-assistant:2024.3.3@sha256:48773146b3b7f7d4811426a33044a322e8e4fcda97b9ed9a6b37d7e5b649af0b
     # depends_on:
     #   - influxdb
     network_mode: host
@@ -332,7 +332,7 @@ services:
   portainer:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
     container_name: portainer
-    image: portainer/portainer-ce:2.20.0
+    image: portainer/portainer-ce:2.20.0@sha256:c9dbbb653515675ad365b2d17ac85f8816840f7a3095e9db68fc807a348ea535
     restart: always
     command: -H tcp://socket-proxy:2375
     environment:
@@ -378,7 +378,7 @@ services:
   static-web-server:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
     container_name: static-web-sever
-    image: joseluisq/static-web-server:2.28.0
+    image: joseluisq/static-web-server:2.28.0@sha256:542265a74fb2b492d8c869d373950a5528ab2ae78982da63f547619480fa839c
     volumes:
       - $DOCKERDIR/volumes/static-web-server/public:/public
     logging:
@@ -415,7 +415,7 @@ services:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
     container_name: duplicacy
     hostname: 4eb908d4f748 # for licensing
-    image: saspus/duplicacy-web:v1.8.0
+    image: saspus/duplicacy-web:v1.8.0@sha256:da97a4cc8d4d8209023313a26731ca9fab1d408bd2f0f878d5db9c87d213230d
     environment:
       - TZ=$TZ
       - USR_ID=0
@@ -451,7 +451,7 @@ services:
   influxdb:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
     container_name: influxdb
-    image: influxdb:2.7.5
+    image: influxdb:2.7.5@sha256:7cdbef826b83bd372668c47d90e1b8e621b2f5e751f895fd81a7dedb2ef2f512
     environment:
       - TZ=$TZ
       - DOCKER_INFLUXDB_INIT_MODE=setup
@@ -495,7 +495,7 @@ services:
     # TODO: mosquito tls (really not needed on a private hosted based network)
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
     container_name: mosquitto
-    image: eclipse-mosquitto:2.0.18
+    image: eclipse-mosquitto:2.0.18@sha256:cb3afd02611b0c58b328196ab00de0158322b4c1e014841fb182d2a0ea3a79b9
     networks:
       t2_proxy:
         ipv4_address: 192.168.90.252 # You can specify a static IP
@@ -514,7 +514,7 @@ services:
   zigbee2mqtt:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
     container_name: zigbee2mqtt
-    image: koenkk/zigbee2mqtt:1.36.0
+    image: koenkk/zigbee2mqtt:1.36.0@sha256:4de1ee53d67a9b4556045c34a2722bfd2348dabbefcb792e862643104d3e9fd0
     volumes:
       - $DOCKERDIR/volumes/zigbee2mqtt/data:/app/data
       - /run/udev:/run/udev:ro
@@ -545,7 +545,7 @@ services:
   # NodeRED
   node-red:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
-    image: nodered/node-red:3.1.8-18-minimal
+    image: nodered/node-red:3.1.8-18-minimal@sha256:154ca2007b8c0a71d46014dcc4e2a443bc0c63da6410298101acce55c5a1848f
     container_name: node-red
     environment:
       - TZ=$TZ
@@ -573,7 +573,7 @@ services:
   # Homer
   homer:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
-    image: b4bz/homer:v23.10.1
+    image: b4bz/homer:v23.10.1@sha256:f6dcbdd3e9c7d05262128b07aa4138bd4df09837f9a98632111913e9a5eb2283
     container_name: homer
     volumes:
       - $DOCKERDIR/volumes/homer/assets/:/www/assets
@@ -618,7 +618,7 @@ services:
   # TODO: use tcp://socket-proxy:2375
   whatsupdocker:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
-    image: fmartinou/whats-up-docker:6.3.0
+    image: fmartinou/whats-up-docker:6.3.0@sha256:dd2f99b06963a1d25f68ce8a7fab1d23a0fb4dbda691118a7dcb662fd7f0b395
     container_name: whatsupdocker
     networks:
       - t2_proxy
@@ -686,7 +686,7 @@ services:
   # TODO: use tcp://socket-proxy:2375
   diun:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
-    image: ghcr.io/crazy-max/diun:4.27.0
+    image: ghcr.io/crazy-max/diun:4.27.0@sha256:f05a07167d0037711bfee87e22253e2ab091b27057b1127427ea86e699f9649a
     container_name: diun
     command: serve
     networks:
