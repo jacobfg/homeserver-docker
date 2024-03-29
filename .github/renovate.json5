@@ -9,7 +9,7 @@
   // "autodiscover": true,
   // "autodiscoverFilter": ["jacobfg/homeserver-docker"],
 
-  "automerge": true,
+  // "automerge": true,
   // Run on a monthly schedule to keep interruptions to a minimum,
   // but always open vulnerability-fixing pull requests immediately
   // "vulnerabilityAlerts": {
@@ -36,18 +36,19 @@
   "packageRules": [
     {
       "matchDatasources": ["docker"],
-      "matchPackageNames": [
-        "traefik",
-        "tecnativa/docker-socket-proxy",
-        "authelia/authelia",
-        "homeassistant/home-assistant",
-        "portainer/portainer-ce",
-        "joseluisq/static-web-server",
-        "influxdb",
-        "eclipse-mosquitto",
-        "koenkk/zigbee2mqtt",
-        "fmartinou/whats-up-docker",
-        "ghcr.io/esphome/esphome",
+      "matchPackagePatterns": ["^.*"],
+      // "matchPackageNames": [
+      //   "traefik",
+      //   "tecnativa/docker-socket-proxy",
+      //   "authelia/authelia",
+      //   "homeassistant/home-assistant",
+      //   "portainer/portainer-ce",
+      //   "joseluisq/static-web-server",
+      //   "influxdb",
+      //   "eclipse-mosquitto",
+      //   "koenkk/zigbee2mqtt",
+      //   "fmartinou/whats-up-docker",
+      //   "ghcr.io/esphome/esphome",
       ],
       "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$",
       // "automerge": true,
