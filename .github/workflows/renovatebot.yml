@@ -2,9 +2,7 @@ name: Renovate Bot
 on:
   workflow_dispatch:
   schedule:
-   # The "*" (#42, asterisk) character has special semantics in YAML, so this
-   # string has to be quoted.
-   - cron: '4 */12 * * *'
+   - cron: '4 */6 * * *'
   # push:
   #   branches:
   #     - dev
