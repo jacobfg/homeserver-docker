@@ -686,7 +686,7 @@ services:
   # TODO: use tcp://socket-proxy:2375
   diun:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
-    image: ghcr.io/crazy-max/diun:4.27.0@sha256:f05a07167d0037711bfee87e22253e2ab091b27057b1127427ea86e699f9649a
+    image: ghcr.io/crazy-max/diun:4.28.0@sha256:28e86edddcfd912e5122327c7df9bff3f313f1b7bcdfaf178c0bca7ffa21e587
     container_name: diun
     command: serve
     networks:
