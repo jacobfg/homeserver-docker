@@ -168,7 +168,6 @@ services:
       - cf_api_key
     labels:
       - 'diun.include_tags=^\d+\.\d+\.\d+$$'
-      - 'wud.watch=true' # why
       - 'wud.tag.include=^\d+\.\d+\.\d+$$'
       - 'wud.link.template=https://github.com/traefik/traefik/releases/tag/v$${major}.$${minor}.$${patch}'
       - "traefik.enable=true"
@@ -238,7 +237,6 @@ services:
       - VOLUMES=1 # Portainer
     labels:
       - 'diun.include_tags=^\d+\.\d+\.\d+$$'
-      - 'wud.watch=true' # why
       - 'wud.tag.include=^\d+\.\d+\.\d+$$'
       - 'wud.link.template=https://github.com/Tecnativa/docker-socket-proxy/releases/tag/v$${major}.$${minor}.$${patch}'
 
@@ -258,7 +256,6 @@ services:
       - $DOCKERDIR/volumes/blocky/config.yml:/app/config.yml
     labels:
       - 'diun.include_tags=^v\d+\.\d+\.\d+$$'
-      - 'wud.watch=true' # why
       - 'wud.tag.include=^v\d+\.\d+\.\d+$$'
       - 'wud.link.template=https://github.com/0xERR0R/blocky/releases/tag/$${major}.$${minor}.$${patch}'
       - "traefik.enable=false"
@@ -300,7 +297,6 @@ services:
       - authelia_identity_providers_oidc_issuer_private_key_file
     labels:
       - 'diun.include_tags=^\d+\.\d+\.\d+$$'
-      - 'wud.watch=true' # why
       - 'wud.tag.include=^\d+\.\d+\.\d+$$'
       - 'wud.link.template=https://github.com/tauthelia/authelia/releases/tag/v$${major}.$${minor}.$${patch}'
       - "traefik.enable=true"
@@ -327,7 +323,6 @@ services:
       - $DOCKERDIR/volumes/homeassistant:/config
     labels:
       - 'diun.include_tags=^\d+\.\d+\.\d+$$'
-      - 'wud.watch=true' # why
       - 'wud.tag.include=^\d+\.\d+\.\d+$$'
       - 'wud.link.template=https://github.com/home-assistant/core/releases/tag/$${major}.$${minor}.$${patch}'
       - "traefik.enable=true"
@@ -354,7 +349,6 @@ services:
       driver: none
     labels:
       - 'diun.include_tags=^\d+\.\d+\.\d+$$'
-      - 'wud.watch=true' # why
       - 'wud.tag.include=^\d+\.\d+\.\d+$$'
       - 'wud.link.template=https://github.com/portainer/portainer/releases/tag/$${major}.$${minor}.$${patch}'
       - "traefik.enable=true"
@@ -393,7 +387,6 @@ services:
       - t2_proxy
     labels:
       - 'diun.include_tags=^\d+\.\d+\.\d+$$'
-      - 'wud.watch=true' # why
       - 'wud.tag.include=^\d+\.\d+\.\d+$$'
       - 'wud.link.template=https://github.com/static-web-server/static-web-server/releases/tag/v$${major}.$${minor}.$${patch}'
       - "traefik.enable=true"
@@ -440,7 +433,6 @@ services:
     labels:
       - 'diun.include_tags=^v\d+\.\d+\.\d+$$'
       # https://bitbucket.org/saspus/duplicacy-web-docker-container/src/mini/
-      - 'wud.watch=true' # why
       - 'wud.tag.include=^v\d+\.\d+\.\d+$$'
       # - 'wud.link.template=https://github.com/Koenkk/zigbee2mqtt/releases/tag/$${major}.$${minor}.$${patch}'
       - "traefik.enable=true"
@@ -485,7 +477,6 @@ services:
         hard: 32768
     labels:
       - 'diun.include_tags=^\d+\.\d+\.\d+$$'
-      - 'wud.watch=true' # why
       - 'wud.tag.include=^\d+\.\d+\.\d+$$'
       # - 'wud.link.template=https://github.com/Koenkk/zigbee2mqtt/releases/tag/$${major}.$${minor}.$${patch}'
       - "traefik.enable=true"
@@ -516,7 +507,6 @@ services:
     command: "mosquitto -c /mosquitto/config/mosquitto.conf"
     labels:
       - 'diun.include_tags=^\d+\.\d+\.\d+$$'
-      - 'wud.watch=true' # why
       - 'wud.tag.include=^\d+\.\d+\.\d+$$'
       - 'wud.link.template=https://github.com/eclipse/mosquitto/releases/tag/v$${major}.$${minor}.$${patch}'
       # - "traefik.enable=false"
@@ -539,7 +529,6 @@ services:
       - /dev/ttyUSB0:/dev/ttyUSB0
     labels:
       - 'diun.include_tags=^\d+\.\d+\.\d+$$'
-      - 'wud.watch=true' # why
       - 'wud.tag.include=^\d+\.\d+\.\d+$$'
       - 'wud.link.template=https://github.com/Koenkk/zigbee2mqtt/releases/tag/v$${major}.$${minor}.$${patch}'
       - "traefik.enable=true"
@@ -566,7 +555,6 @@ services:
       - $DOCKERDIR/volumes/nodered/data:/data
     labels:
       - 'diun.include_tags=^\d+\.\d+\.\d+-18-minimal$$' # node18
-      - 'wud.watch=true' # why
       - 'wud.tag.include=^\d+\.\d+\.\d+-18-minimal$$' # node18
       - 'wud.link.template=https://github.com/node-red/node-red/releases/tag/v$${major}.$${minor}.$${patch}'
       - "traefik.enable=true"
@@ -596,7 +584,6 @@ services:
       - INIT_ASSETS=1 # default
     labels:
       - 'diun.include_tags=^v\d+\.\d+\.\d+$$'
-      - 'wud.watch=true' # why
       - 'wud.tag.include=^v\d+\.\d+\.\d+$$'
       - 'wud.link.template=https://github.com/b4bz/homer/releases/tag/$${major}.$${minor}.$${patch}'
       - "traefik.enable=true"
@@ -670,7 +657,6 @@ services:
       start_period: 10s       
     labels:
       - 'diun.include_tags=^\d+\.\d+\.\d+$$'
-      - 'wud.watch=true' # why
       - 'wud.tag.include=^\d+\.\d+\.\d+$$'
       - 'wud.link.template=https://github.com/fmartinou/whats-up-docker/releases/tag/$${major}.$${minor}.$${patch}'
       - "traefik.enable=true"
@@ -726,7 +712,6 @@ services:
       - DIUN_NOTIF_MQTT_PASSWORDFILE=/run/secrets/diun_mqtt_mosquitto_password
     labels:
       - 'diun.include_tags=^\d+\.\d+\.\d+$$'
-      - 'wud.watch=true' # why
       - 'wud.tag.include=^\d+\.\d+\.\d+$$'
       - 'wud.link.template=https://github.com/fmartinou/whats-up-docker/releases/tag/$${major}.$${minor}.$${patch}'
 
