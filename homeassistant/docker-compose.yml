@@ -63,6 +63,8 @@ secrets:
     file: $SECRETSDIR/diun_mqtt_mosquitto_user
   diun_mqtt_mosquitto_password:
     file: $SECRETSDIR/diun_mqtt_mosquitto_password
+  git_hash:
+    file: /opt/docker/github/homeserver-docker/.git/refs/heads/main
 
 ########################### EXTENSION FIELDS
 # Helps eliminate repetition of sections
@@ -321,6 +323,8 @@ services:
       - TZ=Australia/Sydney
     volumes:
       - $DOCKERDIR/volumes/homeassistant:/config
+    secrets:
+      - git_hash
     labels:
       - 'diun.include_tags=^\d+\.\d+\.\d+$$'
       - 'wud.tag.include=^\d+\.\d+\.\d+$$'
@@ -350,6 +354,7 @@ services:
     labels:
       - 'diun.include_tags=^\d+\.\d+\.\d+$$'
       - 'wud.tag.include=^\d+\.\d+\.\d+$$'
+      - 'wud.tag.transform=^(\d+\.\d+\.\d+)@.*$$ => $$1'
       - 'wud.link.template=https://github.com/portainer/portainer/releases/tag/$${major}.$${minor}.$${patch}'
       - "traefik.enable=true"
       ## HTTP Routers
