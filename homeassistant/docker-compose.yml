@@ -49,20 +49,6 @@ secrets:
     file: $SECRETSDIR/influxdb_admin_token
   zigbee2mqtt_secrets.yaml:
     file: $SECRETSDIR/zigbee2mqtt_secrets.yaml
-  # wud_auth_oidc_authelia_clientid:
-  #   file: $SECRETSDIR/wud_auth_oidc_authelia_clientid
-  # wud_auth_oidc_authelia_clientsecret:
-  #   file: $SECRETSDIR/wud_auth_oidc_authelia_clientsecret
-  # wud_trigger_mqtt_mosquitto_user:
-  #   file: $SECRETSDIR/wud_trigger_mqtt_mosquitto_user
-  # wud_trigger_mqtt_mosquitto_password:
-  #   file: $SECRETSDIR/wud_trigger_mqtt_mosquitto_password
-  # wud_trigger_mqtt_mosquitto_url:
-  #   file: $SECRETSDIR/wud_trigger_mqtt_mosquitto_url
-  # diun_mqtt_mosquitto_user:
-  #   file: $SECRETSDIR/diun_mqtt_mosquitto_user
-  # diun_mqtt_mosquitto_password:
-  #   file: $SECRETSDIR/diun_mqtt_mosquitto_password
   git_hash:
     file: /opt/docker/github/homeserver-docker/.git/refs/heads/main
 
@@ -169,9 +155,6 @@ services:
       - cf_email
       - cf_api_key
     labels:
-      # - 'diun.include_tags=^\d+\.\d+\.\d+$$'
-      # - 'wud.tag.include=^\d+\.\d+\.\d+$$'
-      # - 'wud.link.template=https://github.com/traefik/traefik/releases/tag/v$${major}.$${minor}.$${patch}'
       - "traefik.enable=true"
       # # HTTP-to-HTTPS Redirect
       # - "traefik.http.routers.http-catchall.entrypoints=http"
@@ -223,7 +206,7 @@ services:
       - BUILD=0
       - COMMIT=0
       - CONFIGS=0
-      - CONTAINERS=1 # Traefik, portainer, WUD, etc.
+      - CONTAINERS=1 # Traefik, portainer, etc.
       - DISTRIBUTION=0
       - EXEC=0
       - IMAGES=1 # Portainer
@@ -238,9 +221,6 @@ services:
       - TASKS=1 # Portainer
       - VOLUMES=1 # Portainer
     # labels:
-      # - 'diun.include_tags=^\d+\.\d+\.\d+$$'
-      # - 'wud.tag.include=^\d+\.\d+\.\d+$$'
-      # - 'wud.link.template=https://github.com/Tecnativa/docker-socket-proxy/releases/tag/v$${major}.$${minor}.$${patch}'
 
   # Light Split Horizon / Ad Blocking DNS Server
   # TODO: try adblock
@@ -257,9 +237,6 @@ services:
     volumes:
       - $DOCKERDIR/volumes/blocky/config.yml:/app/config.yml
     labels:
-      # - 'diun.include_tags=^v\d+\.\d+\.\d+$$'
-      # - 'wud.tag.include=^v\d+\.\d+\.\d+$$'
-      # - 'wud.link.template=https://github.com/0xERR0R/blocky/releases/tag/$${major}.$${minor}.$${patch}'
       - "traefik.enable=false"
     extra_hosts:
       - "auth.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
@@ -270,7 +247,6 @@ services:
       - "traefik.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
       - "zigbee2mqtt.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
       - "home.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
-      # - "wud.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
 
   # Authelia (Lite) - Self-Hosted Single Sign-On and Two-Factor Authentication
   authelia:
@@ -298,9 +274,6 @@ services:
       - authelia_identity_providers_oidc_issuer_certificate_chain_file
       - authelia_identity_providers_oidc_issuer_private_key_file
     labels:
-      # - 'diun.include_tags=^\d+\.\d+\.\d+$$'
-      # - 'wud.tag.include=^\d+\.\d+\.\d+$$'
-      # - 'wud.link.template=https://github.com/tauthelia/authelia/releases/tag/v$${major}.$${minor}.$${patch}'
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.authelia-rtr.entrypoints=https"
@@ -326,9 +299,6 @@ services:
     secrets:
       - git_hash
     labels:
-      # - 'diun.include_tags=^\d+\.\d+\.\d+$$'
-      # - 'wud.tag.include=^\d+\.\d+\.\d+$$'
-      # - 'wud.link.template=https://github.com/home-assistant/core/releases/tag/$${major}.$${minor}.$${patch}'
       - "traefik.enable=true"
       # traefik config in file as url cannot be set via label and HA needs to be host mode
 
@@ -352,10 +322,6 @@ services:
     logging:
       driver: none
     labels:
-      # - 'diun.include_tags=^\d+\.\d+\.\d+$$'
-      # - 'wud.tag.include=^\d+\.\d+\.\d+$$'
-      # - 'wud.tag.transform=^(\d+\.\d+\.\d+)@.*$$ => $$1'
-      # - 'wud.link.template=https://github.com/portainer/portainer/releases/tag/$${major}.$${minor}.$${patch}'
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.portainer-rtr.entrypoints=https"
@@ -391,9 +357,6 @@ services:
     networks:
       - t2_proxy
     labels:
-      # - 'diun.include_tags=^\d+\.\d+\.\d+$$'
-      # - 'wud.tag.include=^\d+\.\d+\.\d+$$'
-      # - 'wud.link.template=https://github.com/static-web-server/static-web-server/releases/tag/v$${major}.$${minor}.$${patch}'
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.staticserver-rtr.entrypoints=https"
@@ -436,10 +399,6 @@ services:
     networks:
       - t2_proxy
     labels:
-      # - 'diun.include_tags=^v\d+\.\d+\.\d+$$'
-      # https://bitbucket.org/saspus/duplicacy-web-docker-container/src/mini/
-      - 'wud.tag.include=^v\d+\.\d+\.\d+$$'
-      # - 'wud.link.template=https://github.com/Koenkk/zigbee2mqtt/releases/tag/$${major}.$${minor}.$${patch}'
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.duplicacy-rtr.entrypoints=https"
@@ -481,9 +440,6 @@ services:
         soft: 32768
         hard: 32768
     labels:
-      # - 'diun.include_tags=^\d+\.\d+\.\d+$$'
-      # - 'wud.tag.include=^\d+\.\d+\.\d+$$'
-      # - 'wud.link.template=https://github.com/Koenkk/zigbee2mqtt/releases/tag/$${major}.$${minor}.$${patch}'
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.influxdb-rtr.entrypoints=https"
@@ -511,10 +467,7 @@ services:
       # - 9001:9001 # not using websockets
     command: "mosquitto -c /mosquitto/config/mosquitto.conf"
     labels:
-      # - 'diun.include_tags=^\d+\.\d+\.\d+$$'
-      # - 'wud.tag.include=^\d+\.\d+\.\d+$$'
-      # - 'wud.link.template=https://github.com/eclipse/mosquitto/releases/tag/v$${major}.$${minor}.$${patch}'
-      # - "traefik.enable=false"
+      - "traefik.enable=false"
 
   zigbee2mqtt:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
@@ -533,9 +486,6 @@ services:
     devices:
       - /dev/ttyUSB0:/dev/ttyUSB0
     labels:
-      # - 'diun.include_tags=^\d+\.\d+\.\d+$$'
-      # - 'wud.tag.include=^\d+\.\d+\.\d+$$'
-      # - 'wud.link.template=https://github.com/Koenkk/zigbee2mqtt/releases/tag/v$${major}.$${minor}.$${patch}'
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.zigbee2mqtt-rtr.entrypoints=https"
@@ -559,9 +509,6 @@ services:
     volumes:
       - $DOCKERDIR/volumes/nodered/data:/data
     labels:
-      # - 'diun.include_tags=^\d+\.\d+\.\d+-18-minimal$$' # node18
-      # - 'wud.tag.include=^\d+\.\d+\.\d+-18-minimal$$' # node18
-      # - 'wud.link.template=https://github.com/node-red/node-red/releases/tag/v$${major}.$${minor}.$${patch}'
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.nodered-rtr.entrypoints=https"
@@ -588,9 +535,6 @@ services:
     environment:
       - INIT_ASSETS=1 # default
     labels:
-      # - 'diun.include_tags=^v\d+\.\d+\.\d+$$'
-      # - 'wud.tag.include=^v\d+\.\d+\.\d+$$'
-      # - 'wud.link.template=https://github.com/b4bz/homer/releases/tag/$${major}.$${minor}.$${patch}'
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.homer-rtr.entrypoints=https"
@@ -602,126 +546,6 @@ services:
       - "traefik.http.routers.homer-rtr.service=homer-svc"
       - "traefik.http.services.homer-svc.loadbalancer.server.port=8080"
 
-  # Docker Socket Proxy - Security Enchanced Proxy for Docker Socket
-  # using node-red
-  # rss-proxy:
-  #   <<: *common-keys-core # See EXTENSION FIELDS at the top
-  #   container_name: rss-proxy
-  #   image: ghcr.io/jacobfg/rss_proxy:0.0.4
-  #   networks:
-  #     t2_proxy:
-  #       ipv4_address: 192.168.90.251
-  #   ports:
-  #     - 127.0.0.1:8888:8888/tcp
-  #   labels:
-  #     - 'wud.tag.include=^\d+\.\d+\.\d+$$'
-  #     - 'wud.link.template=https://github.com/jacobfg/rss_proxy/releases/tag/$${major}.$${minor}.$${patch}'
-  #     - "traefik.enable=false"
-
-  ############################# MAINTENANCE
-  # Wud self tracking :)
-  # # TODO: use tcp://socket-proxy:2375
-  # whatsupdocker:
-  #   <<: *common-keys-apps # See EXTENSION FIELDS at the top
-  #   image: fmartinou/whats-up-docker:6.3.0@sha256:dd2f99b06963a1d25f68ce8a7fab1d23a0fb4dbda691118a7dcb662fd7f0b395
-  #   container_name: whatsupdocker
-  #   networks:
-  #     - t2_proxy
-  #     - socket_proxy
-  #   volumes:
-  #     # - /var/run/docker.sock:/var/run/docker.sock
-  #     - $DOCKERDIR/volumes/whatsupdocker/store:/store
-  #   ports:
-  #     - 3000:3000
-  #   secrets:
-  #     - wud_auth_oidc_authelia_clientid
-  #     - wud_auth_oidc_authelia_clientsecret
-  #     - wud_trigger_mqtt_mosquitto_user
-  #     - wud_trigger_mqtt_mosquitto_password
-  #     - wud_trigger_mqtt_mosquitto_url
-  #   environment:
-  #     # Disable authelia auth in wud, until API keys can be used
-  #     # traefik will still enforce authentication
-  #     # - WUD_AUTH_OIDC_AUTHELIA_CLIENTID__FILE=/run/secrets/wud_auth_oidc_authelia_clientid
-  #     # - WUD_AUTH_OIDC_AUTHELIA_CLIENTSECRET__FILE=/run/secrets/wud_auth_oidc_authelia_clientsecret
-  #     # - WUD_AUTH_OIDC_AUTHELIA_DISCOVERY=$WUD_AUTH_OIDC_AUTHELIA_DISCOVERY
-  #     # - WUD_AUTH_OIDC_AUTHELIA_REDIRECT=true
-  #     # - WUD_PUBLIC_URL=$WUD_PUBLIC_URL
-  #     - WUD_LOG_LEVEL=$WUD_LOG_LEVEL
-  #     - WUD_TRIGGER_MQTT_MOSQUITTO_USER__FILE=/run/secrets/wud_trigger_mqtt_mosquitto_user
-  #     - WUD_TRIGGER_MQTT_MOSQUITTO_PASSWORD__FILE=/run/secrets/wud_trigger_mqtt_mosquitto_password
-  #     - WUD_TRIGGER_MQTT_MOSQUITTO_URL__FILE=/run/secrets/wud_trigger_mqtt_mosquitto_url
-  #     - WUD_TRIGGER_MQTT_MOSQUITTO_HASS_ENABLED=$WUD_TRIGGER_MQTT_MOSQUITTO_HASS_ENABLED
-  #     - WUD_WATCHER_socketproxy_HOST=socket-proxy
-  #     - WUD_WATCHER_socketproxy_PORT=2375
-  #     - WUD_WATCHER_socketproxy_WATCHDIGEST=true
-  #   healthcheck:
-  #     test: wget --no-verbose --tries=1 --no-check-certificate --spider http://localhost:3000
-  #     interval: 10s
-  #     timeout: 10s
-  #     retries: 3
-  #     start_period: 10s       
-  #   labels:
-  #     # - 'diun.include_tags=^\d+\.\d+\.\d+$$'
-  #     - 'wud.tag.include=^\d+\.\d+\.\d+$$'
-  #     - 'wud.link.template=https://github.com/fmartinou/whats-up-docker/releases/tag/$${major}.$${minor}.$${patch}'
-  #     - "traefik.enable=true"
-  #     ## HTTP Routers
-  #     - "traefik.http.routers.wud-rtr.entrypoints=https"
-  #     - "traefik.http.routers.wud-rtr.priority=1"
-  #     - "traefik.http.routers.wud-rtr.rule=Host(`wud.$DOMAINNAME_CLOUD_SERVER`)"
-  #     - "traefik.http.routers.wud-rtr.tls=true"
-  #     ## Middlewares
-  #     - "traefik.http.routers.wud-rtr.middlewares=chain-authelia@file"
-  #     ## HTTP Services
-  #     - "traefik.http.routers.wud-rtr.service=wud-svc"
-  #     - "traefik.http.services.wud-svc.loadbalancer.server.port=3000"
-  #     ## LOCAL ACCESS - Allow local (home) access without auth
-  #     ## HTTP Routers
-  #     - "traefik.http.routers.wud-api-rtr.entrypoints=https"
-  #     - "traefik.http.routers.wud-api-rtr.priority=99"
-  #     - "traefik.http.routers.wud-api-rtr.rule=Host(`wud.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.0.0/16`) && PathPrefix(`/api/containers`) && Method(`GET`)"
-  #     - "traefik.http.routers.wud-api-rtr.tls=true"
-  #     ## Middlewares
-  #     # restrict to GET ?
-  #     - "traefik.http.routers.wud-api-rtr.middlewares=middlewares-api-no-auth@file,chain-no-auth@file"
-  #     # HTTP Services
-  #     - "traefik.http.routers.wud-api-rtr.service=wud-svc"
-
-  # # Wud self tracking :)
-  # # would be nice if it supported HA/MQTT auto discovery and provided per container topics
-  # # TODO: use tcp://socket-proxy:2375
-  # diun:
-  #   <<: *common-keys-apps # See EXTENSION FIELDS at the top
-  #   image: ghcr.io/crazy-max/diun:4.28.0@sha256:28e86edddcfd912e5122327c7df9bff3f313f1b7bcdfaf178c0bca7ffa21e587
-  #   container_name: diun
-  #   command: serve
-  #   networks:
-  #     - t2_proxy
-  #     - socket_proxy
-  #   volumes:
-  #     - $DOCKERDIR/volumes/diun/data:/data
-  #   secrets:
-  #     - diun_mqtt_mosquitto_user
-  #     - diun_mqtt_mosquitto_password
-  #   environment:
-  #     - "TZ=$TZ"
-  #     - "DIUN_WATCH_WORKERS=20"
-  #     - "DIUN_WATCH_SCHEDULE=0 */6 * * *"
-  #     - DIUN_WATCH_JITTER=30s
-  #     - DIUN_PROVIDERS_DOCKER=true
-  #     - DIUN_PROVIDERS_DOCKER_WATCHBYDEFAULT=true
-  #     - DIUN_PROVIDERS_DOCKER_ENDPOINT=tcp://socket-proxy:2375
-  #     - DIUN_NOTIF_MQTT_HOST=192.168.90.252
-  #     - DIUN_NOTIF_MQTT_CLIENT=diun
-  #     - DIUN_NOTIF_MQTT_TOPIC=docker/diun
-  #     - DIUN_NOTIF_MQTT_USERNAMEFILE=/run/secrets/diun_mqtt_mosquitto_user
-  #     - DIUN_NOTIF_MQTT_PASSWORDFILE=/run/secrets/diun_mqtt_mosquitto_password
-  #   labels:
-  #     - 'diun.include_tags=^\d+\.\d+\.\d+$$'
-  #     - 'wud.tag.include=^\d+\.\d+\.\d+$$'
-  #     - 'wud.link.template=https://github.com/fmartinou/whats-up-docker/releases/tag/$${major}.$${minor}.$${patch}'
-
   esphome:
     container_name: esphome
     image: ghcr.io/esphome/esphome:2023.12.9@sha256:310919056ef06f35aa815efce8b2c7c160b6adc1bfb7285afccabc432de38d86
@@ -732,6 +556,4 @@ services:
     # privileged: true # TODO check, needed for USB ?
     network_mode: host # for discovery
     labels:
-      # - 'wud.watch=false'
-      # - 'diun.enable=false'
       - "traefik.enable=true"
