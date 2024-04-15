@@ -55,8 +55,6 @@ secrets:
     file: $SECRETSDIR/wud_trigger_mqtt_mosquitto_user
   wud_trigger_mqtt_mosquitto_password:
     file: $SECRETSDIR/wud_trigger_mqtt_mosquitto_password
-  # wud_trigger_mqtt_mosquitto_url:
-  #   file: $SECRETSDIR/wud_trigger_mqtt_mosquitto_url
 
 ########################### EXTENSION FIELDS
 # Helps eliminate repetition of sections
@@ -552,31 +550,6 @@ services:
       - "traefik.http.routers.homer-rtr.service=homer-svc"
       - "traefik.http.services.homer-svc.loadbalancer.server.port=8080"
 
-  docker2mqtt:
-    <<: *common-keys-apps # See EXTENSION FIELDS at the top
-    container_name: docker2mqtt
-    image: ghcr.io/markxroberts/docker2mqtt@sha256:71df1819ed41a741d5be7f7db5ae2ed20bf8106cc601d349994a2e1fcfbd9394
-    networks:
-      - t2_proxy
-      - socket_proxy
-    user: 1000:1000 # default
-    environment:
-      - DESTROYED_CONTAINER_TTL=86400
-      # - DOCKER2MQTT_HOSTNAME=my_docker_host
-      - HOMEASSISTANT_PREFIX=homeassistant
-      - HOMEASSISTANT_NAME_PREFIX=docker
-      - MQTT_CLIENT_ID=docker2mqtt
-      - MQTT_HOST=192.168.90.252
-      - MQTT_PORT=1883
-      - MQTT_USER=$DOCKER2MQTT_MQTT_USER
-      - MQTT_PASSWD=$DOCKER2MQTT_MQTT_PASS
-      - MQTT_TIMEOUT=30
-      - MQTT_TOPIC_PREFIX=docker
-      - MQTT_QOS=1
-      - DOCKER_HOST=tcp://socket-proxy:2375
-    labels:
-      - "traefik.enable=false"
- 
   esphome:
     container_name: esphome
     image: ghcr.io/esphome/esphome:2023.12.9@sha256:310919056ef06f35aa815efce8b2c7c160b6adc1bfb7285afccabc432de38d86
