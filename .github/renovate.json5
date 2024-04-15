@@ -1,131 +1,78 @@
 {
-  /***** General settings *****/
-
-  // Use recommended defaults
-  "extends": [
-    "config:best-practices",
+  extends: [
+    'config:best-practices',
   ],
-
-  // "autodiscover": true,
-  // "autodiscoverFilter": ["jacobfg/homeserver-docker"],
-
-  // "automerge": true,
-  // Run on a monthly schedule to keep interruptions to a minimum,
-  // but always open vulnerability-fixing pull requests immediately
-  // "vulnerabilityAlerts": {
-  //   "labels": ["security"],
-  //   "schedule": "at any time"
-  // },
-
-  "baseBranches": ["main"],
-
-  // Add your custom labels to pull requests
-  "labels": ["dependencies", "bot"],
-
-  // Avoid updating to unstable versions
-  // "ignoreUnstable": true,
-  // "stabilityDays": 7,
-
-  /***** Docker settings *****/
-  "enabled": true,
-  "enabledManagers": ["docker-compose", "github-actions", "regex"],
-  "packageRules": [
-    // {
-    //   "description": "v prefix workaround for docker",
-    //   "matchDepTypes": ["docker"],
-    //   "versioning": "semver-coerce"
-    // },
-    // default
+  baseBranches: [
+    'main',
+  ],
+  labels: [
+    'dependencies',
+    'bot',
+  ],
+  enabled: true,
+  enabledManagers: [
+    'docker-compose',
+    'github-actions',
+    'custom.regex',
+  ],
+  packageRules: [
     {
-      "matchDatasources": ["docker"],
-      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$",
-      // "versioning": "semver", // does <-- work
-    },
-    // don't raise PR's managed manually
-    {
-      "matchDatasources": ["docker"],
-      "matchPackageNames": [
-        "ghcr.io/esphome/esphome",
+      matchDatasources: [
+        'docker',
       ],
-      "enabled": false,
+      versioning: 'regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$',
     },
     {
-      "matchDatasources": ["docker"],
-      "matchPackageNames": [
-        "spx01/blocky",
-        "saspus/duplicacy-web",
-        "b4bz/homer"
+      matchDatasources: [
+        'docker',
       ],
-      "versioning": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$",
+      matchPackageNames: [
+        'ghcr.io/esphome/esphome',
+      ],
+      enabled: false,
     },
     {
-      "matchDatasources": ["docker"],
-      "matchPackageNames": ["nodered/node-red"],
-      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-18-minimal$",
+      matchDatasources: [
+        'docker',
+      ],
+      matchPackageNames: [
+        'spx01/blocky',
+        'saspus/duplicacy-web',
+        'b4bz/homer',
+      ],
+      versioning: 'regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$',
     },
     {
-      "matchDatasources": ["github-releases"],
-      "matchDepNames": ["tjhorner/upsy-desky"],
-      "versioning": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$"
+      matchDatasources: [
+        'docker',
+      ],
+      matchPackageNames: [
+        'nodered/node-red',
+      ],
+      versioning: 'regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-18-minimal$',
+    },
+    {
+      matchDatasources: [
+        'github-releases',
+      ],
+      matchDepNames: [
+        'tjhorner/upsy-desky',
+      ],
+      versioning: 'regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$',
     },
   ],
-
-  // what to know when traefik or influxdb update the existin tag
-  // "docker-compose": {
-  //   "digest": {
-  //     "enabled": false
-  //   },
-  // },
-
-  // TESTING README.md updates
-  // "docker-compose": {
-  //   "enabled": false,
-  // },
-  // "github-actions": {
-  //   "enabled": false,
-  // },
-
-  "regexManagers": [
+  customManagers: [
     {
-      // "description": "Update Cloudquery Plugins",
-      "fileMatch": ["^README\\.md$"],
-      "matchStrings": [
-        // "(?<currentValue>.*)",
-        "\\| (?<packageName>.*) \\| (?<currentValue>v?\\d+\\.\\d+\\.\\d+) \\|",
+      customType: 'regex',
+      fileMatch: [
+        '^README\\.md$',
       ],
-      // "packageNameTemplate": "tjhorner/upsy-desky",
-      "depNameTemplate": "{{depName}}-{{version}}",
-      // "depNameTemplate": "tjhorner/upsy-desky",
-      "datasourceTemplate": "github-releases",
-      "extractVersionTemplate": "^(?<version>v?\\d+\\.\\d+\\.\\d+)$"
-    }
+      matchStrings: [
+        '\\| (?<packageName>.*) \\| (?<currentValue>v?\\d+\\.\\d+\\.\\d+) \\|',
+      ],
+      depNameTemplate: '{{depName}}-{{version}}',
+      datasourceTemplate: 'github-releases',
+      extractVersionTemplate: '^(?<version>v?\\d+\\.\\d+\\.\\d+)$',
+    },
   ],
-
-  // "regexManagers": [
-  //   {
-
-  //     "fileMatch": ["^cloudquery.yaml$"],
-  //     "matchStrings": [
-  //       "kind:\\s(?<kind>.*)\\nspec:\\n\\s{2}name:.*?\\w\\n\\s{2}path:\\scloudquery\/(?<plugin>.*)\\n\\s{2}version:\\s\"?v(?<currentValue>.*\\d)\"?\\n"
-  //     ],
-  //     "datasourceTemplate": "github-releases",
-  //     "packageNameTemplate": "cloudquery/cloudquery",
-  //     "depNameTemplate": "{{kind}}-{{plugin}}",
-  //     "extractVersionTemplate": "^plugins-{{kind}}-{{plugin}}-v(?<version>.*)$",
-  //     "versioningTemplate": "semver"
-  //   }
-  // ]
-
-  // "customManagers": [
-  //   {
-  //     "customType": "regex",
-  //     "fileMatch": ["^README\\.md$"],
-  //     "matchStrings": [
-  //       "Upsy Desky \\| (?<depName>.*) \\| (?<currentValue>.*) \\|$",
-  //     ],
-  //     "datasourceTemplate": "github-releases",
-  //     // "depNameTemplate": "tjhorner/upsy-desky",
-  //     // "extractVersionTemplate": "^(?<version>.*) \\|$"
-  //   },
-  // ],
 }
