@@ -31,6 +31,7 @@
   "enabledManagers": ["docker-compose", "github-actions"],
   "packageRules": [
     {
+      "matchDatasources": ["docker", "github-actions", "github-releases"],
       "matchUpdateTypes": ["major", "minor", "patch", "digest", "rollback"],
     },
     // {
