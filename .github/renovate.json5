@@ -66,7 +66,7 @@
       customType: 'regex',
       fileMatch: ["^README\\.md$"],
       matchStrings: [
-        "\\| (?<packageName>.*) \\| (?<currentValue>v?\\d+\\.\\d+\\.\\d+) \\|",
+        "^.* \\| (?<packageName>[^\\s].*) \\| (?<currentValue>v?\\d+\\.\\d+\\.\\d+) \\|",
       ],
       depNameTemplate: "{{depName}}-{{version}}",
       datasourceTemplate: "github-releases",
