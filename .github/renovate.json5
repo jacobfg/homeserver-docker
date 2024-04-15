@@ -30,6 +30,9 @@
   "enabled": true,
   "enabledManagers": ["docker-compose", "github-actions"],
   "packageRules": [
+    {
+      "matchUpdateTypes": ["major", "minor", "patch", "digest", "rollback"],
+    },
     // {
     //   "description": "v prefix workaround for docker",
     //   "matchDepTypes": ["docker"],
@@ -85,13 +88,5 @@
       ],
       "datasourceTemplate": "github-releases",
     },
-    // {
-    //   "customType": "regex",
-    //   "fileMatch": ["README.md"],
-    //   "matchStrings": [
-    //     "\| (?<depName>.*) \| (?<currentValue>.*) \|$",
-    //   ],
-    //   "datasourceTemplate": "docker",
-    // }
   ],
 }
