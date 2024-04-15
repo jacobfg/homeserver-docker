@@ -68,11 +68,6 @@
       "matchDepNames": ["tjhorner/upsy-desky"],
       "versioning": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$"
     },
-    // because I don't want docker image updates
-    {
-      "matchDatasources": ["github-releases"],
-      "matchDepNames": ["esphome/esphome"],
-    },
   ],
 
   "docker-compose": {
