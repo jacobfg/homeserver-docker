@@ -61,23 +61,16 @@
     },
   ],
 
-  "docker-compose": {
-    enabled: false,
-  },
-  "github-actions": {
-    enabled: false,
-  },
-
   customManagers: [
     {
       customType: 'regex',
       fileMatch: ["^README\\.md$"],
       matchStrings: [
-        " (?<packageName>[^\\s]*) \\| (?<currentValue>v?\\d+\\.\\d+\\.\\d+) \\|",
+        "github.com\\/(?<packageName>.*) \\| (?<currentValue>v?\\d+\\.\\d+\\.\\d+) \\|",
       ],
-      depNameTemplate: "{{depName}}-{{version}}",
+      // depNameTemplate: "{{depName}}-{{version}}",
       datasourceTemplate: "github-releases",
-      extractVersionTemplate: "^(?<version>v?\\d+\\.\\d+\\.\\d+)$",
+      // extractVersionTemplate: "^(?<version>v?\\d+\\.\\d+\\.\\d+)$",
       // "versioningTemplate": "semver",
     }
   ],
