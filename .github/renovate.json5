@@ -28,7 +28,7 @@
 
   /***** Docker settings *****/
   "enabled": true,
-  "enabledManagers": ["docker-compose", "github-actions"],
+  "enabledManagers": ["docker-compose", "github-actions", "regex"],
   "packageRules": [
     // {
     //   "description": "v prefix workaround for docker",
@@ -77,14 +77,55 @@
   //   },
   // },
 
-  "customManagers": [
+  // TESTING README.md updates
+  // "docker-compose": {
+  //   "enabled": false,
+  // },
+  // "github-actions": {
+  //   "enabled": false,
+  // },
+
+  "regexManagers": [
     {
-      "customType": "regex",
-      "fileMatch": ["README\\.md"],
+      // "description": "Update Cloudquery Plugins",
+      "fileMatch": ["^README\\.md$"],
       "matchStrings": [
-        "\\| (?<depName>.*) \\| (?<currentValue>.*) \\|$",
+        // "(?<currentValue>.*)",
+        "\\| (?<packageName>.*) \\| (?<currentValue>v?\\d+\\.\\d+\\.\\d+) \\|",
       ],
+      // "packageNameTemplate": "tjhorner/upsy-desky",
+      "depNameTemplate": "{{depName}}-{{version}}",
+      // "depNameTemplate": "tjhorner/upsy-desky",
       "datasourceTemplate": "github-releases",
-    },
+      "extractVersionTemplate": "^(?<version>v?\\d+\\.\\d+\\.\\d+)$"
+    }
   ],
+
+  // "regexManagers": [
+  //   {
+
+  //     "fileMatch": ["^cloudquery.yaml$"],
+  //     "matchStrings": [
+  //       "kind:\\s(?<kind>.*)\\nspec:\\n\\s{2}name:.*?\\w\\n\\s{2}path:\\scloudquery\/(?<plugin>.*)\\n\\s{2}version:\\s\"?v(?<currentValue>.*\\d)\"?\\n"
+  //     ],
+  //     "datasourceTemplate": "github-releases",
+  //     "packageNameTemplate": "cloudquery/cloudquery",
+  //     "depNameTemplate": "{{kind}}-{{plugin}}",
+  //     "extractVersionTemplate": "^plugins-{{kind}}-{{plugin}}-v(?<version>.*)$",
+  //     "versioningTemplate": "semver"
+  //   }
+  // ]
+
+  // "customManagers": [
+  //   {
+  //     "customType": "regex",
+  //     "fileMatch": ["^README\\.md$"],
+  //     "matchStrings": [
+  //       "Upsy Desky \\| (?<depName>.*) \\| (?<currentValue>.*) \\|$",
+  //     ],
+  //     "datasourceTemplate": "github-releases",
+  //     // "depNameTemplate": "tjhorner/upsy-desky",
+  //     // "extractVersionTemplate": "^(?<version>.*) \\|$"
+  //   },
+  // ],
 }
