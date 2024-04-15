@@ -33,3 +33,10 @@ Docker compose Stacks
 ## homeassistant
 
 [Docker Compose](homeassistant/docker-compose.yml)
+
+## Other Dependancies
+
+| Name | Repo | Version |
+|------|------|---------|
+| Upsy Desky | tjhorner/upsy-desky | v1.2.0 |
+| ESPHome | esphome/esphome | 2023.12.9 |
