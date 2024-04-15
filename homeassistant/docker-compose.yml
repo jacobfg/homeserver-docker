@@ -51,10 +51,6 @@ secrets:
     file: $SECRETSDIR/zigbee2mqtt_secrets.yaml
   git_hash:
     file: /opt/docker/github/homeserver-docker/.git/refs/heads/main
-  wud_trigger_mqtt_mosquitto_user:
-    file: $SECRETSDIR/wud_trigger_mqtt_mosquitto_user
-  wud_trigger_mqtt_mosquitto_password:
-    file: $SECRETSDIR/wud_trigger_mqtt_mosquitto_password
 
 ########################### EXTENSION FIELDS
 # Helps eliminate repetition of sections
