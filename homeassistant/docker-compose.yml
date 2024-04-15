@@ -660,5 +660,6 @@ services:
     # privileged: true # TODO check, needed for USB ?
     network_mode: host # for discovery
     labels:
-      - 'wud.watch=false'
+      - 'wud.tag.include=^\d+\.\d+\.\d+$$'
+      - 'wud.link.template=https://github.com/esphome/esphome/releases/tag/$${major}.$${minor}.$${patch}'
       - "traefik.enable=true"
