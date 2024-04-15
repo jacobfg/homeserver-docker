@@ -252,7 +252,7 @@ services:
   authelia:
     <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: authelia
-    image: authelia/authelia:4.38.7@sha256:1bfa7206c144f8cd184743a7ed629f4a02d2dceb50e7260588373fe6de4cd959
+    image: authelia/authelia:4.38.8@sha256:19375b10024caeef4e0b119a6247beae84cbaa02c846cfd750e92dea910d4b6a
     restart: always
     networks:
       - t2_proxy
