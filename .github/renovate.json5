@@ -79,9 +79,9 @@
   "customManagers": [
     {
       "customType": "regex",
-      "fileMatch": ["README.md"],
+      "fileMatch": ["README\\.md"],
       "matchStrings": [
-        "\| (?<depName>.*) \| (?<currentValue>.*) \|$",
+        "\\| (?<depName>.*) \\| (?<currentValue>.*) \\|$",
       ],
       "datasourceTemplate": "github-releases",
     },
