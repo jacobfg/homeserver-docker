@@ -6,7 +6,6 @@
     "config:best-practices",
   ],
 
-  "digest": { "enabled": true },
   // "autodiscover": true,
   // "autodiscoverFilter": ["jacobfg/homeserver-docker"],
 
@@ -71,11 +70,12 @@
     },
   ],
 
-  "docker-compose": {
-    "digest": {
-      "enabled": false
-    },
-  },
+  // what to know when traefik or influxdb update the existin tag
+  // "docker-compose": {
+  //   "digest": {
+  //     "enabled": false
+  //   },
+  // },
 
   "customManagers": [
     {
