@@ -29,6 +29,11 @@
   enabledManagers: ["docker-compose", "github-actions", "custom.regex"],
   packageRules: [
     {
+      "matchUpdateTypes": ["major"],
+      // "matchManagers": ["npm"],
+      "dependencyDashboardApproval": true
+    },
+    {
       matchDatasources: ["docker"],
       versioning: "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$",
     },
