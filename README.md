@@ -38,5 +38,5 @@ Docker compose Stacks
 
 | Name | Repo | Version |
 |------|------|---------|
-| Upsy Desky | tjhorner/upsy-desky | v1.2.0 |
-| ESPHome | esphome/esphome | 2023.12.9 |
+| Upsy Desky | github.com/tjhorner/upsy-desky | v1.2.0 |
+| ESPHome | github.com/esphome/esphome | 2023.12.9 |
