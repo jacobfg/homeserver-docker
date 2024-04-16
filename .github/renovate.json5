@@ -29,9 +29,10 @@
   enabledManagers: ["docker-compose", "github-actions", "custom.regex"],
   packageRules: [
     {
-      "matchUpdateTypes": ["major"],
-      // "matchManagers": ["npm"],
-      "dependencyDashboardApproval": true
+      matchUpdateTypes: ["major"],
+      // "matchManagers: ["custom.regex"],
+      dependencyDashboardApproval: true,
+      enabled: false,
     },
     {
       matchDatasources: ["docker"],
