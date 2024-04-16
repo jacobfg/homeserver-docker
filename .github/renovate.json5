@@ -65,7 +65,7 @@
       customType: 'regex',
       fileMatch: ["^README\\.md$"],
       matchStrings: [
-        "github.com\\/(?<packageName>.*) \\| (?<currentValue>v?\\d+\\.\\d+\\.\\d+) \\|",
+        "[^_]github.com\\/(?<packageName>.*) \\| (?<currentValue>v?\\d+\\.\\d+\\.\\d+) \\|",
       ],
       depNameTemplate: "{{packageName}}-{{newVersion}}",
       datasourceTemplate: "github-releases",
