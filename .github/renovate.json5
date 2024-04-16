@@ -70,7 +70,7 @@
       ],
       depNameTemplate: "{{depName}}-{{version}}",
       datasourceTemplate: "github-releases",
-      extractVersionTemplate: "^(?<version>v?\\d+\\.\\d+\\.\\d+)$",
+      // extractVersionTemplate: "^(?<version>v?\\d+\\.\\d+\\.\\d+)$",
       // "versioningTemplate": "semver",
     }
   ],
