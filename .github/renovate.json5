@@ -68,7 +68,7 @@
       matchStrings: [
         "github.com\\/(?<packageName>.*) \\| (?<currentValue>v?\\d+\\.\\d+\\.\\d+) \\|",
       ],
-      depNameTemplate: "github.com-{{depName}}-{{newVersion}}",
+      depNameTemplate: "{{depName}}-{{newVersion}}",
       datasourceTemplate: "github-releases",
       // extractVersionTemplate: "^(?<version>v?\\d+\\.\\d+\\.\\d+)$",
       // "versioningTemplate": "semver",
