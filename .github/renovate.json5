@@ -89,10 +89,10 @@
       // "versioningTemplate": "semver",
     }
   ],
-  "docker-compose": {
-    enabled: false,
-  },
-  "github-actions": {
-    enabled: false,
-  }
+  // "docker-compose": {
+  //   enabled: false,
+  // },
+  // "github-actions": {
+  //   enabled: false,
+  // },
 }
