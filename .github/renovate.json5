@@ -2,6 +2,7 @@
   // Use recommended defaults
   extends: [
     "config:best-practices",
+    ":dependencyDashboard",
   ],
 
   // "autodiscover": true,
@@ -14,6 +15,9 @@
   //   "labels": ["security"],
   //   "schedule": "at any time"
   // },
+
+  // If multiple major updates are available, create a separate pull request for each
+  separateMultipleMajor: true,
 
   baseBranches: ["main"],
 
@@ -29,10 +33,16 @@
   enabledManagers: ["docker-compose", "github-actions", "custom.regex"],
   packageRules: [
     {
+      "groupName": "all minor and patch dependencies",
+      "groupSlug": "all-minor-patch",
+      "matchPackagePatterns": ["*"],
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"]
+    },
+    {
       matchUpdateTypes: ["major"],
       // "matchManagers: ["custom.regex"],
       dependencyDashboardApproval: true,
-      enabled: false,
+      enabled: true,
     },
     {
       matchDatasources: ["docker"],
@@ -79,4 +89,10 @@
       // "versioningTemplate": "semver",
     }
   ],
+  "docker-compose": {
+    enabled: false,
+  },
+  "github-actions": {
+    enabled: false,
+  }
 }
