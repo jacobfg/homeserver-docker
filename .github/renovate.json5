@@ -55,13 +55,19 @@
       matchDatasources: ["github-releases"],
       versioning: "regex:^v?(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$",
     },
+    {
+      matchPackageNames: ["github.com/esphome/esphome"],
+      matchDatasources: ["github-releases"],
+      dependencyDashboardApproval: true,
+      enabled: true,
+    },
   ],
   customManagers: [
     {
       customType: 'regex',
       fileMatch: ["^README\\.md$"],
       matchStrings: [
-        "[^_]github.com\\/(?<depName>.*) \\| (?<currentValue>v?\\d+\\.\\d+\\.\\d+) \\|",
+        " github.com\\/(?<depName>.*) \\| (?<currentValue>v?\\d+\\.\\d+\\.\\d+) \\|",
       ],
       datasourceTemplate: "github-releases",
     }

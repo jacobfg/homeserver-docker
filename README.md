@@ -39,4 +39,4 @@ Docker compose Stacks
 | Name | Repo | Version |
 |------|------|---------|
 | Upsy Desky | github.com/tjhorner/upsy-desky | v2.0.0 |
-| ESPHome | _github.com/esphome/esphome | 2023.12.9 |
+| ESPHome | github.com/esphome/esphome | 2023.12.9 |
