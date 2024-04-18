@@ -59,8 +59,6 @@ secrets:
     file: $SECRETSDIR/wud_trigger_mqtt_mosquitto_password
   wud_trigger_mqtt_mosquitto_url:
     file: $SECRETSDIR/wud_trigger_mqtt_mosquitto_url
-  git_hash:
-    file: /opt/docker/github/homeserver-docker/.git/refs/heads/main
 
 ########################### EXTENSION FIELDS
 # Helps eliminate repetition of sections
@@ -315,6 +313,7 @@ services:
       - TZ=Australia/Sydney
     volumes:
       - $DOCKERDIR/volumes/homeassistant:/config
+      - /opt/docker/github/homeserver-docker/.git/refs/heads/main:/run/secrets/git_hash
     secrets:
       - git_hash
     labels:
