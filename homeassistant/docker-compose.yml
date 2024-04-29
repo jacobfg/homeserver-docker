@@ -313,7 +313,7 @@ services:
       - TZ=Australia/Sydney
     volumes:
       - $DOCKERDIR/volumes/homeassistant:/config
-      - /opt/docker/github/homeserver-docker/.git/refs/heads/main:/run/secrets/git_hash:ro
+      - /opt/docker/github/homeserver-docker/.git/refs/heads/main:/github/homeserver-docker/.git_commit_hash:ro
     labels:
       - 'wud.tag.include=^\d+\.\d+\.\d+$$'
       - 'wud.link.template=https://github.com/home-assistant/core/releases/tag/$${major}.$${minor}.$${patch}'
