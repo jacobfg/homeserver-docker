@@ -313,6 +313,7 @@ services:
       - TZ=Australia/Sydney
     volumes:
       - $DOCKERDIR/volumes/homeassistant:/config
+      - /opt/backups/homeassistant:/config/backups
       - /opt/docker/github/homeserver-docker/.git/refs/heads/main:/github/homeserver-docker/.git_commit_hash:ro
     labels:
       - 'wud.tag.include=^\d+\.\d+\.\d+$$'
