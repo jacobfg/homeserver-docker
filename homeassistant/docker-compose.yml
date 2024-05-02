@@ -314,7 +314,7 @@ services:
     volumes:
       - $DOCKERDIR/volumes/homeassistant:/config
       - /opt/backups/homeassistant:/config/backups
-      - /opt/docker/github/homeserver-docker/.git/refs/heads/main:/github/homeserver-docker/.git_commit_hash:ro
+      # - /opt/docker/github/homeserver-docker/.git/refs/heads/main:/github/homeserver-docker/.git_commit_hash:ro
     labels:
       - 'wud.tag.include=^\d+\.\d+\.\d+$$'
       - 'wud.link.template=https://github.com/home-assistant/core/releases/tag/$${major}.$${minor}.$${patch}'
