@@ -415,7 +415,7 @@ services:
       - $DOCKERDIR/volumes/duplicacy/config:/config
       - $DOCKERDIR/volumes/duplicacy/logs:/logs
       - $DOCKERDIR/volumes/duplicacy/cache:/cache
-      - ./:/source/docker:ro
+      - $DOCKERDIR:/source/docker:ro
       - /etc/systemd/system/docker-compose-app.service:/source/etc/systemd/system/docker-compose-app.service:ro
       - /etc/docker/daemon.json:/source/etc/docker/daemon.json:ro
       - /opt/dockge:/source/opt/dockge:ro
