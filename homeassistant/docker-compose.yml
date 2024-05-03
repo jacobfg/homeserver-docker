@@ -231,7 +231,7 @@ services:
       - TASKS=1 # Portainer
       - VOLUMES=1 # Portainer
     labels:
-      - 'wud.tag.include=^\d+\.\d+\.\d+$$'
+      - 'wud.tag.include=^v\d+\.\d+\.\d+$$'
       - 'wud.link.template=https://github.com/Tecnativa/docker-socket-proxy/releases/tag/v$${major}.$${minor}.$${patch}'
 
   # Light Split Horizon / Ad Blocking DNS Server
@@ -289,7 +289,7 @@ services:
       - authelia_identity_providers_oidc_issuer_certificate_chain_file
       - authelia_identity_providers_oidc_issuer_private_key_file
     labels:
-      - 'wud.tag.include=^\d+\.\d+\.\d+$$'
+      - 'wud.tag.include=^v\d+\.\d+\.\d+$$'
       - 'wud.link.template=https://github.com/tauthelia/authelia/releases/tag/v$${major}.$${minor}.$${patch}'
       - "traefik.enable=true"
       ## HTTP Routers
@@ -378,7 +378,7 @@ services:
     networks:
       - t2_proxy
     labels:
-      - 'wud.tag.include=^\d+\.\d+\.\d+$$'
+      - 'wud.tag.include=^v\d+\.\d+\.\d+$$'
       - 'wud.link.template=https://github.com/static-web-server/static-web-server/releases/tag/v$${major}.$${minor}.$${patch}'
       - "traefik.enable=true"
       ## HTTP Routers
@@ -492,7 +492,7 @@ services:
       # - 9001:9001 # not using websockets
     command: "mosquitto -c /mosquitto/config/mosquitto.conf"
     labels:
-      - 'wud.tag.include=^\d+\.\d+\.\d+$$'
+      - 'wud.tag.include=^v\d+\.\d+\.\d+$$'
       - 'wud.link.template=https://github.com/eclipse/mosquitto/releases/tag/v$${major}.$${minor}.$${patch}'
       - "traefik.enable=false"
 
@@ -513,7 +513,7 @@ services:
     devices:
       - /dev/ttyUSB0:/dev/ttyUSB0
     labels:
-      - 'wud.tag.include=^\d+\.\d+\.\d+$$'
+      - 'wud.tag.include=^v\d+\.\d+\.\d+$$'
       - 'wud.link.template=https://github.com/Koenkk/zigbee2mqtt/releases/tag/v$${major}.$${minor}.$${patch}'
       - "traefik.enable=true"
       ## HTTP Routers
@@ -538,7 +538,7 @@ services:
     volumes:
       - $DOCKERDIR/volumes/nodered/data:/data
     labels:
-      - 'wud.tag.include=^\d+\.\d+\.\d+-18-minimal$$' # node18
+      - 'wud.tag.include=^v\d+\.\d+\.\d+-18-minimal$$' # node18
       - 'wud.link.template=https://github.com/node-red/node-red/releases/tag/v$${major}.$${minor}.$${patch}'
       - "traefik.enable=true"
       ## HTTP Routers
