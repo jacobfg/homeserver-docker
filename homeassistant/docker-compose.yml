@@ -661,4 +661,15 @@ services:
     labels:
       - 'wud.tag.include=^\d+\.\d+\.\d+$$'
       - 'wud.link.template=https://github.com/esphome/esphome/releases/tag/$${major}.$${minor}.$${patch}'
-      # - "traefik.enable=true" - file config
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.esphome-rtr.entrypoints=https"
+      - "traefik.http.routers.portainer-rtr.priority=1"
+      - "traefik.http.routers.esphome-rtr.rule=Host(`esphome.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.esphome-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.esphome-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.esphome-rtr.service=esphome-svc"
+      - "traefik.http.services.esphome-svc.loadbalancer.passHostHeader=true"
+      - "traefik.http.services.esphome-svc.loadbalancer.servers[0].url=http://$DOCKER_SERVER_IP:6052/"
