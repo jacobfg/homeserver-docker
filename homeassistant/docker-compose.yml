@@ -358,7 +358,7 @@ services:
       ## HTTP Routers
       - "traefik.http.routers.portainer-api-rtr.entrypoints=https"
       - "traefik.http.routers.portainer-api-rtr.priority=99"
-      - "traefik.http.routers.portainer-api-rtr.rule=Host(`portainer.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.0.0/16`) && PathPrefix(`/api/`) && Headers(`Origin`,`https://home.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.portainer-api-rtr.rule=Host(`portainer.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.0.0/16`) && PathPrefix(`/api/`) && Header(`Origin`,`https://home.$DOMAINNAME_CLOUD_SERVER`)"
       - "traefik.http.routers.portainer-api-rtr.tls=true"
       ## Middlewares
       - "traefik.http.routers.portainer-api-rtr.middlewares=middlewares-api-no-auth@file,chain-no-auth@file"
