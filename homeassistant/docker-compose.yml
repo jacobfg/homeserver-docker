@@ -318,7 +318,7 @@ services:
     labels:
       - 'wud.tag.include=^\d+\.\d+\.\d+$$'
       - 'wud.link.template=https://github.com/home-assistant/core/releases/tag/$${major}.$${minor}.$${patch}'
-      - "traefik.enable=true"
+      # - "traefik.enable=true" file config
       # traefik config in file as url cannot be set via label and HA needs to be host mode
 
   # https://www.homeautomationguy.io/home-assistant-tips/installing-docker-home-assistant-and-portainer-on-ubuntu-linux/
@@ -660,4 +660,4 @@ services:
     labels:
       - 'wud.tag.include=^\d+\.\d+\.\d+$$'
       - 'wud.link.template=https://github.com/esphome/esphome/releases/tag/$${major}.$${minor}.$${patch}'
-      - "traefik.enable=true"
+      # - "traefik.enable=true" - file config
