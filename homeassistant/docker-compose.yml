@@ -149,9 +149,9 @@ services:
         protocol: tcp
         mode: host
     volumes:
-      - $DOCKERDIR/volumes/traefik2/rules/cloudserver:/rules # file provider directory
-      - $DOCKERDIR/volumes/traefik2/acme/acme.json:/acme.json # cert location - you must create this empty file and change permissions to 600
-      - $DOCKERDIR/volumes/traefik2/logs/cloudserver/traefik:/logs # for fail2ban or crowdsec
+      - $DOCKERDIR/volumes/traefik/rules/cloudserver:/rules # file provider directory
+      - $DOCKERDIR/volumes/traefik/acme/acme.json:/acme.json # cert location - you must create this empty file and change permissions to 600
+      - $DOCKERDIR/volumes/traefik/logs/cloudserver/traefik:/logs # for fail2ban or crowdsec
       # - /var/run/docker.sock:/var/run/docker.sock:ro # If you use Docker Socket Proxy, comment this line out
     environment:
       - TZ
@@ -661,15 +661,5 @@ services:
     labels:
       - 'wud.tag.include=^\d+\.\d+\.\d+$$'
       - 'wud.link.template=https://github.com/esphome/esphome/releases/tag/$${major}.$${minor}.$${patch}'
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.esphome-rtr.entrypoints=https"
-      - "traefik.http.routers.portainer-rtr.priority=1"
-      - "traefik.http.routers.esphome-rtr.rule=Host(`esphome.$DOMAINNAME_CLOUD_SERVER`)"
-      - "traefik.http.routers.esphome-rtr.tls=true"
-      ## Middlewares
-      - "traefik.http.routers.esphome-rtr.middlewares=chain-authelia@file"
-      ## HTTP Services
-      - "traefik.http.routers.esphome-rtr.service=esphome-svc"
-      - "traefik.http.services.esphome-svc.loadbalancer.passHostHeader=true"
-      - "traefik.http.services.esphome-svc.loadbalancer.servers[0].url=http://$DOCKER_SERVER_IP:6052/"
+      # - "traefik.enable=true"
+      # traefik config in file as url cannot be set via label and HA needs to be host mode
