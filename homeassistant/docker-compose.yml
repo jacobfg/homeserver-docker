@@ -585,7 +585,7 @@ services:
   # TODO: use tcp://socket-proxy:2375
   whatsupdocker:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
-    image: fmartinou/whats-up-docker:6.3.0@sha256:dd2f99b06963a1d25f68ce8a7fab1d23a0fb4dbda691118a7dcb662fd7f0b395
+    image: fmartinou/whats-up-docker:6.4.0@sha256:2a81ad01a1ffd7998d0f343fb1c7721b8db2c33a683e640ff1960447933952a5
     container_name: whatsupdocker
     networks:
       - t2_proxy
