@@ -338,7 +338,7 @@ services:
       - t2_proxy
       - socket_proxy
     ports:
-      - 9000:9000/tcp # don't need to others
+      - "127.0.0.1:9000:9000/tcp" # don't need to others
     logging:
       driver: none
     labels:
@@ -489,7 +489,7 @@ services:
     volumes:
       - $DOCKERDIR/volumes/mosquitto/config:/mosquitto/config
     ports:
-      - 1883:1883/tcp
+      - "1883:1883/tcp"
       # - 9001:9001 # not using websockets
     command: "mosquitto -c /mosquitto/config/mosquitto.conf"
     labels:
@@ -505,7 +505,7 @@ services:
       - $DOCKERDIR/volumes/zigbee2mqtt/data:/app/data
       - /run/udev:/run/udev:ro
     ports:
-      - 8080:8080/tcp
+      - "127.0.0.1:8080:8080/tcp"
     environment:
       - TZ=$TZ
       - ZIGBEE2MQTT_CONFIG_permit_join=true
@@ -535,7 +535,7 @@ services:
     environment:
       - TZ=$TZ
     ports:
-      - "1880:1880/tcp"
+      - "127.0.0.1:1880:1880/tcp"
     volumes:
       - $DOCKERDIR/volumes/nodered/data:/data
     labels:
@@ -562,7 +562,7 @@ services:
     volumes:
       - $DOCKERDIR/volumes/homer/assets/:/www/assets
     ports:
-      - 8081:8080/tcp
+      - "127.0.0.1:8081:8080/tcp"
     user: 1000:1000 # default
     environment:
       - INIT_ASSETS=1 # default
@@ -594,7 +594,7 @@ services:
       # - /var/run/docker.sock:/var/run/docker.sock
       - $DOCKERDIR/volumes/whatsupdocker/store:/store
     ports:
-      - 3000:3000
+      - "127.0.0.1:3000:3000/tcp"
     secrets:
       - wud_auth_oidc_authelia_clientid
       - wud_auth_oidc_authelia_clientsecret
@@ -648,6 +648,18 @@ services:
       - "traefik.http.routers.wud-api-rtr.middlewares=middlewares-api-no-auth@file,chain-no-auth@file"
       # HTTP Services
       - "traefik.http.routers.wud-api-rtr.service=wud-svc"
+
+  signal-cli-rest-api:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
+    container_name: signal-cli-rest-api
+    image: bbernhard/signal-cli-rest-api:latest
+    environment:
+      - MODE=native # normal #supported modes: json-rpc, native, normal
+      - AUTO_RECEIVE_SCHEDULE=*/5 * * * *
+    ports:
+      - "127.0.0.1:8088:8080/tcp"
+    volumes:
+      - "$DOCKERDIR/volumes/signal-cli-config:/home/.local/share/signal-cli"
 
   esphome:
     container_name: esphome
