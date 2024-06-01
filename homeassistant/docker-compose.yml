@@ -651,9 +651,11 @@ services:
 
   signal-cli-rest-api:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
+    container_name: signal-cli-rest-api
     image: bbernhard/signal-cli-rest-api:latest
     environment:
       - MODE=native # normal #supported modes: json-rpc, native, normal
+      - AUTO_RECEIVE_SCHEDULE=*/5 * * * *
     ports:
       - "127.0.0.1:8088:8080/tcp"
     volumes:
