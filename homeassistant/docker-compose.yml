@@ -594,7 +594,7 @@ services:
       # - /var/run/docker.sock:/var/run/docker.sock
       - $DOCKERDIR/volumes/whatsupdocker/store:/store
     ports:
-      - 3000:3000
+      - "127.0.0.1:3000:3000/tcp"
     secrets:
       - wud_auth_oidc_authelia_clientid
       - wud_auth_oidc_authelia_clientsecret
