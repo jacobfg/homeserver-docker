@@ -535,7 +535,7 @@ services:
     environment:
       - TZ=$TZ
     ports:
-      - "1880:1880/tcp"
+      - "127.0.0.1:1880:1880/tcp"
     volumes:
       - $DOCKERDIR/volumes/nodered/data:/data
     labels:
