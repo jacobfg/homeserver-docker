@@ -655,7 +655,7 @@ services:
     environment:
       - MODE=normal #supported modes: json-rpc, native, normal
     ports:
-      - "8080:8080/tcp"
+      - "8080:8088/tcp"
     volumes:
       - "$DOCKERDIR/volumes/signal-cli-config:/home/.local/share/signal-cli"
 
