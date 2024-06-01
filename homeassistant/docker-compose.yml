@@ -655,7 +655,7 @@ services:
     image: bbernhard/signal-cli-rest-api:0.83@sha256:d36ca6b9825441553169664dd424e2bba2f35c39d07584122798b536ff42923b
     environment:
       - MODE=native # normal #supported modes: json-rpc, native, normal
-      - AUTO_RECEIVE_SCHEDULE=*/5 * * * *
+      # - AUTO_RECEIVE_SCHEDULE=*/5 * * * *
     ports:
       - "127.0.0.1:8088:8080/tcp"
     volumes:
