@@ -652,7 +652,7 @@ services:
   signal-cli-rest-api:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
     container_name: signal-cli-rest-api
-    image: bbernhard/signal-cli-rest-api:latest
+    image: bbernhard/signal-cli-rest-api:0.83
     environment:
       - MODE=native # normal #supported modes: json-rpc, native, normal
       - AUTO_RECEIVE_SCHEDULE=*/5 * * * *
@@ -660,6 +660,10 @@ services:
       - "127.0.0.1:8088:8080/tcp"
     volumes:
       - "$DOCKERDIR/volumes/signal-cli-config:/home/.local/share/signal-cli"
+    labels:
+      - 'wud.tag.include=^\d+\.\d+\.\d+$$'
+      - 'wud.link.template=https://github.com/fmartinou/whats-up-docker/releases/tag/$${major}.$${minor}.$${patch}'
+      - "traefik.enable=true"
 
   esphome:
     container_name: esphome
