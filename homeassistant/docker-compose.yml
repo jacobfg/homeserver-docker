@@ -489,7 +489,7 @@ services:
     volumes:
       - $DOCKERDIR/volumes/mosquitto/config:/mosquitto/config
     ports:
-      - 1883:1883/tcp
+      - "1883:1883/tcp"
       # - 9001:9001 # not using websockets
     command: "mosquitto -c /mosquitto/config/mosquitto.conf"
     labels:
@@ -505,7 +505,7 @@ services:
       - $DOCKERDIR/volumes/zigbee2mqtt/data:/app/data
       - /run/udev:/run/udev:ro
     ports:
-      - 8080:8080/tcp
+      - "127.0.0.1:8080:8080/tcp"
     environment:
       - TZ=$TZ
       - ZIGBEE2MQTT_CONFIG_permit_join=true
