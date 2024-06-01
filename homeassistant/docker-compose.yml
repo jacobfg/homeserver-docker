@@ -649,6 +649,16 @@ services:
       # HTTP Services
       - "traefik.http.routers.wud-api-rtr.service=wud-svc"
 
+  signal-cli-rest-api:
+    <<: *common-keys-apps # See EXTENSION FIELDS at the top
+    image: bbernhard/signal-cli-rest-api:latest
+    environment:
+      - MODE=normal #supported modes: json-rpc, native, normal
+    ports:
+      - "8080:8080/tcp"
+    volumes:
+      - "$DOCKERDIR/volumes/signal-cli-config:/home/.local/share/signal-cli"
+
   esphome:
     container_name: esphome
     image: ghcr.io/esphome/esphome:2023.12.9@sha256:310919056ef06f35aa815efce8b2c7c160b6adc1bfb7285afccabc432de38d86
