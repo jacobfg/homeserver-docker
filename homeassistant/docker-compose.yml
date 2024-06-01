@@ -338,7 +338,7 @@ services:
       - t2_proxy
       - socket_proxy
     ports:
-      - 9000:9000/tcp # don't need to others
+      - "127.0.0.1:9000:9000/tcp" # don't need to others
     logging:
       driver: none
     labels:
