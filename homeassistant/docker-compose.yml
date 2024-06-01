@@ -562,7 +562,7 @@ services:
     volumes:
       - $DOCKERDIR/volumes/homer/assets/:/www/assets
     ports:
-      - 8081:8080/tcp
+      - "127.0.0.1:8081:8080/tcp"
     user: 1000:1000 # default
     environment:
       - INIT_ASSETS=1 # default
@@ -655,7 +655,7 @@ services:
     environment:
       - MODE=native # normal #supported modes: json-rpc, native, normal
     ports:
-      - "8088:8080/tcp"
+      - "127.0.0.1:8088:8080/tcp"
     volumes:
       - "$DOCKERDIR/volumes/signal-cli-config:/home/.local/share/signal-cli"
 
