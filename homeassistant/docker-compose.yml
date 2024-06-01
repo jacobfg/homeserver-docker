@@ -653,7 +653,7 @@ services:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
     image: bbernhard/signal-cli-rest-api:latest
     environment:
-      - MODE=normal #supported modes: json-rpc, native, normal
+      - MODE=native # normal #supported modes: json-rpc, native, normal
     ports:
       - "8088:8080/tcp"
     volumes:
