@@ -34,7 +34,9 @@ Docker compose Stacks
 
 [Docker Compose](homeassistant/docker-compose.yml)
 
-## Other Dependancies
+## esphome
+
+# Other Dependancies
 
 | Name | Repo | Version |
 |------|------|---------|
