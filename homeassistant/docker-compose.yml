@@ -489,7 +489,7 @@ services:
     volumes:
       - $DOCKERDIR/volumes/mosquitto/config:/mosquitto/config
     ports:
-      - "1883:1883/tcp"
+      - "127.0.0.1:1883:1883/tcp"
       # - 9001:9001 # not using websockets
     command: "mosquitto -c /mosquitto/config/mosquitto.conf"
     labels:
