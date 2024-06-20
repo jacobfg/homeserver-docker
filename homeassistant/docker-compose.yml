@@ -371,7 +371,7 @@ services:
   static-web-server:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
     container_name: static-web-sever
-    image: joseluisq/static-web-server:2.31.1@sha256:5c8267a1661fb04028b265ce1524d60d413cefa73bcad505f04c1dfe0ad1560e
+    image: joseluisq/static-web-server:2.32.0@sha256:c8345c2c469ba249cbc986b6155dc275ce86bcd30e0b29755fda4deb501bbddd
     volumes:
       - $DOCKERDIR/volumes/static-web-server/public:/public
     logging:
