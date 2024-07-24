@@ -439,7 +439,7 @@ services:
   influxdb:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
     container_name: influxdb
-    image: influxdb:2.7.7@sha256:fd9b2692e0291b9f7731171de82a5943ea23356b0bee358cf9a7336b7260c65d
+    image: influxdb:2.7.7@sha256:3f52e727ad6f76202388d8461a4c92b883c169bd2409bcf2bcafd60ce448fc5c
     environment:
       - TZ=$TZ
       - DOCKER_INFLUXDB_INIT_MODE=setup
