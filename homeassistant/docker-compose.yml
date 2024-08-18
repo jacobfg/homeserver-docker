@@ -530,7 +530,7 @@ services:
   # NodeRED
   node-red:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
-    image: nodered/node-red:3.1.11-18-minimal@sha256:ec3af4dd61f1f2bf88cd3260d051ac311fe252096f9a23840239e36dcb1209f9
+    image: nodered/node-red:4.0.1-20-minimal@sha256:bb1a62f434a5d30941d7f1e2fdb548fcfeb92c5089aa6a4fdd2879117035d860
     container_name: node-red
     environment:
       - TZ=$TZ
@@ -539,7 +539,7 @@ services:
     volumes:
       - $DOCKERDIR/volumes/nodered/data:/data
     labels:
-      - 'wud.tag.include=^v\d+\.\d+\.\d+-18-minimal$$' # node18
+      - 'wud.tag.include=^v\d+\.\d+\.\d+-20-minimal$$' # node18
       - 'wud.link.template=https://github.com/node-red/node-red/releases/tag/v$${major}.$${minor}.$${patch}'
       - "traefik.enable=true"
       ## HTTP Routers
