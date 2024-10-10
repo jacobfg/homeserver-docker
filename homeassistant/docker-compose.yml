@@ -530,7 +530,7 @@ services:
   # NodeRED
   node-red:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
-    image: nodered/node-red:4.0.4-20-minimal@sha256:efb882ec8dc5838c9503bd76c10d07a826534f5e633219c8595cc75644753f2c
+    image: nodered/node-red:4.0.5-20-minimal@sha256:ef19233ba9ee55770460cda733daea83ca258f4f2c9bddf4f2860522a1ea93bb
     container_name: node-red
     environment:
       - TZ=$TZ
