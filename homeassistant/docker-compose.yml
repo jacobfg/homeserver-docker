@@ -306,7 +306,7 @@ services:
   homeassistant:
     <<: *common-keys-apps-hostmode # See EXTENSION FIELDS at the top
     container_name: homeassistant
-    image: homeassistant/home-assistant:2024.10.4@sha256:408a5a63e3e9a89ceb6ecd98345e54c86073314b4d94e217cd54f7208307406d
+    image: homeassistant/home-assistant:2024.11.1@sha256:c01d6c54679a1934a2bd62a8e3289cd1439b45b82dc5b2dba01793368c500908
     # depends_on:
     #   - influxdb
     network_mode: host
@@ -557,7 +557,7 @@ services:
   # Homer
   homer:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
-    image: b4bz/homer:v24.10.2@sha256:25557cfe4883159a9ce051c46b6e10c0a5b0bbf21bfdd09b1ad7adc0c7611269
+    image: b4bz/homer:v24.11.1@sha256:dcb90201b2426eef0f6f207a8f62c6dc47584391bff3f01b69c762fca9d25f48
     container_name: homer
     volumes:
       - $DOCKERDIR/volumes/homer/assets/:/www/assets
