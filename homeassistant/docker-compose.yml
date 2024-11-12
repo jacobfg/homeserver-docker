@@ -439,7 +439,7 @@ services:
   influxdb:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
     container_name: influxdb
-    image: influxdb:2.7.10@sha256:32418efff9e2e2efb99f0c93c78f2a2cd4f5316ec8c2983a64c9a53925f96fcc
+    image: influxdb:2.7.10@sha256:4349c428e7448b4cd53efa3366d4305864d3ffe045485799f5ae590b1c76ecd1
     environment:
       - TZ=$TZ
       - DOCKER_INFLUXDB_INIT_MODE=setup
@@ -482,7 +482,7 @@ services:
     # TODO: mosquito tls (really not needed on a private hosted based network)
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
     container_name: mosquitto
-    image: eclipse-mosquitto:2.0.20@sha256:090d745b6435d10a31acb82eee999ec36a2d7f416cc4f578c0a298c42af2ea14
+    image: eclipse-mosquitto:2.0.20@sha256:8b396cec28cd5e8e1a3aba1d9abdbddd42c454c80f703e77c1bec56e152fa54e
     networks:
       t2_proxy:
         ipv4_address: 192.168.90.252 # You can specify a static IP
@@ -557,7 +557,7 @@ services:
   # Homer
   homer:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
-    image: b4bz/homer:v24.11.1@sha256:dcb90201b2426eef0f6f207a8f62c6dc47584391bff3f01b69c762fca9d25f48
+    image: b4bz/homer:v24.11.3@sha256:e20d1ca377406242729303b7aff40b1dfd858e2550c551006023d5dd641e3e05
     container_name: homer
     volumes:
       - $DOCKERDIR/volumes/homer/assets/:/www/assets
