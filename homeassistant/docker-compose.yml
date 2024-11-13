@@ -100,7 +100,7 @@ services:
   traefik:
     <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: traefik
-    image: traefik:v3.2.0@sha256:1419209abba791667c1bdd2e7d0a0019c1d151592ee37933b9990949d8ecd9f5
+    image: traefik:v3.2.0@sha256:608322f43501a14130a637bc36c1ef5037aa43d69564cce09343d09918eff45d
     command: # CLI arguments
       - --global.checkNewVersion=true
       - --global.sendAnonymousUsage=false
@@ -439,7 +439,7 @@ services:
   influxdb:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
     container_name: influxdb
-    image: influxdb:2.7.10@sha256:4349c428e7448b4cd53efa3366d4305864d3ffe045485799f5ae590b1c76ecd1
+    image: influxdb:2.7.10@sha256:b4cd4b71bc8528c5cb6b9dede79091a234f9f565a3177b8fc4c2cc835bf5c142
     environment:
       - TZ=$TZ
       - DOCKER_INFLUXDB_INIT_MODE=setup
