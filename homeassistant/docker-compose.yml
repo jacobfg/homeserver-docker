@@ -547,19 +547,19 @@ services:
 
   ############################# MAINTENANCE
   # crappy! find a better replacement
-  signal-cli-rest-api:
-    <<: *common-keys-apps # See EXTENSION FIELDS at the top
-    container_name: signal-cli-rest-api
-    image: bbernhard/signal-cli-rest-api:0.83@sha256:d36ca6b9825441553169664dd424e2bba2f35c39d07584122798b536ff42923b
-    environment:
-      - MODE=native # normal #supported modes: json-rpc, native, normal
-      # - AUTO_RECEIVE_SCHEDULE=*/5 * * * *
-    ports:
-      - "127.0.0.1:8088:8080/tcp"
-    volumes:
-      - "$DOCKERDIR/volumes/signal-cli-config:/home/.local/share/signal-cli"
-    labels:
-      - "traefik.enable=true"
+  # signal-cli-rest-api:
+  #   <<: *common-keys-apps # See EXTENSION FIELDS at the top
+  #   container_name: signal-cli-rest-api
+  #   image: bbernhard/signal-cli-rest-api:0.83@sha256:d36ca6b9825441553169664dd424e2bba2f35c39d07584122798b536ff42923b
+  #   environment:
+  #     - MODE=native # normal #supported modes: json-rpc, native, normal
+  #     # - AUTO_RECEIVE_SCHEDULE=*/5 * * * *
+  #   ports:
+  #     - "127.0.0.1:8088:8080/tcp"
+  #   volumes:
+  #     - "$DOCKERDIR/volumes/signal-cli-config:/home/.local/share/signal-cli"
+  #   labels:
+  #     - "traefik.enable=true"
 
   esphome:
     container_name: esphome
