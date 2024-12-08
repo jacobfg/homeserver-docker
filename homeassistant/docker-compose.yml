@@ -298,7 +298,7 @@ services:
     volumes:
       - $VOLUME_DIR/homeassistant:/config
       - /opt/backups/homeassistant:/config/backups
-      - /opt/docker/github:/config/.github:ro
+      - /opt/docker/stacks/.git:/config/.github/.git:ro
     labels: []
       # - "traefik.enable=true" file config
       # traefik config in file as url cannot be set via label and HA needs to be host mode
