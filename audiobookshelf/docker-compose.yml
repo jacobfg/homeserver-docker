@@ -8,6 +8,7 @@ services:
   audiobookshelf:
     container_name: audiobookshelf
     image: ghcr.io/advplyr/audiobookshelf:2.17.4
+    restart: unless-stopped
     volumes:
       - /opt/docker/stacks/audiobookshelf/data/audiobooks:/audiobooks
       - /opt/docker/stacks/audiobookshelf/data/podcasts:/podcasts
@@ -18,8 +19,6 @@ services:
       - AUDIOBOOKSHELF_UID=$PUID
       - AUDIOBOOKSHELF_GID=$PGID
       - PORT=8088
-    ports:
-      - "127.0.0.1:8088:8088/tcp"
     networks:
       - t2_proxy
     labels:

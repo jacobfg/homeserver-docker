@@ -1,0 +1,42 @@
+# use existing t2_proxy network defined by docker-env stack
+networks:
+  t2_proxy:
+    name: t2_proxy
+    external: true
+    
+services:
+  vscode-server:
+    container_name: code-server
+    image: lscr.io/linuxserver/code-server:4.95.3
+    restart: unless-stopped
+    environment:
+      - PUID=$PUID
+      - PGID=$GUID
+      - TZ=$TZ
+      # - PASSWORD=password #optional
+      # - HASHED_PASSWORD= #optional
+      - SUDO_PASSWORD=password #optional
+      # - SUDO_PASSWORD_HASH= #optional
+      - PROXY_DOMAIN=svcode.$DOMAINNAME_CLOUD_SERVER #optional
+      - DEFAULT_WORKSPACE=/config/workspace #optional
+    volumes:
+      - /opt/docker/stacks/vscode-server/config:/config
+      - /opt/docker/stacks/docker-env/:/volumes/docker-env
+      - /opt/docker/stacks/audiobookshelf/:/volumes/audiobookshelf
+      - /opt/docker/stacks/broadlink/:/volumes/broadlink
+      - /opt/docker/stacks/esphome/:/volumes/esphome
+      - /opt/docker/github/:/volumes/homeserver-docker:ro
+    networks:
+      - t2_proxy
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.vscode-rtr.entrypoints=https"
+      - "traefik.http.routers.vscode-rtr.priority=1"
+      - "traefik.http.routers.vscode-rtr.rule=Host(`vscode.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.vscode-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.vscode-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.vscode-rtr.service=vscode-svc"
+      - "traefik.http.services.vscode-svc.loadbalancer.server.port=8443"
