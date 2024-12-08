@@ -20,12 +20,9 @@ services:
       - PROXY_DOMAIN=svcode.$DOMAINNAME_CLOUD_SERVER #optional
       - DEFAULT_WORKSPACE=/config/workspace #optional
     volumes:
-      - /opt/docker/stacks/vscode-server/config:/config
-      - /opt/docker/stacks/docker-env/:/volumes/docker-env
-      - /opt/docker/stacks/audiobookshelf/:/volumes/audiobookshelf
-      - /opt/docker/stacks/broadlink/:/volumes/broadlink
-      - /opt/docker/stacks/esphome/:/volumes/esphome
-      - /opt/docker/github/:/volumes/homeserver-docker:ro
+      - $VOLUME_DIR/vscode-server/config:/config
+      - $VOLUME_DIR/../github/:/volumes/homeserver-docker:ro
+      - $VOLUME_DIR/:/volumes
     networks:
       - t2_proxy
     labels:

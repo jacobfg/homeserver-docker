@@ -245,6 +245,8 @@ services:
       - "traefik.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
       - "zigbee2mqtt.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
       - "home.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      - "vscode.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      - "audiobookshelf.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
 
   # Authelia (Lite) - Self-Hosted Single Sign-On and Two-Factor Authentication
   authelia:
@@ -560,16 +562,3 @@ services:
   #     - "$DOCKERDIR/volumes/signal-cli-config:/home/.local/share/signal-cli"
   #   labels:
   #     - "traefik.enable=true"
-
-  esphome:
-    container_name: esphome
-    image: ghcr.io/esphome/esphome:2024.11.2
-    volumes:
-      - $DOCKERDIR/volumes/esphome/config:/config
-      - /etc/localtime:/etc/localtime:ro
-    restart: always
-    # privileged: true # TODO check, needed for USB ?
-    network_mode: host # for discovery
-    labels: []
-      # - "traefik.enable=true"
-      # traefik config in file as url cannot be set via label and HA needs to be host mode

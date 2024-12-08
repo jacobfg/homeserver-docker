@@ -1,0 +1,16 @@
+services:
+  esphome:
+    container_name: esphome
+    image: ghcr.io/esphome/esphome:2024.11.2
+    volumes:
+      - $VOLUME_DIR/esphome/config:/config
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+    # privileged: true # TODO check, needed for USB ?
+    network_mode: host # for discovery
+#    environment:
+#      - USERNAME=test
+#      - PASSWORD=ChangeMe
+    labels: []
+      # - "traefik.enable=true"
+      # traefik config in file as url cannot be set via label and HA needs to be host mode
