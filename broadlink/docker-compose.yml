@@ -1,7 +1,7 @@
 services:
   broadlinkmanager:
     container_name: broadlinkmanager
-    image: techblog/broadlinkmanager
+    image: techblog/broadlinkmanager@sha256:15c77f69d6fc980cc34c436e7cfde6c34f1b7b8ea11e432bec286983bf0629cc
     network_mode: host
     restart: unless-stopped
     volumes:
