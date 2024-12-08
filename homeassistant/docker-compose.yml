@@ -171,11 +171,11 @@ services:
       ## Services - API
       - "traefik.http.routers.traefik-rtr.service=api@internal"
       ## CORS
-      - "traefik.http.middlewares.cors.headers.accesscontrolalloworigin=https://homer.$DOMAINNAME_CLOUD_SERVER"
-      - "traefik.http.middlewares.cors.headers.accesscontrolallowmethods=GET,OPTIONS"
-      - "traefik.http.middlewares.cors.headers.accesscontrolallowheaders=Content-Type"
+      # - "traefik.http.middlewares.cors.headers.accesscontrolalloworigin=https://homer.$DOMAINNAME_CLOUD_SERVER"
+      # - "traefik.http.middlewares.cors.headers.accesscontrolallowmethods=GET,OPTIONS"
+      # - "traefik.http.middlewares.cors.headers.accesscontrolallowheaders=Content-Type"
       ## Middlewares
-      - "traefik.http.routers.traefik-rtr.middlewares=chain-authelia@file,cors"
+      - "traefik.http.routers.traefik-rtr.middlewares=chain-authelia@file" # ,cors
 
   # Docker Socket Proxy - Security Enchanced Proxy for Docker Socket
   socket-proxy:
