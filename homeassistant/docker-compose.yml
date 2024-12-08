@@ -288,7 +288,7 @@ services:
       - "traefik.http.routers.authelia-rtr.rule=Host(`auth.$DOMAINNAME_CLOUD_SERVER`)"
       - "traefik.http.routers.authelia-rtr.tls=true"
       ## Middlewares
-      - "traefik.http.routers.authelia-rtr.middlewares=chain-authelia@file"
+      - "traefik.http.routers.authelia-rtr.middlewares=chain-authelia@file,cors"
       ## HTTP Services
       - "traefik.http.routers.authelia-rtr.service=authelia-svc"
       - "traefik.http.services.authelia-svc.loadbalancer.server.port=9091"
