@@ -30,4 +30,8 @@ docker image prune -f
 # prune everything
 # docker system prune -af
 
-bash $SCRIPT_DIR/host-open-ipv4-ports.bash
+echo
+echo Run script to see host ports that are open to the local LAN
+echo
+echo    bash $SCRIPT_DIR/host-open-ipv4-ports.bash
+echo
