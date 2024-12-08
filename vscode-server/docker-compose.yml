@@ -11,7 +11,7 @@ services:
     restart: unless-stopped
     environment:
       - PUID=$PUID
-      - PGID=$GUID
+      - PGID=$PGID
       - TZ=$TZ
       # - PASSWORD=password #optional
       # - HASHED_PASSWORD= #optional
