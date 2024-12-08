@@ -30,7 +30,8 @@ get_docker_proxy() {
 }
 
 get_ports_processes() {
-  ss -utnlp4 '! src 127.0.0.0/8' | awk '{print $1, $5, $7}' | sed 's~^\(.*\) users:.*,pid=\([0-9]\+\),.*$~\1 \2~' | tail -n +2 |  sort -t: -k2,2n
+  # some processes may have multiple listening sockets for udp
+  ss -utnlp4 '! src 127.0.0.0/8' | awk '{print $1, $5, $7}' | sed 's~^\(.*\) users:.*,pid=\([0-9]\+\),.*$~\1 \2~' | tail -n +2 |  sort -t: -k2,2n | uniq
 }
 
 printf "%-20s %-25s %-10s %-20s\n" "COMMAND" "ADDRESS" "PID" "CONTAINER"
