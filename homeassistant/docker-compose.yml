@@ -175,7 +175,7 @@ services:
       # https://home.$DOMAINNAME_CLOUD_SERVER,https://auth.$DOMAINNAME_CLOUD_SERVER"
       - "traefik.http.middlewares.cors.headers.accessControlAllowMethods=GET,OPTIONS"
       - "traefik.http.middlewares.cors.headers.accessControlAllowHeaders=*"
-      - "traefik.http.middlewares.cors.headers.accesscControlMaxAge=100"
+      - "traefik.http.middlewares.cors.headers.accessControlMaxAge=100"
       - "traefik.http.middlewares.cors.headers.addVaryHeader=true"
       # Content-Type"
       ## Middlewares
