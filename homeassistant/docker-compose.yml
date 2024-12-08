@@ -182,7 +182,7 @@ services:
       - "traefik.http.routers.traefik-api-rtr.middlewares=middlewares-api-no-auth@file,chain-no-auth@file"
       ## HTTP Services
       - "traefik.http.routers.traefik-api-rtr.service=api@internal"
-      # ## CORS
+      # ## CORS - would prefer to get CORS working and not bypass auth for this API, same issue with portainer
       # - "traefik.http.middlewares.cors.headers.accessControlAllowOriginList=https://home.$DOMAINNAME_CLOUD_SERVER,https://auth.$DOMAINNAME_CLOUD_SERVER"
       # - "traefik.http.middlewares.cors.headers.accessControlAllowMethods=GET,OPTIONS,POST"
       # - "traefik.http.middlewares.cors.headers.accessControlAllowHeaders=Content-Type,Authorization"
@@ -549,8 +549,9 @@ services:
     container_name: homer
     volumes:
       - $VOLUME_DIR/homer/assets/:/www/assets
-    ports:
-      - "127.0.0.1:8081:8080/tcp"
+      - $VOLUME_DIR/homer/custom-assets/:/www/custom-assets
+    # ports:
+    #   - "127.0.0.1:8081:8080/tcp"
     user: 1000:1000 # default
     environment:
       - INIT_ASSETS=1 # default
