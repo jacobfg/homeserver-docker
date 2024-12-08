@@ -13,7 +13,7 @@ while read -d $'\0' STACK ; do
 
     # workflow uses digest, tag local image for niceness
     # yq -r '.services[].image' docker-compose.yml | grep '@sha256:' | sed 's~^\([^:]\+\):\([^@]\+\)@\(.\+\)$~\1@\3 \1:\2~' | xargs -n2 docker tag
-done < <(gfind . -maxdepth 2 -mindepth 2 -type f -name 'docker-compose.yml' -execdir test ! -e .ignore \; -printf '%h\0')
+done < <(find . -maxdepth 2 -mindepth 2 -type f -name 'docker-compose.yml' -execdir test ! -e .ignore \; -printf '%h\0')
 
 # # clean all unused images
 # docker image prune -f
