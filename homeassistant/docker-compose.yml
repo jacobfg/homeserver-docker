@@ -171,7 +171,7 @@ services:
       ## Services - API
       - "traefik.http.routers.traefik-rtr.service=api@internal"
       ## CORS
-      - "traefik.http.middlewares.cors.headers.accessControlAllowOriginList=https://homer.$DOMAINNAME_CLOUD_SERVER"
+      - "traefik.http.middlewares.cors.headers.accessControlAllowOriginList=https://homer.$DOMAINNAME_CLOUD_SERVER,https://auth.$DOMAINNAME_CLOUD_SERVER"
       - "traefik.http.middlewares.cors.headers.accessControlAllowMethods=GET,OPTIONS"
       - "traefik.http.middlewares.cors.headers.accessControlAllowHeaders=Content-Type"
       ## Middlewares
