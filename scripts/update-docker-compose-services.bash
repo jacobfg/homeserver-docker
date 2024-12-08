@@ -3,7 +3,7 @@
 SCRIPT_DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd)/.."
 
 function findOrderStacks() {
-    find . -maxdepth 2 -mindepth 2 -type f -name 'docker-compose.yml' -exec egrep -H '^# deploy weight \d+' {} \; \
+    find . -maxdepth 2 -mindepth 2 -type f -name 'docker-compose.yml' -exec egrep -H '^# deploy weight [0-9]+' {} \; \
     | sed 's/:# deploy weight /:/' \
     | sort -t: -g -k2 \
     | sed -e 's~/docker-compose.yml:[0-9]\+$~~' \
