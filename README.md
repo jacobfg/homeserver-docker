@@ -25,6 +25,8 @@ Home Server Docker Environment
 # Stacks
 
 - [homeassistant](#homeassistant)
+- [audiobookshelf](#audiobookshelf)
+- [vscode-server](#vscode-server)
 
 # Stacks
 
@@ -33,6 +35,14 @@ Docker compose Stacks
 ## homeassistant
 
 [Docker Compose](homeassistant/docker-compose.yml)
+
+## audiobookshelf
+
+[Docker Compose](audiobookshelf/docker-compose.yml)
+
+## vscode-server
+
+[Docker Compose](vscode-server/docker-compose.yml)
 
 ## Other Dependancies
 
