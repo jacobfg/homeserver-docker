@@ -30,4 +30,4 @@ docker image prune -f
 # prune everything
 # docker system prune -af
 
-$SCRIPT_DIR/host-open-ipv4-ports.bash
+bash $SCRIPT_DIR/host-open-ipv4-ports.bash
