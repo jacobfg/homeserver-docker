@@ -27,6 +27,9 @@ Home Server Docker Environment
 - [homeassistant](#homeassistant)
 - [audiobookshelf](#audiobookshelf)
 - [vscode-server](#vscode-server)
+- [esphome](#esphome)
+- [broadlink](#broadlink) ** not used
+- [dockge](#dockge) ** not used
 
 # Stacks
 
@@ -43,6 +46,18 @@ Docker compose Stacks
 ## vscode-server
 
 [Docker Compose](vscode-server/docker-compose.yml)
+
+## esphome
+
+[Docker Compose](esphome/docker-compose.yml)
+
+## broadlink
+
+[Docker Compose](broadlink/docker-compose.yml) ** not used
+
+## dockge
+
+[Docker Compose](dockge/docker-compose.yml) ** not used
 
 ## Other Dependancies
 
