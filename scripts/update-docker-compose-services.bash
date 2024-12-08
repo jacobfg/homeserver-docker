@@ -35,4 +35,4 @@ docker image prune -f
 
 # ports open to LAN (IPv4)
 # ss -tnlp4 '! src 127.0.0.0/8'
-$(SCRIPT_DIR)/host-open-ipv4-ports.bash
+$SCRIPT_DIR/host-open-ipv4-ports.bash
