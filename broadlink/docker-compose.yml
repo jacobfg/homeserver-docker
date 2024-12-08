@@ -1,0 +1,10 @@
+services:
+  broadlinkmanager:
+    container_name: broadlinkmanager
+    image: techblog/broadlinkmanager
+    network_mode: host
+    restart: unless-stopped
+    volumes:
+      - $VOLUME_DIR/broadlinkmanager:/opt/broadlinkmanager/data
+    environment:
+      - ENABLE_GOOGLE_ANALYTICS=False
