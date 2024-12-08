@@ -34,4 +34,5 @@ docker image prune -f
 # ss -tulpen | grep -vEe "\s+127[.]|::1|239[.]255[.]255[.]250|fd4e:ca90:4df3:3f48:e65f:1ff:fe45:5c78|fe80::e65f:1ff:fe45:5c78"
 
 # ports open to LAN (IPv4)
-ss -tnlp4 '! src 127.0.0.0/8'
+# ss -tnlp4 '! src 127.0.0.0/8'
+$(SCRIPT_DIR)/host-open-ipv4-ports.bash
