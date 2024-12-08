@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SCRIPT_DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd)/.."
+SCRIPT_DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd)"
 
 function findOrderStacks() {
     find . -maxdepth 2 -mindepth 2 -type f -name 'docker-compose.yml' -exec egrep -H '^# deploy weight [0-9]+' {} \; \
@@ -12,7 +12,7 @@ function findOrderStacks() {
 
 # update each stack
 while read -d $'\0' STACK ; do
-    cd "$SCRIPT_DIR/$STACK"
+    cd "$SCRIPT_DIR/../$STACK"
     echo $STACK
 
     # pull images then update and remove orphans
@@ -30,9 +30,4 @@ docker image prune -f
 # prune everything
 # docker system prune -af
 
-# open ports
-# ss -tulpen | grep -vEe "\s+127[.]|::1|239[.]255[.]255[.]250|fd4e:ca90:4df3:3f48:e65f:1ff:fe45:5c78|fe80::e65f:1ff:fe45:5c78"
-
-# ports open to LAN (IPv4)
-# ss -tnlp4 '! src 127.0.0.0/8'
 $SCRIPT_DIR/host-open-ipv4-ports.bash
