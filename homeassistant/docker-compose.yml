@@ -1,4 +1,4 @@
-# version: '3.9'
+# deploy weight 10
 
 ########################### NETWORKS
 # There is no need to create any networks outside this docker-compose file.

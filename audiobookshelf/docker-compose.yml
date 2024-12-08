@@ -1,3 +1,5 @@
+# deploy weight 50
+
 # use existing t2_proxy network defined by docker-env stack
 networks:
   t2_proxy:

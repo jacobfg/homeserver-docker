@@ -2,6 +2,14 @@
 
 SCRIPT_DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd)/.."
 
+function findOrderStacks() {
+    find . -maxdepth 2 -mindepth 2 -type f -name 'docker-compose.yml' -exec egrep -H '^# deploy weight \d+' {} \; \
+    | sed 's/:# deploy weight /:/' \
+    | sort -t: -g -k2 \
+    | sed -e 's~/docker-compose.yml:[0-9]\+$~~' \
+    | tr '\n' '\0'
+}
+
 # update each stack
 while read -d $'\0' STACK ; do
     cd "$SCRIPT_DIR/$STACK"
@@ -13,7 +21,7 @@ while read -d $'\0' STACK ; do
 
     # workflow uses digest, tag local image for niceness
     # yq -r '.services[].image' docker-compose.yml | grep '@sha256:' | sed 's~^\([^:]\+\):\([^@]\+\)@\(.\+\)$~\1@\3 \1:\2~' | xargs -n2 docker tag
-done < <(find . -maxdepth 2 -mindepth 2 -type f -name 'docker-compose.yml' -execdir test ! -e .ignore \; -printf '%h\0')
+done < <(findOrderStacks)
 
 # # clean all unused images
 # docker image prune -f
