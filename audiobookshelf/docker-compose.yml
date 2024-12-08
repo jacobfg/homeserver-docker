@@ -1,0 +1,46 @@
+# use existing t2_proxy network defined by docker-env stack
+networks:
+  t2_proxy:
+    name: t2_proxy
+    external: true
+
+services:
+  audiobookshelf:
+    container_name: audiobookshelf
+    image: ghcr.io/advplyr/audiobookshelf:2.17.4
+    volumes:
+      - /opt/docker/stacks/audiobookshelf/data/audiobooks:/audiobooks
+      - /opt/docker/stacks/audiobookshelf/data/podcasts:/podcasts
+      - /opt/docker/stacks/audiobookshelf/data/config:/config
+      - /opt/docker/stacks/audiobookshelf/data/metadata:/metadata
+    environment:
+      - TZ=$TZ
+      - AUDIOBOOKSHELF_UID=$PUID
+      - AUDIOBOOKSHELF_GID=$PGID
+      - PORT=8088
+    ports:
+      - "127.0.0.1:8088:8088/tcp"
+    networks:
+      - t2_proxy
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.audiobookshelf-rtr.entrypoints=https"
+      - "traefik.http.routers.audiobookshelf-rtr.priority=1" # FOR ALLOWING LOCAL ACCESS
+      - "traefik.http.routers.audiobookshelf-rtr.rule=Host(`audiobookshelf.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.audiobookshelf-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.audiobookshelf-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.audiobookshelf-rtr.service=audiobookshelf-svc"
+      - "traefik.http.services.audiobookshelf-svc.loadbalancer.server.port=8088"
+      ## LOCAL ACCESS - Allow local (home) access without traefik auth
+      ## HTTP Routers
+      - "traefik.http.routers.audiobookshelf-local-rtr.entrypoints=https"
+      - "traefik.http.routers.audiobookshelf-local-rtr.priority=99"
+      - "traefik.http.routers.audiobookshelf-local-rtr.rule=Host(`audiobookshelf.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.0.0/16`)"
+      - "traefik.http.routers.audiobookshelf-local-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.audiobookshelf-local-rtr.middlewares=chain-no-auth@file"
+      ## HTTP Services
+      - "traefik.http.routers.audiobookshelf-local-rtr.service=audiobookshelf-svc"
