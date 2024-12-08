@@ -161,6 +161,7 @@ services:
       # - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
       # HTTP Routers
       - "traefik.http.routers.traefik-rtr.entrypoints=https"
+      - "traefik.http.routers.traefik-rtr.priority=1"
       - "traefik.http.routers.traefik-rtr.rule=Host(`traefik.$DOMAINNAME_CLOUD_SERVER`)"
       - "traefik.http.routers.traefik-rtr.tls=true" # Some people had 404s without this
       # - "traefik.http.routers.traefik-rtr.tls.certresolver=dns-cloudflare" # Comment out this line after first run of traefik to force the use of wildcard certs
@@ -170,16 +171,27 @@ services:
       # - "traefik.http.routers.traefik-rtr.tls.domains[1].sans=*.$DOMAINNAME2" # Pulls wildcard cert for second domain
       ## Services - API
       - "traefik.http.routers.traefik-rtr.service=api@internal"
-      ## CORS
-      - "traefik.http.middlewares.cors.headers.accessControlAllowOriginList=https://home.$DOMAINNAME_CLOUD_SERVER,https://auth.$DOMAINNAME_CLOUD_SERVER"
-      - "traefik.http.middlewares.cors.headers.accessControlAllowMethods=GET,OPTIONS,POST"
-      - "traefik.http.middlewares.cors.headers.accessControlAllowHeaders=Content-Type,Authorization"
-      - "traefik.http.middlewares.cors.headers.accessControlAllowCredentials=true"
-      # - "traefik.http.middlewares.cors.headers.accessControlMaxAge=100"
-      # - "traefik.http.middlewares.cors.headers.addVaryHeader=true"
-      # Content-Type"
+
+      ## Homer access to API - Allow access without auth to /api/ using using homer
+      ## HTTP Routers
+      - "traefik.http.routers.traefik-api-rtr.entrypoints=https"
+      - "traefik.http.routers.traefik-api-rtr.priority=99"
+      - "traefik.http.routers.traefik-api-rtr.rule=Host(`traefik.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.0.0/16`) && PathPrefix(`/api/version`) && Header(`Origin`,`https://home.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.traefik-api-rtr.tls=true"
       ## Middlewares
-      - "traefik.http.routers.traefik-rtr.middlewares=chain-authelia@file,cors"
+      - "traefik.http.routers.traefik-api-rtr.middlewares=middlewares-api-no-auth@file,chain-no-auth@file"
+      ## HTTP Services
+      - "traefik.http.routers.traefik-api-rtr.service=api@internal"
+      # ## CORS
+      # - "traefik.http.middlewares.cors.headers.accessControlAllowOriginList=https://home.$DOMAINNAME_CLOUD_SERVER,https://auth.$DOMAINNAME_CLOUD_SERVER"
+      # - "traefik.http.middlewares.cors.headers.accessControlAllowMethods=GET,OPTIONS,POST"
+      # - "traefik.http.middlewares.cors.headers.accessControlAllowHeaders=Content-Type,Authorization"
+      # - "traefik.http.middlewares.cors.headers.accessControlAllowCredentials=true"
+      # # - "traefik.http.middlewares.cors.headers.accessControlMaxAge=100"
+      # # - "traefik.http.middlewares.cors.headers.addVaryHeader=true"
+      # # Content-Type"
+      ## Middlewares
+      - "traefik.http.routers.traefik-rtr.middlewares=chain-authelia@file" #cors
 
   # Docker Socket Proxy - Security Enchanced Proxy for Docker Socket
   socket-proxy:
@@ -288,7 +300,7 @@ services:
       - "traefik.http.routers.authelia-rtr.rule=Host(`auth.$DOMAINNAME_CLOUD_SERVER`)"
       - "traefik.http.routers.authelia-rtr.tls=true"
       ## Middlewares
-      - "traefik.http.routers.authelia-rtr.middlewares=chain-authelia@file,cors"
+      - "traefik.http.routers.authelia-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.authelia-rtr.service=authelia-svc"
       - "traefik.http.services.authelia-svc.loadbalancer.server.port=9091"
