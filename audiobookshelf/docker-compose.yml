@@ -10,10 +10,10 @@ services:
     image: ghcr.io/advplyr/audiobookshelf:2.17.4@sha256:b4720362610ff25ae445c792d304be99a4a4584225dbaea03ff4a44aee4f22c3
     restart: unless-stopped
     volumes:
-      - /opt/docker/stacks/audiobookshelf/data/audiobooks:/audiobooks
-      - /opt/docker/stacks/audiobookshelf/data/podcasts:/podcasts
-      - /opt/docker/stacks/audiobookshelf/data/config:/config
-      - /opt/docker/stacks/audiobookshelf/data/metadata:/metadata
+      - $VOLUME_DIR/audiobookshelf/audiobooks:/audiobooks:ro
+      - $VOLUME_DIR/audiobookshelf/podcasts:/podcasts:ro
+      - $VOLUME_DIR/audiobookshelf/config:/config
+      - $VOLUME_DIR/audiobookshelf/metadata:/metadata
     environment:
       - TZ=$TZ
       - AUDIOBOOKSHELF_UID=$PUID
