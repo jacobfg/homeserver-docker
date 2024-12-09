@@ -554,7 +554,8 @@ services:
     #   - "127.0.0.1:8081:8080/tcp"
     user: 1000:1000 # default
     environment:
-      - INIT_ASSETS=1 # default
+      - INIT_ASSETS=0 # default
+      - IPV6_DISABLE=1
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
