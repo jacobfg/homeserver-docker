@@ -1,0 +1,5 @@
+**/.env filter=git-crypt diff=git-crypt
+secrets/** filter=git-crypt diff=git-crypt
+.gitattributes !filter !diff
+README.md !filter !diff
+**/docker-compose.yml !filter !diff
