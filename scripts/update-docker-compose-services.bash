@@ -15,7 +15,7 @@ while read -d $'\0' STACK ; do
     cd "$SCRIPT_DIR/../$STACK"
     echo $STACK
 
-    export $SECRETS_DIR=$SCRIPT_DIR/../secrets
+    export SECRETS_DIR=$SCRIPT_DIR/../secrets
 
     # pull images then update and remove orphans
     docker compose pull
