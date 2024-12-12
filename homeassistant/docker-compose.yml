@@ -137,9 +137,6 @@ services:
       - CF_API_KEY
       - DOMAINNAME_CLOUD_SERVER # Passing the domain name to the traefik container to be able to use the variable in rules.
       - DOCKER_SERVER_IP # Passing the docker server IP to the traefik container to be able to use the variable in rules.
-    secrets:
-      - cf_email
-      - cf_api_key
     labels:
       - "traefik.enable=true"
       # # HTTP-to-HTTPS Redirect
@@ -433,10 +430,6 @@ services:
       - DOCKER_INFLUXDB_INIT_ORG=${INFLUXDB_ORG}
       - DOCKER_INFLUXDB_INIT_BUCKET=${INFLUXDB_BUCKET}
       # - DOCKER_INFLUXDB_INIT_RETENTION=2y
-    secrets:
-      - influxdb_user
-      - influxdb_password
-      - influxdb_admin_token
     networks:
       t2_proxy:
         ipv4_address: 192.168.90.253 # You can specify a static IP
