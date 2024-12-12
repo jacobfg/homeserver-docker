@@ -24,31 +24,31 @@ networks:
 ########################### SECRETS
 secrets:
   authelia_jwt_secret:
-    file: $VOLUME_DIR/secrets/authelia_jwt_secret
+    file: $SECRETS_DIR/authelia_jwt_secret
   authelia_session_secret:
-    file: $VOLUME_DIR/secrets/authelia_session_secret
+    file: $SECRETS_DIR/authelia_session_secret
   authelia_storage_encryption_key:
-    file: $VOLUME_DIR/secrets/authelia_storage_encryption_key
+    file: $SECRETS_DIR/authelia_storage_encryption_key
   authelia_identity_providers_oidc_hmac_secret_file:
-    file: $VOLUME_DIR/secrets/authelia_identity_providers_oidc_hmac_secret_file
+    file: $SECRETS_DIR/authelia_identity_providers_oidc_hmac_secret_file
   authelia_identity_providers_oidc_issuer_certificate_chain_file:
-    file: $VOLUME_DIR/secrets/authelia_identity_providers_oidc_issuer_certificate_chain_file
+    file: $SECRETS_DIR/authelia_identity_providers_oidc_issuer_certificate_chain_file
   authelia_identity_providers_oidc_issuer_private_key_file:
-    file: $VOLUME_DIR/secrets/authelia_identity_providers_oidc_issuer_private_key_file
+    file: $SECRETS_DIR/authelia_identity_providers_oidc_issuer_private_key_file
   cf_email:
-    file: $VOLUME_DIR/secrets/cf_email
+    file: $SECRETS_DIR/cf_email
   cf_api_key:
-    file: $VOLUME_DIR/secrets/cf_api_key
+    file: $SECRETS_DIR/cf_api_key
   cf_token:
-    file: $VOLUME_DIR/secrets/cf_token
+    file: $SECRETS_DIR/cf_token
   influxdb_user:
-    file: $VOLUME_DIR/secrets/influxdb_user
+    file: $SECRETS_DIR/influxdb_user
   influxdb_password:
-    file: $VOLUME_DIR/secrets/influxdb_password
+    file: $SECRETS_DIR/influxdb_password
   influxdb_admin_token:
-    file: $VOLUME_DIR/secrets/influxdb_admin_token
+    file: $SECRETS_DIR/influxdb_admin_token
   zigbee2mqtt_secrets.yaml:
-    file: $VOLUME_DIR/secrets/zigbee2mqtt_secrets.yaml
+    file: $SECRETS_DIR/zigbee2mqtt_secrets.yaml
 
 ########################### EXTENSION FIELDS
 # Helps eliminate repetition of sections
