@@ -24,31 +24,19 @@ networks:
 ########################### SECRETS
 secrets:
   authelia_jwt_secret:
-    file: $SECRETSDIR/authelia_jwt_secret
+    file: $SECRETS_DIR/authelia_jwt_secret
   authelia_session_secret:
-    file: $SECRETSDIR/authelia_session_secret
+    file: $SECRETS_DIR/authelia_session_secret
   authelia_storage_encryption_key:
-    file: $SECRETSDIR/authelia_storage_encryption_key
+    file: $SECRETS_DIR/authelia_storage_encryption_key
   authelia_identity_providers_oidc_hmac_secret_file:
-    file: $SECRETSDIR/authelia_identity_providers_oidc_hmac_secret_file
+    file: $SECRETS_DIR/authelia_identity_providers_oidc_hmac_secret_file
   authelia_identity_providers_oidc_issuer_certificate_chain_file:
-    file: $SECRETSDIR/authelia_identity_providers_oidc_issuer_certificate_chain_file
+    file: $SECRETS_DIR/authelia_identity_providers_oidc_issuer_certificate_chain_file
   authelia_identity_providers_oidc_issuer_private_key_file:
-    file: $SECRETSDIR/authelia_identity_providers_oidc_issuer_private_key_file
-  cf_email:
-    file: $SECRETSDIR/cf_email
-  cf_api_key:
-    file: $SECRETSDIR/cf_api_key
-  cf_token:
-    file: $SECRETSDIR/cf_token
-  influxdb_user:
-    file: $SECRETSDIR/influxdb_user
-  influxdb_password:
-    file: $SECRETSDIR/influxdb_password
-  influxdb_admin_token:
-    file: $SECRETSDIR/influxdb_admin_token
+    file: $SECRETS_DIR/authelia_identity_providers_oidc_issuer_private_key_file
   zigbee2mqtt_secrets.yaml:
-    file: $SECRETSDIR/zigbee2mqtt_secrets.yaml
+    file: $SECRETS_DIR/zigbee2mqtt_secrets.yaml
 
 ########################### EXTENSION FIELDS
 # Helps eliminate repetition of sections
@@ -145,13 +133,10 @@ services:
       # - /var/run/docker.sock:/var/run/docker.sock:ro # If you use Docker Socket Proxy, comment this line out
     environment:
       - TZ
-      - CF_API_EMAIL_FILE=/run/secrets/cf_email
-      - CF_API_KEY_FILE=/run/secrets/cf_api_key
+      - CF_API_EMAIL
+      - CF_API_KEY
       - DOMAINNAME_CLOUD_SERVER # Passing the domain name to the traefik container to be able to use the variable in rules.
       - DOCKER_SERVER_IP # Passing the docker server IP to the traefik container to be able to use the variable in rules.
-    secrets:
-      - cf_email
-      - cf_api_key
     labels:
       - "traefik.enable=true"
       # # HTTP-to-HTTPS Redirect
@@ -309,7 +294,7 @@ services:
   homeassistant:
     <<: *common-keys-apps-hostmode # See EXTENSION FIELDS at the top
     container_name: homeassistant
-    image: homeassistant/home-assistant:2024.12.1@sha256:ec483debb415123b5ebe49b9e6b5021d055e5f62c832acc094503afa09bb448d
+    image: homeassistant/home-assistant:2024.12.2@sha256:b38999b991695f6595549155bca2c5c74729041b06c25b0407102d733cc86f66
     # depends_on:
     #   - influxdb
     network_mode: host
@@ -439,16 +424,12 @@ services:
     environment:
       - TZ=$TZ
       - DOCKER_INFLUXDB_INIT_MODE=setup
-      - DOCKER_INFLUXDB_INIT_USERNAME_FILE=/run/secrets/influxdb_user
-      - DOCKER_INFLUXDB_INIT_PASSWORD_FILE=/run/secrets/influxdb_password
-      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN_FILE=/run/secrets/influxdb_admin_token
+      - DOCKER_INFLUXDB_INIT_USERNAME
+      - DOCKER_INFLUXDB_INIT_PASSWORD
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN
       - DOCKER_INFLUXDB_INIT_ORG=${INFLUXDB_ORG}
       - DOCKER_INFLUXDB_INIT_BUCKET=${INFLUXDB_BUCKET}
       # - DOCKER_INFLUXDB_INIT_RETENTION=2y
-    secrets:
-      - influxdb_user
-      - influxdb_password
-      - influxdb_admin_token
     networks:
       t2_proxy:
         ipv4_address: 192.168.90.253 # You can specify a static IP
