@@ -1,0 +1,38 @@
+# deploy weight 30
+
+# use existing t2_proxy network defined by docker-env stack
+networks:
+  t2_proxy:
+    name: t2_proxy
+    external: true
+    
+services:
+  apprise-api:
+    container_name: apprise-api
+    image: lscr.io/linuxserver/apprise-api:latest
+    restart: unless-stopped
+    environment:
+      - PUID
+      - PGID
+      - TZ
+      - APPRISE_ATTACH_SIZE=0 #optional
+    volumes:
+      - $VOLUME_DIR/apprise-api/config:/config
+      - $VOLUME_DIR/apprise-api/attachments:/attachments #optional
+    # ports:
+    #   - 8000:8000
+    networks:
+      t2_proxy:
+        ipv4_address: 192.168.90.251
+    labels:
+      - "traefik.enable=false"
+      # ## HTTP Routers
+      # - "traefik.http.routers.apprise-rtr.entrypoints=https"
+      # - "traefik.http.routers.apprise-rtr.priority=1"
+      # - "traefik.http.routers.apprise-rtr.rule=Host(`apprise.$DOMAINNAME_CLOUD_SERVER`)"
+      # - "traefik.http.routers.apprise-rtr.tls=true"
+      # ## Middlewares
+      # - "traefik.http.routers.apprise-rtr.middlewares=chain-authelia@file"
+      # ## HTTP Services
+      # - "traefik.http.routers.apprise-rtr.service=apprise-svc"
+      # - "traefik.http.services.apprise-svc.loadbalancer.server.port=8080"

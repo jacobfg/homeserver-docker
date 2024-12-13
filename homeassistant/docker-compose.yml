@@ -274,7 +274,7 @@ services:
     volumes:
       - $VOLUME_DIR/authelia:/config
     environment:
-      - TZ=$TZ
+      - TZ
       - AUTHELIA_JWT_SECRET_FILE=/run/secrets/authelia_jwt_secret
       - AUTHELIA_SESSION_SECRET_FILE=/run/secrets/authelia_session_secret
       - AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE=/run/secrets/authelia_storage_encryption_key
@@ -309,7 +309,7 @@ services:
     #   - influxdb
     network_mode: host
     environment:
-      - TZ=Australia/Sydney
+      - TZ
     volumes:
       - $VOLUME_DIR/homeassistant:/config
       - /opt/backups/homeassistant:/config/backups
@@ -326,7 +326,7 @@ services:
     restart: always
     command: -H tcp://socket-proxy:2375
     environment:
-      - TZ=$TZ
+      - TZ
       # - DOCKER_HOST=socket-proxy:2375
     volumes:
       - $VOLUME_DIR/portainer:/data
@@ -401,7 +401,7 @@ services:
     hostname: 4eb908d4f748 # for licensing
     image: saspus/duplicacy-web:v1.8.3@sha256:fe1872d8531dc5f9a0b1541abbdfeadf872731416771cef581048f47a0c6dbad
     environment:
-      - TZ=$TZ
+      - TZ
       - USR_ID=0
       - GRP_ID=0
     volumes:
@@ -432,7 +432,7 @@ services:
     container_name: influxdb
     image: influxdb:2.7.11@sha256:2205d18d52b9182e844bae113a4fc81360ce085c1c6b74c8ebc283bf66113087
     environment:
-      - TZ=$TZ
+      - TZ
       - DOCKER_INFLUXDB_INIT_MODE=setup
       - DOCKER_INFLUXDB_INIT_USERNAME_FILE=/run/secrets/influxdb_user
       - DOCKER_INFLUXDB_INIT_PASSWORD_FILE=/run/secrets/influxdb_password
@@ -494,7 +494,7 @@ services:
     ports:
       - "127.0.0.1:8080:8080/tcp"
     environment:
-      - TZ=$TZ
+      - TZ
       - ZIGBEE2MQTT_CONFIG_permit_join=true
     secrets:
       - zigbee2mqtt_secrets.yaml
@@ -518,7 +518,7 @@ services:
     image: nodered/node-red:4.0.5-22-minimal@sha256:c4cdd0362ba430b4850834e570fc02dff5c2f7fdfef57a19f8b7a91c99ecf833
     container_name: node-red
     environment:
-      - TZ=$TZ
+      - TZ
     ports:
       - "127.0.0.1:1880:1880/tcp"
     volumes:
@@ -545,9 +545,7 @@ services:
     volumes:
       - $VOLUME_DIR/homer/assets/:/www/assets
       - $VOLUME_DIR/homer/custom-assets/:/www/custom-assets
-    # ports:
-    #   - "127.0.0.1:8081:8080/tcp"
-    user: 1000:1000 # default
+    user: $PUID:$PGID
     environment:
       - INIT_ASSETS=0 # default
       - IPV6_DISABLE=1
