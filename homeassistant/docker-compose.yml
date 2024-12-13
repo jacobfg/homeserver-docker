@@ -37,6 +37,14 @@ secrets:
     file: $SECRETS_DIR/authelia_identity_providers_oidc_issuer_private_key_file
   zigbee2mqtt_secrets.yaml:
     file: $SECRETS_DIR/zigbee2mqtt_secrets.yaml
+  cf_api_key:
+    file: $SECRETS_DIR/cf_api_key
+  influxdb_user:
+    file: $SECRETS_DIR/influxdb_user
+  influxdb_password:
+    file: $SECRETS_DIR/influxdb_password
+  influxdb_admin_token:
+    file: $SECRETS_DIR/influxdb_admin_token
 
 ########################### EXTENSION FIELDS
 # Helps eliminate repetition of sections
@@ -133,10 +141,12 @@ services:
       # - /var/run/docker.sock:/var/run/docker.sock:ro # If you use Docker Socket Proxy, comment this line out
     environment:
       - TZ
-      - CF_API_EMAIL
-      - CF_API_KEY
+      - CF_API_EMAIL=$CLOUDFLARE_EMAIL
+      - CF_API_KEY_FILE=/run/secrets/cf_api_key
       - DOMAINNAME_CLOUD_SERVER # Passing the domain name to the traefik container to be able to use the variable in rules.
       - DOCKER_SERVER_IP # Passing the docker server IP to the traefik container to be able to use the variable in rules.
+    secrets:
+      - cf_api_key
     labels:
       - "traefik.enable=true"
       # # HTTP-to-HTTPS Redirect
@@ -424,12 +434,16 @@ services:
     environment:
       - TZ=$TZ
       - DOCKER_INFLUXDB_INIT_MODE=setup
-      - DOCKER_INFLUXDB_INIT_USERNAME
-      - DOCKER_INFLUXDB_INIT_PASSWORD
-      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN
+      - DOCKER_INFLUXDB_INIT_USERNAME_FILE=/run/secrets/influxdb_user
+      - DOCKER_INFLUXDB_INIT_PASSWORD_FILE=/run/secrets/influxdb_password
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN_FILE=/run/secrets/influxdb_admin_token
       - DOCKER_INFLUXDB_INIT_ORG=${INFLUXDB_ORG}
       - DOCKER_INFLUXDB_INIT_BUCKET=${INFLUXDB_BUCKET}
       # - DOCKER_INFLUXDB_INIT_RETENTION=2y
+    secrets:
+      - influxdb_user
+      - influxdb_password
+      - influxdb_admin_token
     networks:
       t2_proxy:
         ipv4_address: 192.168.90.253 # You can specify a static IP
