@@ -252,16 +252,19 @@ services:
     labels:
       - "traefik.enable=false"
     extra_hosts:
+      - "audiobookshelf.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
       - "auth.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
       - "duplicacy.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
-      - "portainer.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      - "esphome.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      - "home.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
       - "homeassistant.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      - "influxdb.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      - "nodered.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      - "portainer.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
       - "static.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
       - "traefik.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
-      - "zigbee2mqtt.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
-      - "home.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
       - "vscode.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
-      - "audiobookshelf.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      - "zigbee2mqtt.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
 
   # Authelia (Lite) - Self-Hosted Single Sign-On and Two-Factor Authentication
   authelia:
