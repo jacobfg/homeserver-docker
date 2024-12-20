@@ -25,7 +25,7 @@ services:
 
   sftpgo:
     <<: *common-keys-apps
-    image: drakkan/sftpgo:v2.5.4-alpine
+    image: drakkan/sftpgo:v2.5.4-alpine@sha256:be8a85fee749f0bd9cbd4f268235f624e486983e6870105c851e9b1ec19bf22a
     container_name: sftpgo
     expose:
         - "1111/tcp"
