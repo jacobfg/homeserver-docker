@@ -54,7 +54,7 @@ services:
         - "traefik.enable=true"
         # sftp
         - "traefik.tcp.routers.sftpgo-sftp.entrypoints=sftp"
-        - "traefik.tcp.routers.sftpgo-sftp.rule=HostSNI(`*`)"
+        - "traefik.tcp.routers.sftpgo-sftp.rule=HostSNI(`*`) && ( ClientIP(`192.168.2.171/32`) || ClientIP(`192.168.1.0/24`) )"
         - "traefik.tcp.routers.sftpgo-sftp.service=sftpgo-sftp"
         - "traefik.tcp.services.sftpgo-sftp.loadbalancer.server.port=1111"
         - "traefik.tcp.services.sftpgo-sftp.loadbalancer.proxyprotocol.version=2"
