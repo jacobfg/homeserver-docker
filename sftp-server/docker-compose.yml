@@ -1,0 +1,67 @@
+# deploy weight 45
+
+# Common environment values
+x-environment: &default-tz-puid-pgid
+  TZ: $TZ
+  PUID: $PUID
+  PGID: $PGID
+
+# Keys common to some of the dependent services/apps
+x-common-keys-apps: &common-keys-apps
+  networks:
+    - t2_proxy
+  security_opt:
+    - no-new-privileges:true
+  restart: unless-stopped
+
+# use existing t2_proxy network defined by docker-env stack
+networks:
+  t2_proxy:
+    name: t2_proxy
+    external: true
+    
+########################### SERVICES
+services:
+
+  sftpgo:
+    <<: *common-keys-apps
+    image: drakkan/sftpgo:v2.5.4-alpine
+    container_name: sftpgo
+    expose:
+        - "1111/tcp"
+        - "2222/tcp"
+    environment:
+        # Proxy Protocol
+        - "SFTPGO_COMMON__PROXY_PROTOCOL=2"
+        - "SFTPGO_COMMON__PROXY_ALLOWED=0.0.0.0"
+        # SFTP
+        - "SFTPGO_SFTPD__BINDINGS__0__PORT=1111"
+        - "SFTPGO_SFTPD__BINDINGS__0__PROXY_ALLOWED=0.0.0.0"
+        # HTTP
+        - "SFTPGO_HTTPD__BINDINGS__0__PORT=2222"
+        - "SFTPGO_HTTPD__BINDINGS__0__PROXY_ALLOWED=0.0.0.0"
+        # Defender (similar concept as Fail2ban) — see https://github.com/drakkan/sftpgo/blob/main/docs/defender.md
+        - "SFTPGO_COMMON__DEFENDER__ENABLED=true"
+        - "SFTPGO_COMMON__DEFENDER__BAN_TIME=30"
+        - "SFTPGO_COMMON__DEFENDER__BAN_TIME_INCREMENT=50"
+        - "SFTPGO_COMMON__DEFENDER__THRESHOLD=15"
+        - "SFTPGO_COMMON__DEFENDER__OBSERVATION_TIME=30"
+    volumes:
+        - $VOLUME_DIR/sftpgo/data:/srv/sftpgo/data
+        - $VOLUME_DIR/sftpgo/backups:/srv/sftpgo/backups
+        - $VOLUME_DIR/sftpgo/config:/var/lib/sftpgo
+    labels:
+        - "traefik.enable=true"
+        # sftp
+        - "traefik.tcp.routers.sftpgo-sftp.entrypoints=sftp"
+        - "traefik.tcp.routers.sftpgo-sftp.rule=HostSNI(`*`)"
+        - "traefik.tcp.routers.sftpgo-sftp.service=sftpgo-sftp"
+        - "traefik.tcp.services.sftpgo-sftp.loadbalancer.server.port=1111"
+        - "traefik.tcp.services.sftpgo-sftp.loadbalancer.proxyprotocol.version=2"
+        # https
+        - "traefik.http.routers.sftpgo-https.entrypoints=https"
+        - "traefik.http.routers.sftpgo-https.rule=Host(`sftp.$DOMAINNAME_CLOUD_SERVER`)"
+        - "traefik.http.routers.sftpgo-https.tls=true"
+        - "traefik.http.routers.sftpgo-https.middlewares=chain-authelia@file"
+        - "traefik.http.routers.sftpgo-https.service=sftpgo-https"
+        - "traefik.http.services.sftpgo-https.loadbalancer.server.port=2222" 

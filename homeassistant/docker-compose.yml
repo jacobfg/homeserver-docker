@@ -92,9 +92,10 @@ services:
       - --global.sendAnonymousUsage=false
       # - --entryPoints.http.address=:80
       - --entryPoints.https.address=:443
+      - --entryPoints.sftp.address=:443
       # Allow these IPs to set the X-Forwarded-* headers - Cloudflare IPs: https://www.cloudflare.com/ips/
       - --entrypoints.https.forwardedHeaders.trustedIPs=$CLOUDFLARE_IPS,$LOCAL_IPS
-      - --entryPoints.traefik.address=:8080
+      # - --entryPoints.traefik.address=:8080
       - --api=true
       - --api.dashboard=true
       - --log=true
@@ -132,6 +133,10 @@ services:
     ports:
       - target: 443
         published: 443
+        protocol: tcp
+        mode: host
+      - target: 2021
+        published: 2021
         protocol: tcp
         mode: host
     volumes:
