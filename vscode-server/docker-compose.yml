@@ -23,7 +23,6 @@ services:
       - DEFAULT_WORKSPACE=/config/workspace #optional
     volumes:
       - $VOLUME_DIR/vscode-server/config:/config
-      - $VOLUME_DIR/../github:/github/homeserver-docker:ro
       - $VOLUME_DIR:/volumes
     networks:
       - t2_proxy
