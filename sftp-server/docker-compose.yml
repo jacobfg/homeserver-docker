@@ -47,6 +47,13 @@ services:
         - "SFTPGO_COMMON__DEFENDER__BAN_TIME_INCREMENT=50"
         - "SFTPGO_COMMON__DEFENDER__THRESHOLD=15"
         - "SFTPGO_COMMON__DEFENDER__OBSERVATION_TIME=30"
+        # OpenID Connect (OIDC)
+        - SFTPGO_HTTPD__BINDINGS__0__OIDC__CLIENT_ID
+        - SFTPGO_HTTPD__BINDINGS__0__OIDC__CLIENT_SECRET
+        - SFTPGO_HTTPD__BINDINGS__0__OIDC__CONFIG_URL
+        - SFTPGO_HTTPD__BINDINGS__0__OIDC__REDIRECT_BASE_URL
+        - SFTPGO_HTTPD__BINDINGS__0__OIDC__USERNAME_FIELD
+        - SFTPGO_HTTPD__BINDINGS__0__OIDC__ROLE_FIELD
     volumes:
         - $VOLUME_DIR/sftpgo/data:/srv/sftpgo/data
         - $VOLUME_DIR/sftpgo/backups:/srv/sftpgo/backups
