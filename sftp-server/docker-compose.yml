@@ -32,6 +32,8 @@ services:
         - "2222/tcp"
     user: $PUID:$PGID
     environment:
+        # Common
+        - SFTPGO_LOGGING__LEVEL
         # Proxy Protocol
         - "SFTPGO_COMMON__PROXY_PROTOCOL=2"
         - "SFTPGO_COMMON__PROXY_ALLOWED=0.0.0.0"
@@ -53,7 +55,8 @@ services:
         - SFTPGO_HTTPD__BINDINGS__0__OIDC__CONFIG_URL
         - SFTPGO_HTTPD__BINDINGS__0__OIDC__REDIRECT_BASE_URL
         - SFTPGO_HTTPD__BINDINGS__0__OIDC__USERNAME_FIELD
-        - SFTPGO_HTTPD__BINDINGS__0__OIDC__ROLE_FIELD
+        # - SFTPGO_HTTPD__BINDINGS__0__OIDC__ROLE_FIELD
+        - SFTPGO_HTTPD__BINDINGS__0__OIDC__ROLE_MAPPING
     volumes:
         - $VOLUME_DIR/sftpgo/data:/srv/sftpgo/data
         - $VOLUME_DIR/sftpgo/backups:/srv/sftpgo/backups
