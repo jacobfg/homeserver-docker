@@ -17,6 +17,7 @@ services:
       - LIBATION_DB_DIR=/db
       - SLEEP_TIME=1d
     volumes:
+      # use secrets ?
       - $VOLUME_DIR/libation/config:/config
       - $VOLUME_DIR/libation/db:/db
       - $VOLUME_DIR/audiobookshelf/audiobooks/jacobfg:/data
