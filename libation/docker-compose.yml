@@ -1,0 +1,27 @@
+# deploy weight 49
+
+# use existing t2_proxy network defined by docker-env stack
+networks:
+  t2_proxy:
+    name: t2_proxy
+    external: true
+
+services:
+  libation:
+    container_name: libation
+    image: rmcrackan/libation:11.6.3
+    restart: unless-stopped
+    user: $PUID:$PGID
+    environment:
+      - TZ
+      - LIBATION_DB_DIR=/db
+      - SLEEP_TIME=
+    volumes:
+      - $VOLUME_DIR/libation/config:/config
+      - $VOLUME_DIR/libation/db:/db
+      - $VOLUME_DIR/audiobookshelf/audiobooks/jacobfg:/data
+      - $VOLUME_DIR/libation/logs:/logs
+    networks:
+      - t2_proxy
+    labels:
+      - "traefik.enable=false"
