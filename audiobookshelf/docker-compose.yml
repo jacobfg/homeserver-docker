@@ -13,6 +13,7 @@ services:
     restart: unless-stopped
     volumes:
       - $VOLUME_DIR/audiobookshelf/audiobooks:/audiobooks:ro
+      - $VOLUME_DIR/audiobookshelf/audiobooks_rw:/audiobooks_rw:rw
       - $VOLUME_DIR/audiobookshelf/podcasts:/podcasts:ro
       - $VOLUME_DIR/audiobookshelf/config:/config
       - $VOLUME_DIR/audiobookshelf/metadata:/metadata
