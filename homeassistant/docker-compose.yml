@@ -39,6 +39,8 @@ secrets:
     file: $SECRETS_DIR/zigbee2mqtt_secrets.yaml
   cf_api_key:
     file: $SECRETS_DIR/cf_api_key
+  cf_dns_api_key:
+    file: $SECRETS_DIR/secrets/cf_dns_api_key
   influxdb_user:
     file: $SECRETS_DIR/influxdb_user
   influxdb_password:
@@ -146,12 +148,15 @@ services:
       # - /var/run/docker.sock:/var/run/docker.sock:ro # If you use Docker Socket Proxy, comment this line out
     environment:
       - TZ
-      - CF_API_EMAIL=$CLOUDFLARE_EMAIL
-      - CF_API_KEY_FILE=/run/secrets/cf_api_key
+      # - CF_API_EMAIL=$CLOUDFLARE_EMAIL
+      # - CF_API_KEY_FILE=/run/secrets/cf_api_key
+      - CF_DNS_API_TOKEN_FILE=/run/secrets/cf_dns_api_key
+      - CF_ZONE_API_TOKEN_FILE=/run/secrets/cf_dns_api_key
       - DOMAINNAME_CLOUD_SERVER # Passing the domain name to the traefik container to be able to use the variable in rules.
       - DOCKER_SERVER_IP # Passing the docker server IP to the traefik container to be able to use the variable in rules.
     secrets:
       - cf_api_key
+      - cf_dns_api_key
     labels:
       - "traefik.enable=true"
       # # HTTP-to-HTTPS Redirect
