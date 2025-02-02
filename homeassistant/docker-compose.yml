@@ -40,7 +40,7 @@ secrets:
   cf_api_key:
     file: $SECRETS_DIR/cf_api_key
   cf_dns_api_key:
-    file: $SECRETS_DIR/secrets/cf_dns_api_key
+    file: $SECRETS_DIR/cf_dns_api_key
   influxdb_user:
     file: $SECRETS_DIR/influxdb_user
   influxdb_password:
