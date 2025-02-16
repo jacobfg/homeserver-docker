@@ -88,7 +88,7 @@ services:
   traefik:
     <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: traefik
-    image: traefik:v3.3.3@sha256:c7d37f1f6025928c1f9421eacf754cab5dc19e4c7ea01d961b6ceadfdf140fe8
+    image: traefik:v3.3.3@sha256:be1aeb861f91d0e65f7134ea2d7bc254e93ea690935cd45218eff3f2c306159c
     command: # CLI arguments
       - --global.checkNewVersion=true
       - --global.sendAnonymousUsage=false
