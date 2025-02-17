@@ -51,13 +51,13 @@ secrets:
 ########################### EXTENSION FIELDS
 # Helps eliminate repetition of sections
 # More Info on how to use this: https://github.com/htpcBeginner/docker-traefik/pull/228
- 
+
 # Common environment values
 x-environment: &default-tz-puid-pgid
   TZ: $TZ
   PUID: $PUID
   PGID: $PGID
- 
+
 # Keys common to some of the core services that we always to automatically restart on failure
 x-common-keys-core: &common-keys-core
   networks:
@@ -65,7 +65,7 @@ x-common-keys-core: &common-keys-core
   security_opt:
     - no-new-privileges:true
   restart: always
- 
+
 # Keys common to some of the dependent services/apps
 x-common-keys-apps: &common-keys-apps
   networks:
@@ -73,7 +73,7 @@ x-common-keys-apps: &common-keys-apps
   security_opt:
     - no-new-privileges:true
   restart: unless-stopped
- 
+
 # Keys common to some of the dependent services/apps
 x-common-keys-apps-hostmode: &common-keys-apps-hostmode
   security_opt:
@@ -82,7 +82,6 @@ x-common-keys-apps-hostmode: &common-keys-apps-hostmode
 
 ########################### SERVICES
 services:
-
   ############################# FRONTENDS
   # Traefik 2 - Reverse Proxy
   traefik:
@@ -315,7 +314,7 @@ services:
       ## HTTP Services
       - "traefik.http.routers.authelia-rtr.service=authelia-svc"
       - "traefik.http.services.authelia-svc.loadbalancer.server.port=9091"
-  
+
   # https://www.home-assistant.io/installation/raspberrypi
   homeassistant:
     <<: *common-keys-apps-hostmode # See EXTENSION FIELDS at the top
@@ -330,7 +329,8 @@ services:
       - $VOLUME_DIR/homeassistant:/config
       - /opt/backups/homeassistant:/config/backups
       - /opt/docker/stacks/.git:/config/.homeserver-docker/.git:ro
-    labels: []
+    labels:
+      []
       # - "traefik.enable=true" file config
       # traefik config in file as url cannot be set via label and HA needs to be host mode
 
@@ -365,16 +365,17 @@ services:
       ## HTTP Services
       - "traefik.http.routers.portainer-rtr.service=portainer-svc"
       - "traefik.http.services.portainer-svc.loadbalancer.server.port=9000"
-      ## Homer access to API - Allow access without auth to /api/ using using homer
-      ## HTTP Routers
-      - "traefik.http.routers.portainer-api-rtr.entrypoints=https"
-      - "traefik.http.routers.portainer-api-rtr.priority=99"
-      - "traefik.http.routers.portainer-api-rtr.rule=Host(`portainer.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.0.0/16`) && PathPrefix(`/api/`) && Header(`Origin`,`https://home.$DOMAINNAME_CLOUD_SERVER`)"
-      - "traefik.http.routers.portainer-api-rtr.tls=true"
-      ## Middlewares
-      - "traefik.http.routers.portainer-api-rtr.middlewares=middlewares-api-no-auth@file,chain-no-auth@file"
-      ## HTTP Services
-      - "traefik.http.routers.portainer-api-rtr.service=portainer-svc"
+      # set CORS via Traefik/Authelia
+      # ## Homer access to API - Allow access without auth to /api/ using using homer
+      # ## HTTP Routers
+      # - "traefik.http.routers.portainer-api-rtr.entrypoints=https"
+      # - "traefik.http.routers.portainer-api-rtr.priority=99"
+      # - "traefik.http.routers.portainer-api-rtr.rule=Host(`portainer.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.0.0/16`) && PathPrefix(`/api/`) && Header(`Origin`,`https://home.$DOMAINNAME_CLOUD_SERVER`)"
+      # - "traefik.http.routers.portainer-api-rtr.tls=true"
+      # ## Middlewares
+      # - "traefik.http.routers.portainer-api-rtr.middlewares=middlewares-api-no-auth@file,chain-no-auth@file"
+      # ## HTTP Services
+      # - "traefik.http.routers.portainer-api-rtr.service=portainer-svc"
     extra_hosts:
       - "auth.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP" # required for oidc auth
 
