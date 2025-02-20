@@ -338,7 +338,7 @@ services:
   portainer:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
     container_name: portainer
-    image: portainer/portainer-ce:2.26.1@sha256:ad336b442a5b67b015b6a1ac53b586203c0f5e97963f0a9fc85a9547ead692c0
+    image: portainer/portainer-ce:2.27.0@sha256:09db0c204595cab39981fd559faa0a2f4e0f67387eb0b14b2926adf4e058a6d1
     restart: always
     command: -H tcp://socket-proxy:2375
     environment:
