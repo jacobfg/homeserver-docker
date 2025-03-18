@@ -9,7 +9,7 @@ networks:
 services:
   vscode-server:
     container_name: code-server
-    image: lscr.io/linuxserver/code-server:4.97.2@sha256:3d1f7bd7399b4b54622e580a7f14afd6886ff698fc11dd1978afd04cc6e7b529
+    image: lscr.io/linuxserver/code-server:4.98.2@sha256:87fbf594ae4a6494d0623967fc4c7a42774945c9cf032b55c57128ca675f2221
     restart: unless-stopped
     environment:
       - PUID=$PUID
