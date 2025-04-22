@@ -9,7 +9,7 @@ networks:
 services:
   apprise-api:
     container_name: apprise-api
-    image: lscr.io/linuxserver/apprise-api:latest@sha256:b5a4e05706567321b323fe87825fcac8af10f2fad74d303870368678bd4a1dd0
+    image: lscr.io/linuxserver/apprise-api:latest@sha256:1971e6978912e6db359b2fd94ed25a670fdcc5568d9855861fb3d58e9aadddee
     restart: unless-stopped
     environment:
       - PUID
