@@ -9,7 +9,7 @@ networks:
 services:
   libation:
     container_name: libation
-    image: rmcrackan/libation:12.4.3@sha256:6988295e9601fff15620afbf7cd8f15bcc9d6aa433eac7d569ab370b95b073e9
+    image: rmcrackan/libation:12.4.4@sha256:d87c57602e8049d4a9ebf777f123b2b7089ddb73b6e5703cb74b7dbba7511fe5
     restart: unless-stopped
     user: $PUID:$PGID
     environment:
