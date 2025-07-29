@@ -45,3 +45,5 @@ services:
       - "traefik.http.routers.audiobookshelf-local-rtr.middlewares=chain-no-auth@file"
       ## HTTP Services
       - "traefik.http.routers.audiobookshelf-local-rtr.service=audiobookshelf-svc"
+    extra_hosts:
+      - "auth.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP" # required for oidc auth
