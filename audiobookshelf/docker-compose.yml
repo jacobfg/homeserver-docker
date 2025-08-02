@@ -54,10 +54,9 @@ services:
     restart: unless-stopped
     user: $PUID:$PGID
     volumes:
-      - $VOLUME_DIR/filebrowser/srv:/srv
       - $VOLUME_DIR/filebrowser/database:/database
       - $VOLUME_DIR/filebrowser/config:/config
-      - $VOLUME_DIR/audiobookshelf/audiobooks:/users/admin/audiobooks
+      - $VOLUME_DIR/audiobookshelf/audiobooks:/srv/audiobooks
     environment:
       - TZ=$TZ
     networks:
