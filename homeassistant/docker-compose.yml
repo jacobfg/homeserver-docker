@@ -265,6 +265,7 @@ services:
       - "auth.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
       - "duplicacy.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
       - "esphome.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      - "filebrowser.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
       - "home.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
       - "homeassistant.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
       - "influxdb.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
@@ -329,8 +330,7 @@ services:
       - $VOLUME_DIR/homeassistant:/config
       - /opt/backups/homeassistant:/config/backups
       - /opt/docker/stacks/.git:/config/.homeserver-docker/.git:ro
-    labels:
-      []
+    labels: []
       # - "traefik.enable=true" file config
       # traefik config in file as url cannot be set via label and HA needs to be host mode
 

@@ -47,3 +47,29 @@ services:
       - "traefik.http.routers.audiobookshelf-local-rtr.service=audiobookshelf-svc"
     extra_hosts:
       - "auth.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP" # required for oidc auth
+
+  filebrowser:
+    container_name: filebrowser
+    image: filebrowser/filebrowser
+    restart: unless-stopped
+    user: $PUID:$PGID
+    volumes:
+      - $VOLUME_DIR/filebrowser/srv:/srv
+      - $VOLUME_DIR/filebrowser/database:/database
+      - $VOLUME_DIR/filebrowser/config:/config
+      - $VOLUME_DIR/audiobookshelf/audiobooks:/storage/audiobooks
+    environment:
+      - TZ=$TZ
+    networks:
+      - t2_proxy
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.filebrowser-rtr.entrypoints=https"
+      - "traefik.http.routers.filebrowser-rtr.rule=Host(`filebrowser.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.filebrowser-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.filebrowser-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.filebrowser-rtr.service=filebrowser-svc"
+      - "traefik.http.services.filebrowser-svc.loadbalancer.server.port=8080"
