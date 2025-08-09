@@ -50,7 +50,7 @@ services:
 
   filebrowser:
     container_name: filebrowser
-    image: filebrowser/filebrowser@sha256:45931d1aca9d2e904913b46c52cc76fc1c3d9ceb6abe6e35d7ac9a4735d2707e
+    image: filebrowser/filebrowser@sha256:822a6851fe09f967953cb60b596a140aa84cdcc002124ae530ba5b9a70a01d2a
     restart: unless-stopped
     user: $PUID:$PGID
     volumes:
