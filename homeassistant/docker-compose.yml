@@ -201,7 +201,7 @@ services:
   socket-proxy:
     <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: socket-proxy
-    image: tecnativa/docker-socket-proxy:v0.4.0@sha256:44538370af9103858aa387860f355bed72e7f4e15380ef829b53ed4e154cedcd
+    image: tecnativa/docker-socket-proxy:v0.4.1@sha256:3400c429c5f9e1b21d62130fb93b16e2e772d4fb7695bd52fc2b743800b9fe9e
     networks:
       socket_proxy:
         ipv4_address: 192.168.91.254 # You can specify a static IP
