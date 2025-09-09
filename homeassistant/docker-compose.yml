@@ -540,6 +540,7 @@ services:
       - "127.0.0.1:1880:1880/tcp"
     volumes:
       - $VOLUME_DIR/nodered/data:/data
+      - /opt/backups/energy-data:/energy-data
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
