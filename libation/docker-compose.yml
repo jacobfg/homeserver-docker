@@ -15,7 +15,7 @@ services:
     environment:
       - TZ
       - LIBATION_DB_DIR=/db
-      - SLEEP_TIME=1d
+      - SLEEP_TIME=4h
     volumes:
       # use secrets ?
       - $VOLUME_DIR/libation/config:/config
