@@ -277,6 +277,7 @@ services:
       - "traefik.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
       - "vscode.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
       - "zigbee2mqtt.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      - "immich.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
 
   # Authelia (Lite) - Self-Hosted Single Sign-On and Two-Factor Authentication
   authelia:
