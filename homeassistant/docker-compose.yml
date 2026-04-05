@@ -317,6 +317,13 @@ services:
       ## HTTP Services
       - "traefik.http.routers.authelia-rtr.service=authelia-svc"
       - "traefik.http.services.authelia-svc.loadbalancer.server.port=9091"
+      ## Homer ping access - allow browser-originated reachability checks only
+      - "traefik.http.routers.authelia-ping-rtr.entrypoints=https"
+      - "traefik.http.routers.authelia-ping-rtr.priority=99"
+      - "traefik.http.routers.authelia-ping-rtr.rule=Host(`auth.$DOMAINNAME_CLOUD_SERVER`) && Path(`/`) && Method(`HEAD`) && Header(`Origin`,`https://home.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.authelia-ping-rtr.tls=true"
+      - "traefik.http.routers.authelia-ping-rtr.middlewares=middlewares-homer-cors@file,chain-no-auth@file"
+      - "traefik.http.routers.authelia-ping-rtr.service=influxdb-svc"
 
   # https://www.home-assistant.io/installation/raspberrypi
   homeassistant:
@@ -441,6 +448,13 @@ services:
       ## HTTP Services
       - "traefik.http.routers.duplicacy-rtr.service=duplicacy-svc"
       - "traefik.http.services.duplicacy-svc.loadbalancer.server.port=3875"
+      ## Homer ping access - allow browser-originated reachability checks only
+      - "traefik.http.routers.duplicacy-ping-rtr.entrypoints=https"
+      - "traefik.http.routers.duplicacy-ping-rtr.priority=99"
+      - "traefik.http.routers.duplicacy-ping-rtr.rule=Host(`duplicacy.$DOMAINNAME_CLOUD_SERVER`) && Path(`/`) && Method(`HEAD`) && Header(`Origin`,`https://home.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.duplicacy-ping-rtr.tls=true"
+      - "traefik.http.routers.duplicacy-ping-rtr.middlewares=middlewares-homer-cors@file,chain-no-auth@file"
+      - "traefik.http.routers.duplicacy-ping-rtr.service=influxdb-svc"
     extra_hosts:
       - "homeassistant.$DOMAINNAME_CLOUD_SERVER:192.168.90.254"
 
@@ -482,6 +496,13 @@ services:
       ## HTTP Services
       - "traefik.http.routers.influxdb-rtr.service=influxdb-svc"
       - "traefik.http.services.influxdb-svc.loadbalancer.server.port=8086"
+      ## Homer ping access - allow browser-originated reachability checks only
+      - "traefik.http.routers.influxdb-ping-rtr.entrypoints=https"
+      - "traefik.http.routers.influxdb-ping-rtr.priority=99"
+      - "traefik.http.routers.influxdb-ping-rtr.rule=Host(`influxdb.$DOMAINNAME_CLOUD_SERVER`) && Path(`/`) && Method(`HEAD`) && Header(`Origin`,`https://home.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.influxdb-ping-rtr.tls=true"
+      - "traefik.http.routers.influxdb-ping-rtr.middlewares=middlewares-homer-cors@file,chain-no-auth@file"
+      - "traefik.http.routers.influxdb-ping-rtr.service=influxdb-svc"
 
   # Zigbee & MQTT
   mosquitto:
@@ -528,6 +549,13 @@ services:
       ## HTTP Services
       - "traefik.http.routers.zigbee2mqtt-rtr.service=zigbee2mqtt-svc"
       - "traefik.http.services.zigbee2mqtt-svc.loadbalancer.server.port=8080"
+      ## Homer ping access - allow browser-originated reachability checks only
+      - "traefik.http.routers.zigbee2mqtt-ping-rtr.entrypoints=https"
+      - "traefik.http.routers.zigbee2mqtt-ping-rtr.priority=99"
+      - "traefik.http.routers.zigbee2mqtt-ping-rtr.rule=Host(`zigbee2mqtt.$DOMAINNAME_CLOUD_SERVER`) && Path(`/`) && Method(`HEAD`) && Header(`Origin`,`https://home.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.zigbee2mqtt-ping-rtr.tls=true"
+      - "traefik.http.routers.zigbee2mqtt-ping-rtr.middlewares=middlewares-homer-cors@file,chain-no-auth@file"
+      - "traefik.http.routers.zigbee2mqtt-ping-rtr.service=zigbee2mqtt-svc"
 
   # NodeRED
   node-red:
