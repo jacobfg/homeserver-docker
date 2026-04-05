@@ -367,17 +367,6 @@ services:
       ## HTTP Services
       - "traefik.http.routers.portainer-rtr.service=portainer-svc"
       - "traefik.http.services.portainer-svc.loadbalancer.server.port=9000"
-      # set CORS via Traefik/Authelia
-      # ## Homer access to API - Allow access without auth to /api/ using using homer
-      # ## HTTP Routers
-      # - "traefik.http.routers.portainer-api-rtr.entrypoints=https"
-      # - "traefik.http.routers.portainer-api-rtr.priority=99"
-      # - "traefik.http.routers.portainer-api-rtr.rule=Host(`portainer.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.0.0/16`) && PathPrefix(`/api/`) && Header(`Origin`,`https://home.$DOMAINNAME_CLOUD_SERVER`)"
-      # - "traefik.http.routers.portainer-api-rtr.tls=true"
-      # ## Middlewares
-      # - "traefik.http.routers.portainer-api-rtr.middlewares=middlewares-api-no-auth@file,chain-no-auth@file"
-      # ## HTTP Services
-      # - "traefik.http.routers.portainer-api-rtr.service=portainer-svc"
       ## Homer access to API - allow browser-originated API calls from Homer
       - "traefik.http.routers.portainer-api-rtr.entrypoints=https"
       - "traefik.http.routers.portainer-api-rtr.priority=99"
@@ -563,6 +552,15 @@ services:
       ## HTTP Services
       - "traefik.http.routers.nodered-rtr.service=nodered-svc"
       - "traefik.http.services.nodered-svc.loadbalancer.server.port=1880"
+      ## Homer access to API - allow browser-originated API calls from Homer
+      - "traefik.http.routers.nodered-api-rtr.entrypoints=https"
+      - "traefik.http.routers.nodered-api-rtr.priority=99"
+      - "traefik.http.routers.nodered-api-rtr.rule=Host(`nodered.$DOMAINNAME_CLOUD_SERVER`) && PathPrefix(`/api/`) && Header(`Origin`,`https://home.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.nodered-api-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.nodered-api-rtr.middlewares=middlewares-homer-cors@file,chain-no-auth@file"
+      ## HTTP Services
+      - "traefik.http.routers.nodered-api-rtr.service=nodered-svc"
     extra_hosts:
       - "homeassistant.$DOMAINNAME_CLOUD_SERVER:192.168.90.254"
 
