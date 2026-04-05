@@ -552,15 +552,13 @@ services:
       ## HTTP Services
       - "traefik.http.routers.nodered-rtr.service=nodered-svc"
       - "traefik.http.services.nodered-svc.loadbalancer.server.port=1880"
-      ## Homer access to API - allow browser-originated API calls from Homer
-      - "traefik.http.routers.nodered-api-rtr.entrypoints=https"
-      - "traefik.http.routers.nodered-api-rtr.priority=99"
-      - "traefik.http.routers.nodered-api-rtr.rule=Host(`nodered.$DOMAINNAME_CLOUD_SERVER`) && PathPrefix(`/api/`) && Header(`Origin`,`https://home.$DOMAINNAME_CLOUD_SERVER`)"
-      - "traefik.http.routers.nodered-api-rtr.tls=true"
-      ## Middlewares
-      - "traefik.http.routers.nodered-api-rtr.middlewares=middlewares-homer-cors@file,chain-no-auth@file"
-      ## HTTP Services
-      - "traefik.http.routers.nodered-api-rtr.service=nodered-svc"
+      ## Homer ping access - allow browser-originated reachability checks only
+      - "traefik.http.routers.nodered-ping-rtr.entrypoints=https"
+      - "traefik.http.routers.nodered-ping-rtr.priority=99"
+      - "traefik.http.routers.nodered-ping-rtr.rule=Host(`nodered.$DOMAINNAME_CLOUD_SERVER`) && Header(`Origin`,`https://home.$DOMAINNAME_CLOUD_SERVER`) && Method(`GET`,`HEAD`,`OPTIONS`)"
+      - "traefik.http.routers.nodered-ping-rtr.tls=true"
+      - "traefik.http.routers.nodered-ping-rtr.middlewares=middlewares-homer-cors@file,chain-no-auth@file"
+      - "traefik.http.routers.nodered-ping-rtr.service=nodered-svc"
     extra_hosts:
       - "homeassistant.$DOMAINNAME_CLOUD_SERVER:192.168.90.254"
 
