@@ -180,10 +180,11 @@ services:
       ## HTTP Routers
       - "traefik.http.routers.traefik-api-rtr.entrypoints=https"
       - "traefik.http.routers.traefik-api-rtr.priority=99"
-      - "traefik.http.routers.traefik-api-rtr.rule=Host(`traefik.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.0.0/16`) && PathPrefix(`/api/version`) && Header(`Origin`,`https://home.$DOMAINNAME_CLOUD_SERVER`)"
+      # - "traefik.http.routers.traefik-api-rtr.rule=Host(`traefik.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.0.0/16`) && PathPrefix(`/api/version`) && Header(`Origin`,`https://home.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.traefik-api-rtr.rule=Host(`traefik.$DOMAINNAME_CLOUD_SERVER`) && PathPrefix(`/api`) && Header(`Origin`,`https://home.$DOMAINNAME_CLOUD_SERVER`)"
       - "traefik.http.routers.traefik-api-rtr.tls=true"
       ## Middlewares
-      - "traefik.http.routers.traefik-api-rtr.middlewares=middlewares-api-no-auth@file,chain-no-auth@file"
+      - "traefik.http.routers.traefik-api-rtr.middlewares=middlewares-homer-cors@file,chain-no-auth@file"
       ## HTTP Services
       - "traefik.http.routers.traefik-api-rtr.service=api@internal"
       # ## CORS - would prefer to get CORS working and not bypass auth for this API, same issue with portainer
@@ -377,6 +378,15 @@ services:
       # - "traefik.http.routers.portainer-api-rtr.middlewares=middlewares-api-no-auth@file,chain-no-auth@file"
       # ## HTTP Services
       # - "traefik.http.routers.portainer-api-rtr.service=portainer-svc"
+      ## Homer access to API - allow browser-originated API calls from Homer
+      - "traefik.http.routers.portainer-api-rtr.entrypoints=https"
+      - "traefik.http.routers.portainer-api-rtr.priority=99"
+      - "traefik.http.routers.portainer-api-rtr.rule=Host(`portainer.$DOMAINNAME_CLOUD_SERVER`) && PathPrefix(`/api/`) && Header(`Origin`,`https://home.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.portainer-api-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.portainer-api-rtr.middlewares=middlewares-homer-cors@file,chain-no-auth@file"
+      ## HTTP Services
+      - "traefik.http.routers.portainer-api-rtr.service=portainer-svc"
     extra_hosts:
       - "auth.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP" # required for oidc auth
 
