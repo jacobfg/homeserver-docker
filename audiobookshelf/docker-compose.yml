@@ -82,7 +82,7 @@ services:
       ## Homer ping access - allow browser-originated reachability checks only
       - "traefik.http.routers.filebrowser-ping-rtr.entrypoints=https"
       - "traefik.http.routers.filebrowser-ping-rtr.priority=99"
-      - "traefik.http.routers.filebrowser-ping-rtr.rule=Host(`filebrowser.$DOMAINNAME_CLOUD_SERVER`) && Path(`/`) && Method(`HEAD`) && Header(`Origin`,`https://home.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.filebrowser-ping-rtr.rule=Host(`filebrowser.$DOMAINNAME_CLOUD_SERVER`) && Path(`/health`) && Method(`HEAD`) && Header(`Origin`,`https://home.$DOMAINNAME_CLOUD_SERVER`)"
       - "traefik.http.routers.filebrowser-ping-rtr.tls=true"
       - "traefik.http.routers.filebrowser-ping-rtr.middlewares=middlewares-homer-cors@file,chain-no-auth@file"
       - "traefik.http.routers.filebrowser-ping-rtr.service=filebrowser-svc"
