@@ -41,7 +41,7 @@ services:
       ## Homer ping access - allow browser-originated reachability checks only
       - "traefik.http.routers.vscode-ping-rtr.entrypoints=https"
       - "traefik.http.routers.vscode-ping-rtr.priority=99"
-      - "traefik.http.routers.vscode-ping-rtr.rule=Host(`vscode.$DOMAINNAME_CLOUD_SERVER`) && Path(`/`) && Method(`HEAD`) && Header(`Origin`,`https://home.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.vscode-ping-rtr.rule=Host(`vscode.$DOMAINNAME_CLOUD_SERVER`) && Path(`/healthz`) && Method(`HEAD`) && Header(`Origin`,`https://home.$DOMAINNAME_CLOUD_SERVER`)"
       - "traefik.http.routers.vscode-ping-rtr.tls=true"
       - "traefik.http.routers.vscode-ping-rtr.middlewares=middlewares-homer-cors@file,chain-no-auth@file"
       - "traefik.http.routers.vscode-ping-rtr.service=vscode-svc"
