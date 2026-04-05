@@ -48,7 +48,7 @@ services:
       ## Homer ping access - allow browser-originated reachability checks only
       - "traefik.http.routers.audiobookshelf-ping-rtr.entrypoints=https"
       - "traefik.http.routers.audiobookshelf-ping-rtr.priority=99"
-      - "traefik.http.routers.audiobookshelf-ping-rtr.rule=Host(`audiobookshelf.$DOMAINNAME_CLOUD_SERVER`) && Path(`/`) && Method(`HEAD`) && Header(`Origin`,`https://home.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.audiobookshelf-ping-rtr.rule=Host(`audiobookshelf.$DOMAINNAME_CLOUD_SERVER`) && Path(`/ping`) && Method(`HEAD`) && Header(`Origin`,`https://home.$DOMAINNAME_CLOUD_SERVER`)"
       - "traefik.http.routers.audiobookshelf-ping-rtr.tls=true"
       - "traefik.http.routers.audiobookshelf-ping-rtr.middlewares=middlewares-homer-cors@file,chain-no-auth@file"
       - "traefik.http.routers.audiobookshelf-ping-rtr.service=audiobookshelf-svc"
