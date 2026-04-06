@@ -158,11 +158,6 @@ services:
       - cf_dns_api_key
     labels:
       - "traefik.enable=true"
-      # # HTTP-to-HTTPS Redirect
-      # - "traefik.http.routers.http-catchall.entrypoints=http"
-      # - "traefik.http.routers.http-catchall.rule=HostRegexp(`{host:.+}`)"
-      # - "traefik.http.routers.http-catchall.middlewares=redirect-to-https"
-      # - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
       # HTTP Routers
       - "traefik.http.routers.traefik-rtr.entrypoints=https"
       - "traefik.http.routers.traefik-rtr.priority=1"
@@ -175,28 +170,8 @@ services:
       # - "traefik.http.routers.traefik-rtr.tls.domains[1].sans=*.$DOMAINNAME2" # Pulls wildcard cert for second domain
       ## Services - API
       - "traefik.http.routers.traefik-rtr.service=api@internal"
-
-      ## Homer access to API - Allow access without auth to /api/ using using homer
-      ## HTTP Routers
-      - "traefik.http.routers.traefik-api-rtr.entrypoints=https"
-      - "traefik.http.routers.traefik-api-rtr.priority=99"
-      # - "traefik.http.routers.traefik-api-rtr.rule=Host(`traefik.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.0.0/16`) && PathPrefix(`/api/version`) && Header(`Origin`,`https://home.$DOMAINNAME_CLOUD_SERVER`)"
-      - "traefik.http.routers.traefik-api-rtr.rule=Host(`traefik.$DOMAINNAME_CLOUD_SERVER`) && Path(`/api/version`) && Header(`Origin`,`https://home.$DOMAINNAME_CLOUD_SERVER`)"
-      - "traefik.http.routers.traefik-api-rtr.tls=true"
       ## Middlewares
-      - "traefik.http.routers.traefik-api-rtr.middlewares=middlewares-homer-cors@file,chain-no-auth@file"
-      ## HTTP Services
-      - "traefik.http.routers.traefik-api-rtr.service=api@internal"
-      # ## CORS - would prefer to get CORS working and not bypass auth for this API, same issue with portainer
-      # - "traefik.http.middlewares.cors.headers.accessControlAllowOriginList=https://home.$DOMAINNAME_CLOUD_SERVER,https://auth.$DOMAINNAME_CLOUD_SERVER"
-      # - "traefik.http.middlewares.cors.headers.accessControlAllowMethods=GET,OPTIONS,POST"
-      # - "traefik.http.middlewares.cors.headers.accessControlAllowHeaders=Content-Type,Authorization"
-      # - "traefik.http.middlewares.cors.headers.accessControlAllowCredentials=true"
-      # # - "traefik.http.middlewares.cors.headers.accessControlMaxAge=100"
-      # # - "traefik.http.middlewares.cors.headers.addVaryHeader=true"
-      # # Content-Type"
-      ## Middlewares
-      - "traefik.http.routers.traefik-rtr.middlewares=chain-authelia@file" #cors
+      - "traefik.http.routers.traefik-rtr.middlewares=middlewares-homer-cors@file,chain-authelia@file" #cors
 
   # Docker Socket Proxy - Security Enchanced Proxy for Docker Socket
   socket-proxy:
@@ -312,18 +287,11 @@ services:
       - "traefik.http.routers.authelia-rtr.rule=Host(`auth.$DOMAINNAME_CLOUD_SERVER`)"
       - "traefik.http.routers.authelia-rtr.tls=true"
       ## Middlewares
-      - "traefik.http.routers.authelia-rtr.middlewares=chain-authelia@file"
+      - "traefik.http.routers.authelia-rtr.middlewares=middlewares-homer-cors,chain-authelia@file"
       # - "traefik.http.routers.authelia-rtr.middlewares=cors@file,chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.authelia-rtr.service=authelia-svc"
       - "traefik.http.services.authelia-svc.loadbalancer.server.port=9091"
-      ## Homer ping access - allow browser-originated reachability checks only
-      - "traefik.http.routers.authelia-ping-rtr.entrypoints=https"
-      - "traefik.http.routers.authelia-ping-rtr.priority=99"
-      - "traefik.http.routers.authelia-ping-rtr.rule=Host(`auth.$DOMAINNAME_CLOUD_SERVER`) && Path(`/`) && Method(`HEAD`) && Header(`Origin`,`https://home.$DOMAINNAME_CLOUD_SERVER`)"
-      - "traefik.http.routers.authelia-ping-rtr.tls=true"
-      - "traefik.http.routers.authelia-ping-rtr.middlewares=middlewares-homer-cors@file,chain-no-auth@file"
-      - "traefik.http.routers.authelia-ping-rtr.service=influxdb-svc"
 
   # https://www.home-assistant.io/installation/raspberrypi
   homeassistant:
@@ -370,19 +338,10 @@ services:
       - "traefik.http.routers.portainer-rtr.rule=Host(`portainer.$DOMAINNAME_CLOUD_SERVER`)"
       - "traefik.http.routers.portainer-rtr.tls=true"
       ## Middlewares
-      - "traefik.http.routers.portainer-rtr.middlewares=chain-authelia@file"
+      - "traefik.http.routers.portainer-rtr.middlewares=middlewares-homer-cors,chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.portainer-rtr.service=portainer-svc"
       - "traefik.http.services.portainer-svc.loadbalancer.server.port=9000"
-      ## Homer access to API - allow browser-originated API calls from Homer
-      - "traefik.http.routers.portainer-api-rtr.entrypoints=https"
-      - "traefik.http.routers.portainer-api-rtr.priority=99"
-      - "traefik.http.routers.portainer-api-rtr.rule=Host(`portainer.$DOMAINNAME_CLOUD_SERVER`) && PathPrefix(`/api/`) && Header(`Origin`,`https://home.$DOMAINNAME_CLOUD_SERVER`)"
-      - "traefik.http.routers.portainer-api-rtr.tls=true"
-      ## Middlewares
-      - "traefik.http.routers.portainer-api-rtr.middlewares=middlewares-homer-cors@file,chain-no-auth@file"
-      ## HTTP Services
-      - "traefik.http.routers.portainer-api-rtr.service=portainer-svc"
     extra_hosts:
       - "auth.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP" # required for oidc auth
 
@@ -444,17 +403,10 @@ services:
       - "traefik.http.routers.duplicacy-rtr.rule=Host(`duplicacy.$DOMAINNAME_CLOUD_SERVER`)"
       - "traefik.http.routers.duplicacy-rtr.tls=true"
       ## Middlewares
-      - "traefik.http.routers.duplicacy-rtr.middlewares=chain-authelia@file"
+      - "traefik.http.routers.duplicacy-rtr.middlewares=middlewares-homer-cors,chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.duplicacy-rtr.service=duplicacy-svc"
       - "traefik.http.services.duplicacy-svc.loadbalancer.server.port=3875"
-      ## Homer ping access - allow browser-originated reachability checks only
-      - "traefik.http.routers.duplicacy-ping-rtr.entrypoints=https"
-      - "traefik.http.routers.duplicacy-ping-rtr.priority=99"
-      - "traefik.http.routers.duplicacy-ping-rtr.rule=Host(`duplicacy.$DOMAINNAME_CLOUD_SERVER`) && Path(`/`) && Method(`HEAD`) && Header(`Origin`,`https://home.$DOMAINNAME_CLOUD_SERVER`)"
-      - "traefik.http.routers.duplicacy-ping-rtr.tls=true"
-      - "traefik.http.routers.duplicacy-ping-rtr.middlewares=middlewares-homer-cors@file,chain-no-auth@file"
-      - "traefik.http.routers.duplicacy-ping-rtr.service=influxdb-svc"
     extra_hosts:
       - "homeassistant.$DOMAINNAME_CLOUD_SERVER:192.168.90.254"
 
@@ -492,17 +444,10 @@ services:
       - "traefik.http.routers.influxdb-rtr.rule=Host(`influxdb.$DOMAINNAME_CLOUD_SERVER`)"
       - "traefik.http.routers.influxdb-rtr.tls=true"
       ## Middlewares
-      - "traefik.http.routers.influxdb-rtr.middlewares=chain-authelia@file"
+      - "traefik.http.routers.influxdb-rtr.middlewares=middlewares-homer-cors,chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.influxdb-rtr.service=influxdb-svc"
       - "traefik.http.services.influxdb-svc.loadbalancer.server.port=8086"
-      ## Homer ping access - allow browser-originated reachability checks only
-      - "traefik.http.routers.influxdb-ping-rtr.entrypoints=https"
-      - "traefik.http.routers.influxdb-ping-rtr.priority=99"
-      - "traefik.http.routers.influxdb-ping-rtr.rule=Host(`influxdb.$DOMAINNAME_CLOUD_SERVER`) && Path(`/`) && Method(`HEAD`) && Header(`Origin`,`https://home.$DOMAINNAME_CLOUD_SERVER`)"
-      - "traefik.http.routers.influxdb-ping-rtr.tls=true"
-      - "traefik.http.routers.influxdb-ping-rtr.middlewares=middlewares-homer-cors@file,chain-no-auth@file"
-      - "traefik.http.routers.influxdb-ping-rtr.service=influxdb-svc"
 
   # Zigbee & MQTT
   mosquitto:
@@ -545,17 +490,10 @@ services:
       - "traefik.http.routers.zigbee2mqtt-rtr.rule=Host(`zigbee2mqtt.$DOMAINNAME_CLOUD_SERVER`)"
       - "traefik.http.routers.zigbee2mqtt-rtr.tls=true"
       ## Middlewares
-      - "traefik.http.routers.zigbee2mqtt-rtr.middlewares=chain-authelia@file"
+      - "traefik.http.routers.zigbee2mqtt-rtr.middlewares=middlewares-homer-cors,chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.zigbee2mqtt-rtr.service=zigbee2mqtt-svc"
       - "traefik.http.services.zigbee2mqtt-svc.loadbalancer.server.port=8080"
-      ## Homer ping access - allow browser-originated reachability checks only
-      - "traefik.http.routers.zigbee2mqtt-ping-rtr.entrypoints=https"
-      - "traefik.http.routers.zigbee2mqtt-ping-rtr.priority=99"
-      - "traefik.http.routers.zigbee2mqtt-ping-rtr.rule=Host(`zigbee2mqtt.$DOMAINNAME_CLOUD_SERVER`) && Path(`/`) && Method(`HEAD`) && Header(`Origin`,`https://home.$DOMAINNAME_CLOUD_SERVER`)"
-      - "traefik.http.routers.zigbee2mqtt-ping-rtr.tls=true"
-      - "traefik.http.routers.zigbee2mqtt-ping-rtr.middlewares=middlewares-homer-cors@file,chain-no-auth@file"
-      - "traefik.http.routers.zigbee2mqtt-ping-rtr.service=zigbee2mqtt-svc"
 
   # NodeRED
   node-red:
@@ -576,24 +514,10 @@ services:
       - "traefik.http.routers.nodered-rtr.rule=Host(`nodered.$DOMAINNAME_CLOUD_SERVER`)"
       - "traefik.http.routers.nodered-rtr.tls=true"
       ## Middlewares
-      - "traefik.http.routers.nodered-rtr.middlewares=chain-authelia@file"
+      - "traefik.http.routers.nodered-rtr.middlewares=middlewares-homer-cors@file,chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.nodered-rtr.service=nodered-svc"
       - "traefik.http.services.nodered-svc.loadbalancer.server.port=1880"
-      ## Homer ping access - allow browser-originated reachability checks only
-      - "traefik.http.routers.nodered-ping-rtr.entrypoints=https"
-      - "traefik.http.routers.nodered-ping-rtr.priority=99"
-      - "traefik.http.routers.nodered-ping-rtr.rule=Host(`nodered.$DOMAINNAME_CLOUD_SERVER`) && Path(`/`) && Method(`HEAD`) && Header(`Origin`,`https://home.$DOMAINNAME_CLOUD_SERVER`)"
-      - "traefik.http.routers.nodered-ping-rtr.tls=true"
-      - "traefik.http.routers.nodered-ping-rtr.middlewares=middlewares-homer-cors@file,chain-no-auth@file"
-      - "traefik.http.routers.nodered-ping-rtr.service=nodered-svc"
-      ## Homer RSS access - allow browser-originated reachability checks only
-      - "traefik.http.routers.nodered-rss-rtr.entrypoints=https"
-      - "traefik.http.routers.nodered-rss-rtr.priority=98"
-      - "traefik.http.routers.nodered-rss-rtr.rule=Host(`nodered.$DOMAINNAME_CLOUD_SERVER`) && Path(`/dashboard-endpoint`) && Method(`GET`) && Header(`Origin`,`https://home.$DOMAINNAME_CLOUD_SERVER`)"
-      - "traefik.http.routers.nodered-rss-rtr.tls=true"
-      - "traefik.http.routers.nodered-rss-rtr.middlewares=middlewares-homer-cors@file,chain-no-auth@file"
-      - "traefik.http.routers.nodered-rss-rtr.service=nodered-svc"
     extra_hosts:
       - "homeassistant.$DOMAINNAME_CLOUD_SERVER:192.168.90.254"
 
