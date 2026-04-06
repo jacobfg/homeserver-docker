@@ -287,7 +287,7 @@ services:
       - "traefik.http.routers.authelia-rtr.rule=Host(`auth.$DOMAINNAME_CLOUD_SERVER`)"
       - "traefik.http.routers.authelia-rtr.tls=true"
       ## Middlewares
-      - "traefik.http.routers.authelia-rtr.middlewares=middlewares-homer-cors,chain-authelia@file"
+      - "traefik.http.routers.authelia-rtr.middlewares=middlewares-homer-cors@file,chain-authelia@file"
       # - "traefik.http.routers.authelia-rtr.middlewares=cors@file,chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.authelia-rtr.service=authelia-svc"
@@ -338,7 +338,7 @@ services:
       - "traefik.http.routers.portainer-rtr.rule=Host(`portainer.$DOMAINNAME_CLOUD_SERVER`)"
       - "traefik.http.routers.portainer-rtr.tls=true"
       ## Middlewares
-      - "traefik.http.routers.portainer-rtr.middlewares=middlewares-homer-cors,chain-authelia@file"
+      - "traefik.http.routers.portainer-rtr.middlewares=middlewares-homer-cors@file,chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.portainer-rtr.service=portainer-svc"
       - "traefik.http.services.portainer-svc.loadbalancer.server.port=9000"
@@ -403,7 +403,7 @@ services:
       - "traefik.http.routers.duplicacy-rtr.rule=Host(`duplicacy.$DOMAINNAME_CLOUD_SERVER`)"
       - "traefik.http.routers.duplicacy-rtr.tls=true"
       ## Middlewares
-      - "traefik.http.routers.duplicacy-rtr.middlewares=middlewares-homer-cors,chain-authelia@file"
+      - "traefik.http.routers.duplicacy-rtr.middlewares=middlewares-homer-cors@file,chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.duplicacy-rtr.service=duplicacy-svc"
       - "traefik.http.services.duplicacy-svc.loadbalancer.server.port=3875"
@@ -444,7 +444,7 @@ services:
       - "traefik.http.routers.influxdb-rtr.rule=Host(`influxdb.$DOMAINNAME_CLOUD_SERVER`)"
       - "traefik.http.routers.influxdb-rtr.tls=true"
       ## Middlewares
-      - "traefik.http.routers.influxdb-rtr.middlewares=middlewares-homer-cors,chain-authelia@file"
+      - "traefik.http.routers.influxdb-rtr.middlewares=middlewares-homer-cors@file,chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.influxdb-rtr.service=influxdb-svc"
       - "traefik.http.services.influxdb-svc.loadbalancer.server.port=8086"
@@ -490,7 +490,7 @@ services:
       - "traefik.http.routers.zigbee2mqtt-rtr.rule=Host(`zigbee2mqtt.$DOMAINNAME_CLOUD_SERVER`)"
       - "traefik.http.routers.zigbee2mqtt-rtr.tls=true"
       ## Middlewares
-      - "traefik.http.routers.zigbee2mqtt-rtr.middlewares=middlewares-homer-cors,chain-authelia@file"
+      - "traefik.http.routers.zigbee2mqtt-rtr.middlewares=middlewares-homer-cors@file,chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.zigbee2mqtt-rtr.service=zigbee2mqtt-svc"
       - "traefik.http.services.zigbee2mqtt-svc.loadbalancer.server.port=8080"
