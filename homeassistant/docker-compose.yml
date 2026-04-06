@@ -518,6 +518,15 @@ services:
       ## HTTP Services
       - "traefik.http.routers.nodered-rtr.service=nodered-svc"
       - "traefik.http.services.nodered-svc.loadbalancer.server.port=1880"
+      ## Homer RSS access - allow browser-originated reachability checks only
+      ## ideally https://github.com/bastienwirtz/homer/pull/940 or similar is merged
+      - "traefik.http.routers.nodered-rss-rtr.entrypoints=https"
+      - "traefik.http.routers.nodered-rss-rtr.priority=98"
+      - "traefik.http.routers.nodered-rss-rtr.rule=Host(`nodered.$DOMAINNAME_CLOUD_SERVER`) && Path(`/dashboard-endpoint`) && Method(`GET`) && Header(`Origin`,`https://home.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.nodered-rss-rtr.tls=true"
+      - "traefik.http.routers.nodered-rss-rtr.middlewares=middlewares-homer-cors@file,chain-no-auth@file"
+      - "traefik.http.routers.nodered-rss-rtr.service=nodered-svc"
+
     extra_hosts:
       - "homeassistant.$DOMAINNAME_CLOUD_SERVER:192.168.90.254"
 
