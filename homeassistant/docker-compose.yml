@@ -307,9 +307,28 @@ services:
       - $VOLUME_DIR/homeassistant:/config
       - /opt/backups/homeassistant:/config/backups
       - /opt/docker/stacks/.git:/config/.homeserver-docker/.git:ro
-    labels: []
-      # - "traefik.enable=true" file config
-      # traefik config in file as url cannot be set via label and HA needs to be host mode
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.homeassistant-rtr.entrypoints=https"
+      - "traefik.http.routers.homeassistant-rtr.priority=1"
+      - "traefik.http.routers.homeassistant-rtr.rule=Host(`homeassistant.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.homeassistant-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.homeassistant-rtr.middlewares=middlewares-homer-cors@file,chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.homeassistant-rtr.service=homeassistant-svc"
+      - "traefik.http.services.homeassistant-svc.loadbalancer.passHostHeader=true"
+      - "traefik.http.services.homeassistant-svc.loadbalancer.servers.url=http://$DOCKER_SERVER_IP:8123/"
+      ## HTTP Routers
+      - "traefik.http.routers.homeassistant-webhook-rtr.entrypoints=https"
+      - "traefik.http.routers.homeassistant-webhook-rtr.priority=99"
+      - "traefik.http.routers.homeassistant-webhook-rtr.rule=Host(`homeassistant.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.90.0/24`) && PathPrefix(`/api/`)"
+      - "traefik.http.routers.homeassistant-webhook-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.homeassistant-webhook-rtr.middlewares=chain-no-auth@file"
+      ## HTTP Services
+      - "traefik.http.routers.homeassistant-webhook-rtr.service==homeassistant-svc"
 
   # https://www.homeautomationguy.io/home-assistant-tips/installing-docker-home-assistant-and-portainer-on-ubuntu-linux/
   portainer:
