@@ -77,3 +77,5 @@ services:
       - "traefik.http.routers.sftpgo-https.middlewares=middlewares-homer-cors@file,chain-authelia@file"
       - "traefik.http.routers.sftpgo-https.service=sftpgo-https"
       - "traefik.http.services.sftpgo-https.loadbalancer.server.port=2222"
+    extra_hosts:
+      - "auth.$DOMAINNAME_CLOUD_SERVER:192.168.90.254"

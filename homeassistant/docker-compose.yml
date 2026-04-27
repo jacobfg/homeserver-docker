@@ -545,7 +545,6 @@ services:
       - "traefik.http.routers.nodered-rss-rtr.tls=true"
       - "traefik.http.routers.nodered-rss-rtr.middlewares=middlewares-homer-cors@file,chain-no-auth@file"
       - "traefik.http.routers.nodered-rss-rtr.service=nodered-svc"
-
     extra_hosts:
       - "homeassistant.$DOMAINNAME_CLOUD_SERVER:192.168.90.254"
 
