@@ -54,8 +54,9 @@ services:
       - SFTPGO_HTTPD__BINDINGS__0__OIDC__CONFIG_URL
       - SFTPGO_HTTPD__BINDINGS__0__OIDC__REDIRECT_BASE_URL
       - SFTPGO_HTTPD__BINDINGS__0__OIDC__USERNAME_FIELD
+      - SFTPGO_HTTPD__BINDINGS__0__OIDC__SCOPES
       - SFTPGO_HTTPD__BINDINGS__0__OIDC__ROLE_FIELD
-      - SFTPGO_HTTPD__BINDINGS__0__OIDC__ROLE_MAPPING
+      # - SFTPGO_HTTPD__BINDINGS__0__OIDC__ROLE_MAPPING
     volumes:
       - $VOLUME_DIR/sftpgo/data:/srv/sftpgo/data
       - $VOLUME_DIR/sftpgo/backups:/srv/sftpgo/backups
