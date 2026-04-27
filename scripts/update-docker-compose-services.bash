@@ -35,3 +35,7 @@ echo Run script to see host ports that are open to the local LAN
 echo
 echo    bash $SCRIPT_DIR/host-open-ipv4-ports.bash
 echo
+echo Does docker need a prune ? check all containers are running ok
+echo
+echo    docker system prune -af
+echo
