@@ -319,7 +319,7 @@ services:
       ## HTTP Services
       - "traefik.http.routers.homeassistant-rtr.service=homeassistant-svc"
       - "traefik.http.services.homeassistant-svc.loadbalancer.passHostHeader=true"
-      - "traefik.http.services.homeassistant-svc.loadbalancer.servers.url=http://$DOCKER_SERVER_IP:8123/"
+      - "traefik.http.services.homeassistant-svc.loadbalancer.server.url=http://$DOCKER_SERVER_IP:8123/"
       ## HTTP Routers
       - "traefik.http.routers.homeassistant-webhook-rtr.entrypoints=https"
       - "traefik.http.routers.homeassistant-webhook-rtr.priority=99"
