@@ -473,7 +473,7 @@ services:
     # TODO: mosquito tls (really not needed on a private hosted based network)
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
     container_name: mosquitto
-    image: eclipse-mosquitto:2.0.22@sha256:914f529386804c8278a4e581526b9be5e1604df44b30daabc70aa97dcefe5268
+    image: eclipse-mosquitto:2.0.22@sha256:212f89e1eaeb2c322d6441b64396e3346026674db8fa9c27beac293405c32b3c
     networks:
       t2_proxy:
         ipv4_address: 192.168.90.252 # You can specify a static IP
