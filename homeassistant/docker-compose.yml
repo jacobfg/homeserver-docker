@@ -297,7 +297,7 @@ services:
   homeassistant:
     <<: *common-keys-apps-hostmode # See EXTENSION FIELDS at the top
     container_name: homeassistant
-    image: homeassistant/home-assistant:2026.5.1@sha256:d4fbec16196d5c8bedf32647f0ca7165f654d92a2e81f35a373508d3226cb867
+    image: homeassistant/home-assistant:2026.7.1@sha256:f73512ba4fe06bb4d57636fe3578d0820cdec46f81e8f837ab59e451662ff3cb
     # depends_on:
     #   - influxdb
     network_mode: host
