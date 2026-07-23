@@ -107,6 +107,7 @@ services:
       ## HTTP Services
       - "traefik.http.routers.watchshelf-rtr.service=watchshelf-svc"
       - "traefik.http.services.watchshelf-svc.loadbalancer.server.port=8081"
+      - "traefik.http.services.watchshelf-svc.loadbalancer.responseforwarding.flushinterval=1ms"
       ## LOCAL ACCESS - Allow local (home) access without traefik auth
       ## HTTP Routers
       - "traefik.http.routers.watchshelf-local-rtr.entrypoints=https"
