@@ -75,7 +75,9 @@ services:
 
   watchshelf-sidecar:
     # self built for now, until a arm version is published
-    build: $WATCHSELF_SIDECAR_SRC_DIR
+    build:
+      context: $WATCHSELF_SIDECAR_SRC_DIR
+      network: host
     container_name: watchshelf-sidecar
     environment:
       - TZ=$TZ
