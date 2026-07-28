@@ -122,3 +122,92 @@ services:
       - "traefik.http.routers.watchshelf-local-rtr.service=watchshelf-svc"
     extra_hosts:
       - "audiobookshelf.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+
+  #
+  abs_green:
+    container_name: abs_green
+    image: ghcr.io/advplyr/audiobookshelf:2.36.0@sha256:180acad33d69c99ed208676465d8edcb268fa46967735579a7810859885b1a8e
+    restart: unless-stopped
+    volumes:
+      - $VOLUME_DIR/abs_green/audiobooks:/audiobooks:ro
+      - $VOLUME_DIR/abs_green/podcasts:/podcasts:ro
+      - $VOLUME_DIR/abs_green/config:/config
+      - $VOLUME_DIR/abs_green/metadata:/metadata
+    environment:
+      - TZ=$TZ
+      - AUDIOBOOKSHELF_UID=$PUID
+      - AUDIOBOOKSHELF_GID=$PGID
+      - PORT=8088
+    networks:
+      - abs_green_internal
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=abs_green_internal"
+      ## HTTP Routers
+      - "traefik.http.routers.abs-green-rtr.entrypoints=https"
+      - "traefik.http.routers.abs-green-rtr.priority=1" # FOR ALLOWING LOCAL ACCESS
+      - "traefik.http.routers.abs-green-rtr.rule=Host(`abs.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.abs-green-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.abs-green-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.abs-green-rtr.service=abs-green-svc"
+      - "traefik.http.services.abs-green-svc.loadbalancer.server.port=8088"
+      ## LOCAL ACCESS - Allow local (home) access without traefik auth
+      ## HTTP Routers
+      - "traefik.http.routers.abs-green-local-rtr.entrypoints=https"
+      - "traefik.http.routers.abs-green-local-rtr.priority=99"
+      - "traefik.http.routers.abs-green-local-rtr.rule=Host(`abs-green.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.0.0/16`)"
+      - "traefik.http.routers.abs-green-local-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.abs-green-local-rtr.middlewares=chain-no-auth@file"
+      ## HTTP Services
+      - "traefik.http.routers.abs-green-local-rtr.service=abs-green-svc"
+    # extra_hosts:
+    #   - "auth.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP" # required for oidc auth
+
+  abs_green_proxy:
+    # self built for now, until a arm version is published
+    build:
+      context: $ABS_GREEN_PROXY_SRC_DIR
+      network: host
+    container_name: abs_green_proxy
+    environment:
+      - TZ=$TZ
+      - SHOW_SWAGGER=false
+      - LOG_LEVEL=warning
+    user: $PUID:$PGID
+    volumes:
+      - $VOLUME_DIR/abs_green_proxy/data:/data
+    restart: unless-stopped
+    init: true
+    networks:
+      - abs_green_internal
+    expose:
+      - "8081"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=abs_green_internal"
+      ## HTTP Routers
+      - "traefik.http.routers.abs-green-proxy-rtr.entrypoints=https"
+      - "traefik.http.routers.abs-green-proxy-rtr.priority=1" # FOR ALLOWING LOCAL ACCESS
+      - "traefik.http.routers.abs-green-proxy-rtr.rule=Host(`abs-green-proxy.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.abs-green-proxy-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.abs-green-proxy-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.abs-green-proxy-rtr.service=abs-green-proxy-svc"
+      - "traefik.http.services.abs-green-proxy-svc.loadbalancer.server.port=8081"
+      - "traefik.http.services.abs-green-proxy-svc.loadbalancer.responseforwarding.flushinterval=1ms"
+      ## LOCAL ACCESS - Allow local (home) access without traefik auth
+      ## HTTP Routers
+      - "traefik.http.routers.abs-green-proxy-local-rtr.entrypoints=https"
+      - "traefik.http.routers.abs-green-proxy-local-rtr.priority=99"
+      - "traefik.http.routers.abs-green-proxy-local-rtr.rule=Host(`abs-green-proxy.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.0.0/16`)"
+      - "traefik.http.routers.abs-green-proxy-local-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.abs-green-proxy-local-rtr.middlewares=chain-no-auth@file"
+      ## HTTP Services
+      - "traefik.http.routers.abs-green-proxy-local-rtr.service=abs-green-proxy-svc"
+    extra_hosts:
+      - "abs-green.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"

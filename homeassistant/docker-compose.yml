@@ -16,10 +16,18 @@ networks:
     driver: bridge
   socket_proxy:
     name: socket_proxy
+    internal: true
     driver: bridge
     ipam:
       config:
         - subnet: 192.168.91.0/24
+  abs_green_internal:
+    name: abs_green_internal
+    internal: true
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.92.0/24
 
 ########################### SECRETS
 secrets:
@@ -130,6 +138,8 @@ services:
     networks:
       t2_proxy:
         ipv4_address: 192.168.90.254 # You can specify a static IP
+      abs_green:
+        ipv4_address: 192.168.92.254
       socket_proxy:
     ports:
       - target: 443
