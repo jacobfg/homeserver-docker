@@ -213,4 +213,4 @@ services:
       ## HTTP Services
       - "traefik.http.routers.abs-green-proxy-local-rtr.service=abs-green-proxy-svc"
     extra_hosts:
-      - "abs-green.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      - "abs-green.$DOMAINNAME_CLOUD_SERVER:192.168.92.254" # doesn't have access to lan ip
