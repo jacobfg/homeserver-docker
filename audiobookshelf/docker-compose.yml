@@ -7,7 +7,7 @@ networks:
     external: true
   abs_green_internal:
     name: abs_green_internal
-    internal: true
+    external: true
 
 services:
   audiobookshelf:
