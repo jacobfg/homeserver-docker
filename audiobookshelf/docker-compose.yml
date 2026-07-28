@@ -5,6 +5,9 @@ networks:
   t2_proxy:
     name: t2_proxy
     external: true
+  abs_green_internal:
+    name: abs_green_internal
+    internal: true
 
 services:
   audiobookshelf:
