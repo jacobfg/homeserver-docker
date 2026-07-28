@@ -138,7 +138,7 @@ services:
     networks:
       t2_proxy:
         ipv4_address: 192.168.90.254 # You can specify a static IP
-      abs_green:
+      abs_green_internal:
         ipv4_address: 192.168.92.254
       socket_proxy:
     ports:
