@@ -76,57 +76,57 @@ services:
       - "traefik.http.routers.filebrowser-rtr.service=filebrowser-svc"
       - "traefik.http.services.filebrowser-svc.loadbalancer.server.port=8080"
 
-  watchshelf-sidecar:
-    # self built for now, until a arm version is published
-    build:
-      context: $WATCHSELF_SIDECAR_SRC_DIR
-      network: host
-    container_name: watchshelf-sidecar
-    environment:
-      - TZ=$TZ
-      - ABS_URL=${ABS_URL:-http://abs.localnetwork}
-      - BIND=0.0.0.0
-      - PORT=8081
-      # Where the sidecar persists per-user login sessions (each user's ABS
-      # refresh token) so it can silently renew expiring access tokens and
-      # nobody has to re-login - even across container restarts/redeploys. Kept
-      # on the named volume below.
-      - SESSIONS_FILE=/data/sessions.json
-    user: $PUID:$PGID
-    volumes:
-      - $VOLUME_DIR/watchshelf/data:/data
-    ports:
-      - "8081:8081"
-    restart: unless-stopped
-    networks:
-      - t2_proxy
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.watchshelf-rtr.entrypoints=https"
-      - "traefik.http.routers.watchshelf-rtr.priority=1" # FOR ALLOWING LOCAL ACCESS
-      - "traefik.http.routers.watchshelf-rtr.rule=Host(`watchshelf.$DOMAINNAME_CLOUD_SERVER`)"
-      - "traefik.http.routers.watchshelf-rtr.tls=true"
-      ## Middlewares
-      - "traefik.http.routers.watchshelf-rtr.middlewares=chain-authelia@file"
-      ## HTTP Services
-      - "traefik.http.routers.watchshelf-rtr.service=watchshelf-svc"
-      - "traefik.http.services.watchshelf-svc.loadbalancer.server.port=8081"
-      - "traefik.http.services.watchshelf-svc.loadbalancer.responseforwarding.flushinterval=1ms"
-      ## LOCAL ACCESS - Allow local (home) access without traefik auth
-      ## HTTP Routers
-      - "traefik.http.routers.watchshelf-local-rtr.entrypoints=https"
-      - "traefik.http.routers.watchshelf-local-rtr.priority=99"
-      - "traefik.http.routers.watchshelf-local-rtr.rule=Host(`watchshelf.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.0.0/16`)"
-      - "traefik.http.routers.watchshelf-local-rtr.tls=true"
-      ## Middlewares
-      - "traefik.http.routers.watchshelf-local-rtr.middlewares=chain-no-auth@file"
-      ## HTTP Services
-      - "traefik.http.routers.watchshelf-local-rtr.service=watchshelf-svc"
-    extra_hosts:
-      - "audiobookshelf.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+  # watchshelf-sidecar:
+  #   # self built for now, until a arm version is published
+  #   build:
+  #     context: $WATCHSELF_SIDECAR_SRC_DIR
+  #     network: host
+  #   container_name: watchshelf-sidecar
+  #   environment:
+  #     - TZ=$TZ
+  #     - ABS_URL=${ABS_URL:-http://abs.localnetwork}
+  #     - BIND=0.0.0.0
+  #     - PORT=8081
+  #     # Where the sidecar persists per-user login sessions (each user's ABS
+  #     # refresh token) so it can silently renew expiring access tokens and
+  #     # nobody has to re-login - even across container restarts/redeploys. Kept
+  #     # on the named volume below.
+  #     - SESSIONS_FILE=/data/sessions.json
+  #   user: $PUID:$PGID
+  #   volumes:
+  #     - $VOLUME_DIR/watchshelf/data:/data
+  #   ports:
+  #     - "8081:8081"
+  #   restart: unless-stopped
+  #   networks:
+  #     - t2_proxy
+  #   labels:
+  #     - "traefik.enable=true"
+  #     ## HTTP Routers
+  #     - "traefik.http.routers.watchshelf-rtr.entrypoints=https"
+  #     - "traefik.http.routers.watchshelf-rtr.priority=1" # FOR ALLOWING LOCAL ACCESS
+  #     - "traefik.http.routers.watchshelf-rtr.rule=Host(`watchshelf.$DOMAINNAME_CLOUD_SERVER`)"
+  #     - "traefik.http.routers.watchshelf-rtr.tls=true"
+  #     ## Middlewares
+  #     - "traefik.http.routers.watchshelf-rtr.middlewares=chain-authelia@file"
+  #     ## HTTP Services
+  #     - "traefik.http.routers.watchshelf-rtr.service=watchshelf-svc"
+  #     - "traefik.http.services.watchshelf-svc.loadbalancer.server.port=8081"
+  #     - "traefik.http.services.watchshelf-svc.loadbalancer.responseforwarding.flushinterval=1ms"
+  #     ## LOCAL ACCESS - Allow local (home) access without traefik auth
+  #     ## HTTP Routers
+  #     - "traefik.http.routers.watchshelf-local-rtr.entrypoints=https"
+  #     - "traefik.http.routers.watchshelf-local-rtr.priority=99"
+  #     - "traefik.http.routers.watchshelf-local-rtr.rule=Host(`watchshelf.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.0.0/16`)"
+  #     - "traefik.http.routers.watchshelf-local-rtr.tls=true"
+  #     ## Middlewares
+  #     - "traefik.http.routers.watchshelf-local-rtr.middlewares=chain-no-auth@file"
+  #     ## HTTP Services
+  #     - "traefik.http.routers.watchshelf-local-rtr.service=watchshelf-svc"
+  #   extra_hosts:
+  #     - "audiobookshelf.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
 
-  #
+  # isolated audiobookshelf with pre processed/split audiobook files
   abs_green:
     container_name: abs_green
     image: ghcr.io/advplyr/audiobookshelf:2.36.0@sha256:180acad33d69c99ed208676465d8edcb268fa46967735579a7810859885b1a8e
@@ -166,8 +166,6 @@ services:
       - "traefik.http.routers.abs-green-local-rtr.middlewares=chain-no-auth@file"
       ## HTTP Services
       - "traefik.http.routers.abs-green-local-rtr.service=abs-green-svc"
-    # extra_hosts:
-    #   - "auth.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP" # required for oidc auth
 
   abs_green_proxy:
     # self built for now, until a arm version is published
