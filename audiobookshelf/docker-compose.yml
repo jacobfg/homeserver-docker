@@ -60,6 +60,7 @@ services:
       - $VOLUME_DIR/filebrowser/database:/database
       - $VOLUME_DIR/filebrowser/config:/config
       - $VOLUME_DIR/audiobookshelf/audiobooks:/srv/audiobooks
+      - $VOLUME_DIR/abs_green/audiobooks:/srv/abs_green
     environment:
       - TZ=$TZ
     networks:
