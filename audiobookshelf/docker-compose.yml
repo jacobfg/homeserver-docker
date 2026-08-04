@@ -47,7 +47,7 @@ services:
       # (PathPrefix(`/api`) || PathPrefix(`/socket.io`) || PathPrefix(`/manifest.json`) || PathPrefix(`/auth`)) &&
       # - "traefik.http.routers.audiobookshelf-bypass-rtr.rule=Host(`audiobookshelf.$DOMAINNAME_CLOUD_SERVER`) && ( (Method(`POST`) && Path(`/auth/openid`) && Query(`scope=openid`)) || (Method(`GET`) && Path(`/auth/openid`) && Query(`scope=openid`)) || (Method(`GET`) && Path(`/api/oidc/authorization`) && Query(`scope=openid`)) || (Method(`GET`) && (Path(`/`) && Query(`flow=openid_connect`)) ) && ClientIP(`$ABS_BYPASS_CIDR`)"
       # - "traefik.http.routers.audiobookshelf-bypass-rtr.rule=Host(`audiobookshelf.$DOMAINNAME_CLOUD_SERVER`) && ( PathPrefix(`/api/`) || PathPrefix(`/socket.io`) || PathPrefix(`/manifest.json`) || PathPrefix(`/auth`)) || (Method(`GET`) && (Path(`/`) && Query(`flow=openid_connect`)) ) && ClientIP(`$ABS_BYPASS_CIDR`)"
-      - "traefik.http.routers.audiobookshelf-bypass-rtr.rule=Host(`audiobookshelf.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`$ABS_BYPASS_CIDR`)"
+      - "traefik.http.routers.audiobookshelf-bypass-rtr.rule=Host(`audiobookshelf.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`$ABS_BYPASS1_CIDR`) && ClientIP(`$ABS_BYPASS2_CIDR`)"
       - "traefik.http.routers.audiobookshelf-bypass-rtr.tls=true"
       ## Middlewares
       - "traefik.http.routers.audiobookshelf-bypass-rtr.middlewares=chain-no-auth@file"
