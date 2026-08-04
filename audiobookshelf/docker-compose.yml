@@ -44,7 +44,7 @@ services:
       - "traefik.http.routers.audiobookshelf-bypass-rtr.priority=99"
       # - "traefik.http.routers.audiobookshelf-bypass-rtr.rule=Host(`audiobookshelf.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.0.0/16`)"
       # || PathPrefix(`/s/`)
-      - "traefik.http.routers.audiobookshelf-bypass-rtr.rule=Host(`audiobookshelf.$DOMAINNAME_CLOUD_SERVER`) && (PathPrefix(`/api/authorize`) || PathPrefix(`/api/login`) || PathPrefix(`/api/openid`) || PathPrefix(`/socket.io`) || PathPrefix(`/manifest.json`)) && ClientIP(`$ABS_BYPASS_CIDR`)"
+      - "traefik.http.routers.audiobookshelf-bypass-rtr.rule=Host(`audiobookshelf.$DOMAINNAME_CLOUD_SERVER`) && (PathPrefix(`/api/authorize`) || PathPrefix(`/api/login`) || PathPrefix(`/api/openid`) || PathPrefix(`/socket.io`) || PathPrefix(`/manifest.json`) || PathPrefix(`/auth`) || PathPrefix(`/local`)) && ClientIP(`$ABS_BYPASS_CIDR`)"
       - "traefik.http.routers.audiobookshelf-bypass-rtr.tls=true"
       ## Middlewares
       - "traefik.http.routers.audiobookshelf-bypass-rtr.middlewares=chain-no-auth@file"
