@@ -40,14 +40,16 @@ services:
       - "traefik.http.services.audiobookshelf-svc.loadbalancer.server.port=8088"
       ## LOCAL ACCESS - Allow local (home) access without traefik auth
       ## HTTP Routers
-      - "traefik.http.routers.audiobookshelf-local-rtr.entrypoints=https"
-      - "traefik.http.routers.audiobookshelf-local-rtr.priority=99"
-      - "traefik.http.routers.audiobookshelf-local-rtr.rule=Host(`audiobookshelf.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.0.0/16`)"
-      - "traefik.http.routers.audiobookshelf-local-rtr.tls=true"
+      - "traefik.http.routers.audiobookshelf-bypass-rtr.entrypoints=https"
+      - "traefik.http.routers.audiobookshelf-bypass-rtr.priority=99"
+      # - "traefik.http.routers.audiobookshelf-bypass-rtr.rule=Host(`audiobookshelf.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.0.0/16`)"
+      # || PathPrefix(`/s/`)
+      - "traefik.http.routers.audiobookshelf-bypass-rtr.rule=Host(`audiobookshelf.$DOMAINNAME_CLOUD_SERVER`) && (PathPrefix(`/api/authorize`, `/api/login`, `/api/openid`, `/socket.io`, `/manifest.json`)) && ClientIP(`$ABS_BYPASS_CIDR`)"
+      - "traefik.http.routers.audiobookshelf-bypass-rtr.tls=true"
       ## Middlewares
-      - "traefik.http.routers.audiobookshelf-local-rtr.middlewares=chain-no-auth@file"
+      - "traefik.http.routers.audiobookshelf-bypass-rtr.middlewares=chain-no-auth@file"
       ## HTTP Services
-      - "traefik.http.routers.audiobookshelf-local-rtr.service=audiobookshelf-svc"
+      - "traefik.http.routers.audiobookshelf-bypass-rtr.service=audiobookshelf-svc"
     extra_hosts:
       - "auth.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP" # required for oidc auth
 
