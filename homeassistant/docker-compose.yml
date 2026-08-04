@@ -110,10 +110,11 @@ services:
       - --log=true
       - --log.filePath=/logs/traefik.log
       - --log.level=ERROR # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
-      - --accessLog=false # change if/when public
+      - --accessLog=true # change if/when public
       - --accessLog.filePath=/logs/access.log
-      - --accessLog.bufferingSize=100 # Configuring a buffer of 100 lines
-      - --accessLog.filters.statusCodes=204-299,400-499,500-599
+      - --accessLog.bufferingSize=5 # Configuring a buffer of 100 lines
+      #- --accessLog.bufferingSize=100 # Configuring a buffer of 100 lines
+      #- --accessLog.filters.statusCodes=204-299,400-499,500-599
       - --providers.docker=true
       # - --providers.docker.endpoint=unix:///var/run/docker.sock # Use Docker Socket Proxy instead for improved security
       - --providers.docker.endpoint=tcp://socket-proxy:2375 # Use this instead of the previous line if you have socket proxy.
