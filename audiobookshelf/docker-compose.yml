@@ -182,7 +182,7 @@ services:
     environment:
       - TZ=$TZ
       - SHOW_SWAGGER=false
-      - LOG_LEVEL=warning
+      - LOG_LEVEL=info
     user: $PUID:$PGID
     volumes:
       - $VOLUME_DIR/abs_green_proxy/data:/data
