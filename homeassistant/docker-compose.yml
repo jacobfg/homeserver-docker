@@ -411,7 +411,7 @@ services:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
     container_name: duplicacy
     hostname: 4eb908d4f748 # for licensing
-    image: saspus/duplicacy-web:v1.8.3@sha256:b80ffd3b5ba9c3bb279633fc50784613074a81f179f3644e218bcf1b513eb8d1
+    image: saspus/duplicacy-web:v1.8.3@sha256:b1affba89953ed66dede886d669db4b5a8fceeb81cf643daeeb782aeb2691dd7
     environment:
       - TZ
       - USR_ID=0
