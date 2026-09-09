@@ -47,7 +47,7 @@ services:
       # (PathPrefix(`/api`) || PathPrefix(`/socket.io`) || PathPrefix(`/manifest.json`) || PathPrefix(`/auth`)) &&
       # - "traefik.http.routers.audiobookshelf-bypass-rtr.rule=Host(`audiobookshelf.$DOMAINNAME_CLOUD_SERVER`) && ( (Method(`POST`) && Path(`/auth/openid`) && Query(`scope=openid`)) || (Method(`GET`) && Path(`/auth/openid`) && Query(`scope=openid`)) || (Method(`GET`) && Path(`/api/oidc/authorization`) && Query(`scope=openid`)) || (Method(`GET`) && (Path(`/`) && Query(`flow=openid_connect`)) ) && ClientIP(`$ABS_BYPASS_CIDR`)"
       # - "traefik.http.routers.audiobookshelf-bypass-rtr.rule=Host(`audiobookshelf.$DOMAINNAME_CLOUD_SERVER`) && ( PathPrefix(`/api/`) || PathPrefix(`/socket.io`) || PathPrefix(`/manifest.json`) || PathPrefix(`/auth`)) || (Method(`GET`) && (Path(`/`) && Query(`flow=openid_connect`)) ) && ClientIP(`$ABS_BYPASS_CIDR`)"
-      - "traefik.http.routers.audiobookshelf-bypass-rtr.rule=Host(`audiobookshelf.$DOMAINNAME_CLOUD_SERVER`) && (ClientIP(`$ABS_BYPASS1_CIDR`) || ClientIP(`$ABS_BYPASS2_CIDR`))"
+      - "traefik.http.routers.audiobookshelf-bypass-rtr.rule=Host(`audiobookshelf.$DOMAINNAME_CLOUD_SERVER`) && (ClientIP(`$ABS_BYPASS1_CIDR`) || ClientIP(`$ABS_BYPASS2_CIDR`) || ClientIP(`192.168.92.0/24`))"
       - "traefik.http.routers.audiobookshelf-bypass-rtr.tls=true"
       ## Middlewares
       - "traefik.http.routers.audiobookshelf-bypass-rtr.middlewares=chain-no-auth@file"
@@ -132,46 +132,46 @@ services:
   #   extra_hosts:
   #     - "audiobookshelf.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
 
-  # isolated audiobookshelf with pre processed/split audiobook files
-  abs_green:
-    container_name: abs_green
-    image: ghcr.io/advplyr/audiobookshelf:2.36.0@sha256:180acad33d69c99ed208676465d8edcb268fa46967735579a7810859885b1a8e
-    restart: unless-stopped
-    volumes:
-      - $VOLUME_DIR/abs_green/audiobooks:/audiobooks:ro
-      - $VOLUME_DIR/abs_green/podcasts:/podcasts:ro
-      - $VOLUME_DIR/abs_green/config:/config
-      - $VOLUME_DIR/abs_green/metadata:/metadata
-    environment:
-      - TZ=$TZ
-      - AUDIOBOOKSHELF_UID=$PUID
-      - AUDIOBOOKSHELF_GID=$PGID
-      - PORT=8088
-    networks:
-      - abs_green_internal
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=abs_green_internal"
-      ## HTTP Routers
-      - "traefik.http.routers.abs-green-rtr.entrypoints=https"
-      - "traefik.http.routers.abs-green-rtr.priority=1" # FOR ALLOWING LOCAL ACCESS
-      - "traefik.http.routers.abs-green-rtr.rule=Host(`abs.$DOMAINNAME_CLOUD_SERVER`)"
-      - "traefik.http.routers.abs-green-rtr.tls=true"
-      ## Middlewares
-      - "traefik.http.routers.abs-green-rtr.middlewares=chain-authelia@file"
-      ## HTTP Services
-      - "traefik.http.routers.abs-green-rtr.service=abs-green-svc"
-      - "traefik.http.services.abs-green-svc.loadbalancer.server.port=8088"
-      ## LOCAL ACCESS - Allow local (home) access without traefik auth
-      ## HTTP Routers
-      - "traefik.http.routers.abs-green-local-rtr.entrypoints=https"
-      - "traefik.http.routers.abs-green-local-rtr.priority=99"
-      - "traefik.http.routers.abs-green-local-rtr.rule=Host(`abs-green.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.0.0/16`)"
-      - "traefik.http.routers.abs-green-local-rtr.tls=true"
-      ## Middlewares
-      - "traefik.http.routers.abs-green-local-rtr.middlewares=chain-no-auth@file"
-      ## HTTP Services
-      - "traefik.http.routers.abs-green-local-rtr.service=abs-green-svc"
+  # # isolated audiobookshelf with pre processed/split audiobook files
+  # abs_green:
+  #   container_name: abs_green
+  #   image: ghcr.io/advplyr/audiobookshelf:2.36.0@sha256:180acad33d69c99ed208676465d8edcb268fa46967735579a7810859885b1a8e
+  #   restart: unless-stopped
+  #   volumes:
+  #     - $VOLUME_DIR/abs_green/audiobooks:/audiobooks:ro
+  #     - $VOLUME_DIR/abs_green/podcasts:/podcasts:ro
+  #     - $VOLUME_DIR/abs_green/config:/config
+  #     - $VOLUME_DIR/abs_green/metadata:/metadata
+  #   environment:
+  #     - TZ=$TZ
+  #     - AUDIOBOOKSHELF_UID=$PUID
+  #     - AUDIOBOOKSHELF_GID=$PGID
+  #     - PORT=8088
+  #   networks:
+  #     - abs_green_internal
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.docker.network=abs_green_internal"
+  #     ## HTTP Routers
+  #     - "traefik.http.routers.abs-green-rtr.entrypoints=https"
+  #     - "traefik.http.routers.abs-green-rtr.priority=1" # FOR ALLOWING LOCAL ACCESS
+  #     - "traefik.http.routers.abs-green-rtr.rule=Host(`abs.$DOMAINNAME_CLOUD_SERVER`)"
+  #     - "traefik.http.routers.abs-green-rtr.tls=true"
+  #     ## Middlewares
+  #     - "traefik.http.routers.abs-green-rtr.middlewares=chain-authelia@file"
+  #     ## HTTP Services
+  #     - "traefik.http.routers.abs-green-rtr.service=abs-green-svc"
+  #     - "traefik.http.services.abs-green-svc.loadbalancer.server.port=8088"
+  #     ## LOCAL ACCESS - Allow local (home) access without traefik auth
+  #     ## HTTP Routers
+  #     - "traefik.http.routers.abs-green-local-rtr.entrypoints=https"
+  #     - "traefik.http.routers.abs-green-local-rtr.priority=99"
+  #     - "traefik.http.routers.abs-green-local-rtr.rule=Host(`abs-green.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.0.0/16`)"
+  #     - "traefik.http.routers.abs-green-local-rtr.tls=true"
+  #     ## Middlewares
+  #     - "traefik.http.routers.abs-green-local-rtr.middlewares=chain-no-auth@file"
+  #     ## HTTP Services
+  #     - "traefik.http.routers.abs-green-local-rtr.service=abs-green-svc"
 
   abs_green_proxy:
     # self built for now, until a arm version is published
@@ -183,9 +183,12 @@ services:
       - TZ=$TZ
       - SHOW_SWAGGER=false
       - LOG_LEVEL=warning
+      - SERVER_ENDPOINT=https://audiobookshelf.$DOMAINNAME_CLOUD_SERVER
+      - CACHE_DIR=/app/cache
     user: $PUID:$PGID
     volumes:
       - $VOLUME_DIR/abs_green_proxy/data:/data
+      - $VOLUME_DIR/abs_green_proxy/cache:/app/cache
     restart: unless-stopped
     init: true
     networks:
@@ -210,11 +213,11 @@ services:
       ## HTTP Routers
       - "traefik.http.routers.abs-green-proxy-local-rtr.entrypoints=https"
       - "traefik.http.routers.abs-green-proxy-local-rtr.priority=99"
-      - "traefik.http.routers.abs-green-proxy-local-rtr.rule=Host(`abs-green-proxy.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.0.0/16`)"
+      - "traefik.http.routers.abs-green-proxy-local-rtr.rule=Host(`abs-green-proxy.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.0.0/16`)" # Really just the devices with AudioBookShelf Green App
       - "traefik.http.routers.abs-green-proxy-local-rtr.tls=true"
       ## Middlewares
       - "traefik.http.routers.abs-green-proxy-local-rtr.middlewares=chain-no-auth@file"
       ## HTTP Services
       - "traefik.http.routers.abs-green-proxy-local-rtr.service=abs-green-proxy-svc"
     extra_hosts:
-      - "abs-green.$DOMAINNAME_CLOUD_SERVER:192.168.92.254" # doesn't have access to lan ip
+      - "audiobookshelf.$DOMAINNAME_CLOUD_SERVER:192.168.92.254" # doesn't have access to lan ip
