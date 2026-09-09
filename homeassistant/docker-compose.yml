@@ -499,7 +499,7 @@ services:
   zigbee2mqtt:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
     container_name: zigbee2mqtt
-    image: koenkk/zigbee2mqtt:2.13.0@sha256:4fb4db4d49a217bed6d0204f454ce809febc565bbe051b85c556ee2bcef73d8c
+    image: koenkk/zigbee2mqtt:2.14.1@sha256:fef0de769dcd04c27b3a6d277b61046eb96284bdd4198dcb1687c3a01b3020f3
     volumes:
       - $VOLUME_DIR/zigbee2mqtt/data:/app/data
       - /run/udev:/run/udev:ro
