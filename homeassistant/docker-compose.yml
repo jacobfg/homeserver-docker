@@ -561,7 +561,7 @@ services:
   # Homer
   homer:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
-    image: b4bz/homer:v25.11.1@sha256:5c3a0fb561e0d09d00d3392684420186622fae45af70b2c3680b80961ddeeb6c
+    image: b4bz/homer:v26.08.3@sha256:febc8967c9f7648ec37633ef3ae1ec90dbe8b7c46fecab80299f08f05be7ecb6
     container_name: homer
     volumes:
       - $VOLUME_DIR/homer/assets/:/www/assets
