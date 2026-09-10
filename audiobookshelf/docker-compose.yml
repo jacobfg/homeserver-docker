@@ -53,6 +53,14 @@ services:
       - "traefik.http.routers.audiobookshelf-bypass-rtr.middlewares=chain-no-auth@file"
       ## HTTP Services
       - "traefik.http.routers.audiobookshelf-bypass-rtr.service=audiobookshelf-svc"
+      ## GARMIN WATCH API - custom hostname; normal ABS hostname is unchanged.
+      # Authentication is the watch's ABS Bearer token, passed through to ABS.
+      - "traefik.http.routers.audiobookshelf-garmin-api-rtr.entrypoints=https"
+      - "traefik.http.routers.audiobookshelf-garmin-api-rtr.priority=100"
+      - "traefik.http.routers.audiobookshelf-garmin-api-rtr.rule=Host(`garmin-abs.$DOMAINNAME_CLOUD_SERVER`) && PathPrefix(`/api/`)"
+      - "traefik.http.routers.audiobookshelf-garmin-api-rtr.tls=true"
+      - "traefik.http.routers.audiobookshelf-garmin-api-rtr.middlewares=chain-no-auth@file"
+      - "traefik.http.routers.audiobookshelf-garmin-api-rtr.service=audiobookshelf-svc"
     extra_hosts:
       - "auth.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP" # required for oidc auth
 
@@ -93,14 +101,9 @@ services:
       - SHOW_SWAGGER=false
       - LOG_LEVEL=warning
       - SERVER_ENDPOINT=https://audiobookshelf.$DOMAINNAME_CLOUD_SERVER
-      - CACHE_DIR=/app/cache
-      - AUTO_CACHE_ENABLED=true
-      - AUTO_CACHE_MAX_JOBS=1
-      - AUTO_CACHE_CHAPTER_MINUTES=30
     user: $PUID:$PGID
     volumes:
       - $VOLUME_DIR/abs_green_proxy/data:/data
-      - $VOLUME_DIR/abs_green_proxy/cache:/app/cache
     restart: unless-stopped
     init: true
     networks:
@@ -131,5 +134,59 @@ services:
       - "traefik.http.routers.abs-green-proxy-local-rtr.middlewares=chain-no-auth@file"
       ## HTTP Services
       - "traefik.http.routers.abs-green-proxy-local-rtr.service=abs-green-proxy-svc"
+      ## GARMIN WATCH PROXY - specific sidecar routes have higher priority.
+      - "traefik.http.routers.abs-green-garmin-proxy-rtr.entrypoints=https"
+      - "traefik.http.routers.abs-green-garmin-proxy-rtr.priority=100"
+      - "traefik.http.routers.abs-green-garmin-proxy-rtr.rule=Host(`garmin-abs.$DOMAINNAME_CLOUD_SERVER`) && PathPrefix(`/audiobookshelf/`)"
+      - "traefik.http.routers.abs-green-garmin-proxy-rtr.tls=true"
+      - "traefik.http.routers.abs-green-garmin-proxy-rtr.middlewares=chain-no-auth@file"
+      - "traefik.http.routers.abs-green-garmin-proxy-rtr.service=abs-green-proxy-svc"
+    extra_hosts:
+      - "audiobookshelf.$DOMAINNAME_CLOUD_SERVER:192.168.92.254" # doesn't have access to lan ip
+
+  garmin_media_sidecar:
+    build:
+      context: $ABS_GREEN_SIDECAR_SRC_DIR
+      network: host
+    container_name: garmin_media_sidecar
+    user: $PUID:$PGID
+    restart: unless-stopped
+    environment:
+      - TZ=$TZ
+      # Direct Docker-network access: no Traefik or Authelia loop for polling,
+      # token validation, or source-media downloads.
+      - ABS_URL=https://audiobookshelf.$DOMAINNAME_CLOUD_SERVER
+      - ABS_TOKEN=$ABS_GREEN_SIDECAR_ABS_TOKEN
+      - SIDECAR_CONFIG=/app/config.yaml
+      - CACHE_DIR=/app/cache
+      - POLL_INTERVAL_SECONDS=300
+      - AUTH_CACHE_SECONDS=300
+      - CACHE_CHUNK_MINUTES=30
+      - CACHE_BITRATE=96k
+    volumes:
+      - $VOLUME_DIR/abs_green_sidecar/config.yaml:/app/config.yaml:ro
+      - $VOLUME_DIR/abs_green_sidecar/cache:/app/cache
+    networks:
+      - abs_green_internal
+    expose:
+      - "8082"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=abs_green_internal"
+      ## Virtual playlist catalogue and Garmin chunk manifest.
+      - "traefik.http.routers.garmin-media-catalogue-rtr.entrypoints=https"
+      - "traefik.http.routers.garmin-media-catalogue-rtr.priority=200"
+      - "traefik.http.routers.garmin-media-catalogue-rtr.rule=Host(`garmin-abs.$DOMAINNAME_CLOUD_SERVER`) && (Path(`/audiobookshelf/playlists`) || Path(`/audiobookshelf/playlist`) || Path(`/audiobookshelf/book`))"
+      - "traefik.http.routers.garmin-media-catalogue-rtr.tls=true"
+      - "traefik.http.routers.garmin-media-catalogue-rtr.middlewares=chain-no-auth@file"
+      - "traefik.http.routers.garmin-media-catalogue-rtr.service=garmin-media-svc"
+      ## Garmin-rendered MP3 downloads, not ABS originals.
+      - "traefik.http.routers.garmin-media-download-rtr.entrypoints=https"
+      - "traefik.http.routers.garmin-media-download-rtr.priority=200"
+      - "traefik.http.routers.garmin-media-download-rtr.rule=Host(`garmin-abs.$DOMAINNAME_CLOUD_SERVER`) && PathRegexp(`^/api/items/[^/]+/file/[^/]+/download`)"
+      - "traefik.http.routers.garmin-media-download-rtr.tls=true"
+      - "traefik.http.routers.garmin-media-download-rtr.middlewares=chain-no-auth@file"
+      - "traefik.http.routers.garmin-media-download-rtr.service=garmin-media-svc"
+      - "traefik.http.services.garmin-media-svc.loadbalancer.server.port=8082"
     extra_hosts:
       - "audiobookshelf.$DOMAINNAME_CLOUD_SERVER:192.168.92.254" # doesn't have access to lan ip
