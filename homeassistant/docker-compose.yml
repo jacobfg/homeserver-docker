@@ -333,7 +333,7 @@ services:
       ## HTTP Routers
       - "traefik.http.routers.homeassistant-webhook-rtr.entrypoints=https"
       - "traefik.http.routers.homeassistant-webhook-rtr.priority=99"
-      - "traefik.http.routers.homeassistant-webhook-rtr.rule=Host(`homeassistant.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.90.0/24`) && PathPrefix(`/api/`)"
+      - "traefik.http.routers.homeassistant-webhook-rtr.rule=Host(`homeassistant.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.90.0/24`) && (PathPrefix(`/api/`) || PathPrefix(`/local/garmin/`))"
       - "traefik.http.routers.homeassistant-webhook-rtr.tls=true"
       ## Middlewares
       - "traefik.http.routers.homeassistant-webhook-rtr.middlewares=chain-no-auth@file"
