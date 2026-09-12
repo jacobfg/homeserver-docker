@@ -264,6 +264,8 @@ services:
       - "vscode.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
       - "zigbee2mqtt.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
       - "photos.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      - "fittools.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      - "garmin-abs.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
 
   # Authelia (Lite) - Self-Hosted Single Sign-On and Two-Factor Authentication
   authelia:
