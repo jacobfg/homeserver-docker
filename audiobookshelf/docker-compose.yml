@@ -175,7 +175,7 @@ services:
       ## Virtual playlist catalogue and Garmin chunk manifest.
       - "traefik.http.routers.garmin-media-catalogue-rtr.entrypoints=https"
       - "traefik.http.routers.garmin-media-catalogue-rtr.priority=200"
-      - "traefik.http.routers.garmin-media-catalogue-rtr.rule=Host(`garmin-abs.$DOMAINNAME_CLOUD_SERVER`) && (Path(`/audiobookshelf/playlists`) || Path(`/audiobookshelf/playlist`) || Path(`/audiobookshelf/book`))"
+      - "traefik.http.routers.garmin-media-catalogue-rtr.rule=Host(`garmin-abs.$DOMAINNAME_CLOUD_SERVER`) && (Path(`/audiobookshelf/playlists`) || Path(`/audiobookshelf/playlist`) || Path(`/audiobookshelf/book`) || PathPrefix(`/garmin/playlist-status/`))"
       - "traefik.http.routers.garmin-media-catalogue-rtr.tls=true"
       - "traefik.http.routers.garmin-media-catalogue-rtr.middlewares=chain-no-auth@file"
       - "traefik.http.routers.garmin-media-catalogue-rtr.service=garmin-media-svc"
