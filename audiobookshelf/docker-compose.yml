@@ -64,6 +64,7 @@ services:
     extra_hosts:
       - "auth.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP" # required for oidc auth
 
+  # TODO: replace
   filebrowser:
     container_name: filebrowser
     image: filebrowser/filebrowser@sha256:a469ea076d4a1b4b1d86a41d130f2f536cd9da996a2b1fb39c0d7635f9d89b9a
@@ -90,20 +91,17 @@ services:
       - "traefik.http.services.filebrowser-svc.loadbalancer.server.port=8080"
 
   abs_green_proxy:
-    # self built for now
-    build:
-      context: $ABS_GREEN_PROXY_SRC_DIR
-      network: host
     container_name: abs_green_proxy
+    image: ghcr.io/jacobfg/audiobooksgreenproxy:latest
+    restart: unless-stopped
+    user: $PUID:$PGID
     environment:
       - TZ=$TZ
       - SHOW_SWAGGER=false
       - LOG_LEVEL=warning
       - SERVER_ENDPOINT=https://audiobookshelf.$DOMAINNAME_CLOUD_SERVER
-    user: $PUID:$PGID
     volumes:
       - $VOLUME_DIR/abs_green_proxy/data:/data
-    restart: unless-stopped
     init: true
     networks:
       - abs_green_internal
@@ -144,12 +142,10 @@ services:
       - "audiobookshelf.$DOMAINNAME_CLOUD_SERVER:192.168.92.254" # doesn't have access to lan ip
 
   garmin_media_sidecar:
-    build:
-      context: $ABS_GREEN_SIDECAR_SRC_DIR
-      network: host
     container_name: garmin_media_sidecar
-    user: $PUID:$PGID
+    image: ghcr.io/jacobfg/audiobooksgreengarminsidecar:latest
     restart: unless-stopped
+    user: $PUID:$PGID
     environment:
       - TZ=$TZ
       # Direct Docker-network access: no Traefik or Authelia loop for polling,

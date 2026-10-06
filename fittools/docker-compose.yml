@@ -1,0 +1,28 @@
+# deploy weight 70
+
+networks:
+  abs_green_internal:
+    name: abs_green_internal
+    external: true
+
+services:
+  fittools:
+    container_name: fittools
+    image: ghcr.io/jacobfg/garmin-fit-scripts:latest
+    restart: unless-stopped
+    user: $PUID:$PGID
+    environment:
+      - TZ=$TZ
+    networks:
+      - abs_green_internal
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.fittools-rtr.entrypoints=https"
+      - "traefik.http.routers.fittools-rtr.rule=Host(`fittools.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.fittools-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.fittools-rtr.middlewares=middlewares-homer-cors@file,chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.fittools-rtr.service=fittools-svc"
+      - "traefik.http.services.fittools-svc.loadbalancer.server.port=8080"
