@@ -148,7 +148,7 @@ services:
 
   garmin_media_sidecar:
     container_name: garmin_media_sidecar
-    image: ghcr.io/jacobfg/audiobooksgreengarminsidecar:latest@sha256:f4f2d53fc3562d8097dfcb835229db1a9b0c90c0f42616a934daca755c6871ba
+    image: ghcr.io/jacobfg/audiobooksgreengarminsidecar:latest@sha256:bfd7a9be89338a7d34aef46ec04d4a27303a3df1fac36e53672d07af8a4a933f
     restart: unless-stopped
     user: $PUID:$PGID
     deploy:
