@@ -25,6 +25,8 @@ jobs:
           RENOVATE_ONBOARDING: "false"
           # Git commit author used, must match GitHub App
           RENOVATE_GIT_AUTHOR: "Renovate Bot for me <10949267+jacobfg@users.noreply.github.com>"
+          # Pass the read user as an environment variable into the runner
+          RENOVATE_READ_USER: ${{ secrets.RENOVATE_READ_USER}}
           # Pass the read token as an environment variable into the runner
           RENOVATE_READ_TOKEN: ${{ secrets.RENOVATE_READ_TOKEN }}
           # LOG_LEVEL: 'debug'
