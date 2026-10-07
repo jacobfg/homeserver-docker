@@ -22,7 +22,7 @@
 
   hostRules: [
     {
-      matchHost: "github.com",
+      matchHost: "ghcr.io",
       hostType: "github",
       token: "{{ env.RENOVATE_READ_TOKEN }}"
     }
