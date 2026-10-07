@@ -1,64 +1,86 @@
 {
-  // Use recommended defaults
   extends: [
-    "config:best-practices",
-    ":dependencyDashboard",
+    'config:best-practices',
+    ':dependencyDashboard',
   ],
-
-  // If multiple major updates are available, create a separate pull request for each
   separateMultipleMajor: true,
-
-  baseBranches: ["main"],
-
-  // Add your custom labels to pull requests
-  labels: ["dependencies", "bot"],
-
-  // Avoid updating to unstable versions
-  // "ignoreUnstable": true,
-  // "stabilityDays": 7,
-
+  baseBranchPatterns: [
+    'main',
+  ],
+  labels: [
+    'dependencies',
+    'bot',
+  ],
   enabled: true,
-  enabledManagers: ["docker-compose", "github-actions", "custom.regex"],
-
+  enabledManagers: [
+    'docker-compose',
+    'github-actions',
+    'custom.regex',
+  ],
   packageRules: [
     {
-      matchUpdateTypes: ["major"],
-      matchPackagePatterns: ["*"],
+      matchUpdateTypes: [
+        'major',
+      ],
       dependencyDashboardApproval: true,
       enabled: true,
-    },
-    // group README.md changes (not major) together
-    {
-      groupName: "README all minor and patch dependencies",
-      groupSlug: "README all-minor-patch",
-      matchPackagePatterns: ["*"],
-      matchUpdateTypes: ["minor", "patch", "pin", "digest"],
-      matchManagers: ["custom.regex"],
-    },
-    {
-      matchDatasources: ["docker"],
-      versioning: "regex:^v?(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$",
-    },
-    // don't raise PR's managed manually
-    {
-      matchDatasources: ["docker"],
       matchPackageNames: [
-        "ghcr.io/esphome/esphome",
+        '*',
+      ],
+    },
+    {
+      groupName: 'README all minor and patch dependencies',
+      groupSlug: 'README all-minor-patch',
+      matchUpdateTypes: [
+        'minor',
+        'patch',
+        'pin',
+        'digest',
+      ],
+      matchManagers: [
+        'custom.regex',
+      ],
+      matchPackageNames: [
+        '*',
+      ],
+    },
+    {
+      matchDatasources: [
+        'docker',
+      ],
+      versioning: 'regex:^v?(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$',
+    },
+    {
+      matchDatasources: [
+        'docker',
+      ],
+      matchPackageNames: [
+        'ghcr.io/esphome/esphome',
       ],
       enabled: false,
     },
     {
-      matchDatasources: ["docker"],
-      matchPackageNames: ["nodered/node-red"],
-      versioning: "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-22-minimal$",
+      matchDatasources: [
+        'docker',
+      ],
+      matchPackageNames: [
+        'nodered/node-red',
+      ],
+      versioning: 'regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-22-minimal$',
     },
     {
-      matchDatasources: ["github-releases"],
-      versioning: "regex:^v?(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$",
+      matchDatasources: [
+        'github-releases',
+      ],
+      versioning: 'regex:^v?(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$',
     },
     {
-      matchPackageNames: ["github.com/esphome/esphome"],
-      matchDatasources: ["github-releases"],
+      matchPackageNames: [
+        'github.com/esphome/esphome',
+      ],
+      matchDatasources: [
+        'github-releases',
+      ],
       dependencyDashboardApproval: true,
       enabled: true,
     },
@@ -66,11 +88,13 @@
   customManagers: [
     {
       customType: 'regex',
-      fileMatch: ["^README\\.md$"],
-      matchStrings: [
-        " github.com\\/(?<depName>.*) \\| (?<currentValue>v?\\d+\\.\\d+\\.\\d+) \\|",
+      managerFilePatterns: [
+        '/^README\\.md$/',
       ],
-      datasourceTemplate: "github-releases",
-    }
+      matchStrings: [
+        ' github.com\\/(?<depName>.*) \\| (?<currentValue>v?\\d+\\.\\d+\\.\\d+) \\|',
+      ],
+      datasourceTemplate: 'github-releases',
+    },
   ],
 }
