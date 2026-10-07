@@ -20,14 +20,6 @@
   enabled: true,
   enabledManagers: ["docker-compose", "github-actions", "custom.regex"],
 
-  hostRules: [
-    {
-      matchHost: "ghcr.io",
-      hostType: "docker",
-      username: "{{ env.RENOVATE_READ_USER }}",
-      token: "{{ env.RENOVATE_READ_TOKEN }}"
-    }
-  ],
   packageRules: [
     {
       matchUpdateTypes: ["major"],
