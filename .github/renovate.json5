@@ -24,7 +24,7 @@
     {
       matchHost: "ghcr.io",
       hostType: "docker",
-      username: "{{ env.RENOVATE_READ_USER }}"
+      username: "{{ env.RENOVATE_READ_USER }}",
       token: "{{ env.RENOVATE_READ_TOKEN }}"
     }
   ],
