@@ -146,6 +146,14 @@ services:
     image: ghcr.io/jacobfg/audiobooksgreengarminsidecar:latest@sha256:e021cae138bea47b872909c156478e01008161c4986cb7172e699f0b65aae561
     restart: unless-stopped
     user: $PUID:$PGID
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 128M
     environment:
       - TZ=$TZ
       # Direct Docker-network access: no Traefik or Authelia loop for polling,
