@@ -2,6 +2,9 @@
 
 SCRIPT_DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd)"
 
+# read .env file
+export $(xargs < "${SCRIPT_DIR}/.env")
+
 function findOrderStacks() {
     find . -maxdepth 2 -mindepth 2 -type f -name 'docker-compose.yml' -exec egrep -H '^# deploy weight [0-9]+' {} \; \
     | sed 's/:# deploy weight /:/' \
@@ -9,6 +12,12 @@ function findOrderStacks() {
     | sed -e 's~/docker-compose.yml:[0-9]\+$~~' \
     | tr '\n' '\0'
 }
+
+function dockerAuth() {
+  echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_USERNAME" --password-stdin || exit 1
+}
+
+dockerAuth
 
 # update each stack
 while read -d $'\0' STACK ; do
