@@ -23,7 +23,7 @@
   hostRules: [
     {
       matchHost: "ghcr.io",
-      hostType: "github",
+      hostType: "docker",
       token: "{{ env.RENOVATE_READ_TOKEN }}"
     }
   ],

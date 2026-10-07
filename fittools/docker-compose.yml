@@ -1,6 +1,7 @@
 # deploy weight 70
 
 networks:
+  # TODO: move to own isolated network
   abs_green_internal:
     name: abs_green_internal
     external: true
@@ -11,6 +12,11 @@ services:
     image: ghcr.io/jacobfg/garmin-fit-scripts:latest@sha256:170e94120c891a4c532d16a146a5efc1bcab12792d6f852f9f547d390430b2bd
     restart: unless-stopped
     user: $PUID:$PGID
+    deploy:
+      resources:
+        limits:
+          cpus: 0.5
+          memory: 256M
     environment:
       - TZ=$TZ
     networks:

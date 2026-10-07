@@ -95,6 +95,11 @@ services:
     image: ghcr.io/jacobfg/audiobooksgreenproxy:latest@sha256:5f2d2062a85ea66f4c444a082165f8de72646a6b831a09700eec2c566f004b6f
     restart: unless-stopped
     user: $PUID:$PGID
+    deploy:
+      resources:
+        limits:
+          cpus: 0.5
+          memory: 256M
     environment:
       - TZ=$TZ
       - SHOW_SWAGGER=false
@@ -151,9 +156,6 @@ services:
         limits:
           cpus: '2.0'
           memory: 1G
-        reservations:
-          cpus: '0.25'
-          memory: 128M
     environment:
       - TZ=$TZ
       # Direct Docker-network access: no Traefik or Authelia loop for polling,
