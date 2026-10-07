@@ -9,7 +9,7 @@ networks:
 services:
   fittools:
     container_name: fittools
-    image: ghcr.io/jacobfg/garmin-fit-scripts:latest@sha256:170e94120c891a4c532d16a146a5efc1bcab12792d6f852f9f547d390430b2bd
+    image: ghcr.io/jacobfg/garmin-fit-scripts:latest@sha256:f4f2d53fc3562d8097dfcb835229db1a9b0c90c0f42616a934daca755c6871ba
     restart: unless-stopped
     user: $PUID:$PGID
     deploy:
