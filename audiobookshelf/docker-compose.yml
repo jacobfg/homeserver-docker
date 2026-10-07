@@ -92,7 +92,7 @@ services:
 
   abs_green_proxy:
     container_name: abs_green_proxy
-    image: ghcr.io/jacobfg/audiobooksgreenproxy:latest@sha256:5f2d2062a85ea66f4c444a082165f8de72646a6b831a09700eec2c566f004b6f
+    image: ghcr.io/jacobfg/audiobooksgreenproxy:latest@sha256:689e97f0c1edd46d72f458526db9bdb157e2cc3137ae602b0004cedf1501e99b
     restart: unless-stopped
     user: $PUID:$PGID
     deploy:
