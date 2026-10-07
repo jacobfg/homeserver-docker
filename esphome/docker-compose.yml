@@ -1,5 +1,7 @@
 services:
   esphome:
+    profiles:
+      - disabled
     container_name: esphome
     image: ghcr.io/esphome/esphome:2024.11.2
     volumes:
