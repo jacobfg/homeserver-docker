@@ -29,7 +29,7 @@ while read -d $'\0' STACK ; do
     docker compose up -d --remove-orphans
 
     # workflow uses digest, tag local image for niceness
-    yq -yaml-fix-merge-anchor-to-spec=true -r '.services[].image' docker-compose.yml | grep '@sha256:' | sed 's~^\([^:]\+\):\([^@]\+\)@\(.\+\)$~\1@\3 \1:\2~' | xargs -n2 docker tag
+    yq --yaml-fix-merge-anchor-to-spec=true -r '.services[].image' docker-compose.yml | grep '@sha256:' | sed 's~^\([^:]\+\):\([^@]\+\)@\(.\+\)$~\1@\3 \1:\2~' | xargs -n2 docker tag
 
 done < <(findOrderStacks)
 
