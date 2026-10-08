@@ -45,8 +45,6 @@ secrets:
     file: $SECRETS_DIR/authelia_identity_providers_oidc_issuer_private_key_file
   zigbee2mqtt_secrets.yaml:
     file: $SECRETS_DIR/zigbee2mqtt_secrets.yaml
-  cf_api_key:
-    file: $SECRETS_DIR/cf_api_key
   cf_dns_api_key:
     file: $SECRETS_DIR/cf_dns_api_key
   influxdb_user:
@@ -180,14 +178,11 @@ services:
       - $VOLUME_DIR/traefik/acme/acme.json:/acme.json # cert location - you must create this empty file and change permissions to 600
     environment:
       - TZ
-      # - CF_API_EMAIL=$CLOUDFLARE_EMAIL
-      # - CF_API_KEY_FILE=/run/secrets/cf_api_key
       - CF_DNS_API_TOKEN_FILE=/run/secrets/cf_dns_api_key
       - CF_ZONE_API_TOKEN_FILE=/run/secrets/cf_dns_api_key
       - DOMAINNAME_CLOUD_SERVER # Passing the domain name to the traefik container to be able to use the variable in rules.
       - DOCKER_SERVER_IP # Passing the docker server IP to the traefik container to be able to use the variable in rules.
     secrets:
-      - cf_api_key
       - cf_dns_api_key
     labels:
       - "traefik.enable=true"
