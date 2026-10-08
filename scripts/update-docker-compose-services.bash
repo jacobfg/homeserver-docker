@@ -17,7 +17,30 @@ function dockerAuth() {
   echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_USERNAME" --password-stdin || exit 1
 }
 
+function retireCodeServer() {
+    # Removed stacks are no longer discovered below, so --remove-orphans cannot
+    # retire their containers. Keep this migration safe to run on every update.
+    # A restored stack definition takes precedence (for example, on rollback).
+    if [[ -f "$SCRIPT_DIR/../vscode-server/docker-compose.yml" ]]; then
+        return 0
+    fi
+
+    local retired_container_id
+    retired_container_id="$(docker container ls --all --quiet \
+        --filter 'name=^/code-server$' \
+        --filter 'label=com.docker.compose.service=vscode-server' \
+        --filter 'label=com.docker.compose.project')" || return 1
+
+    if [[ -n "$retired_container_id" ]]; then
+        echo "Retiring the removed code-server Compose service (keeping its data)"
+        docker container stop "$retired_container_id" || return 1
+        # No --volumes: preserve volumes and the existing host bind-mount data.
+        docker container rm "$retired_container_id" || return 1
+    fi
+}
+
 dockerAuth
+retireCodeServer || exit 1
 
 # update each stack
 while read -d $'\0' STACK ; do
