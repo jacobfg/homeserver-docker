@@ -279,7 +279,7 @@ services:
       - $VOLUME_DIR/authelia:/config
     configs:
       - source: authelia_configuration
-        target: /config/configuration.yml
+        target: /etc/authelia/configuration.yml
     deploy:
       resources:
         limits:
@@ -290,6 +290,7 @@ services:
           memory: 32M     # Standard running idle footprint
     environment:
       - TZ
+      - X_AUTHELIA_CONFIG=/etc/authelia/configuration.yml
       - AUTHELIA_JWT_SECRET_FILE=/run/secrets/authelia_jwt_secret
       - AUTHELIA_SESSION_SECRET_FILE=/run/secrets/authelia_session_secret
       - AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE=/run/secrets/authelia_storage_encryption_key
