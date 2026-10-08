@@ -277,6 +277,17 @@ services:
       - t2_proxy
     volumes:
       - $VOLUME_DIR/authelia:/config
+    configs:
+      - source: authelia_configuration
+        target: /config/configuration.yml
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'    # Caps CPU usage to a quarter of a single core
+          memory: 96M     # 32MB (Argon2id) + ~30MB (Base Go App) + safety buffer
+        reservations:
+          cpus: '0.05'    # Idles on virtually nothing
+          memory: 32M     # Standard running idle footprint
     environment:
       - TZ
       - AUTHELIA_JWT_SECRET_FILE=/run/secrets/authelia_jwt_secret
@@ -599,3 +610,7 @@ services:
   #     - "$VOLUME_DIR/signal-cli-config:/home/.local/share/signal-cli"
   #   labels:
   #     - "traefik.enable=true"
+
+configs:
+  authelia_configuration:
+    file: ./authelia/configuration.yml
