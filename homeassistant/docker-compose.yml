@@ -91,15 +91,14 @@ x-common-keys-apps-hostmode: &common-keys-apps-hostmode
 ########################### SERVICES
 services:
   ############################# FRONTENDS
-  # Traefik 2 - Reverse Proxy
+  # Traefik 3 - Reverse Proxy
   traefik:
     <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: traefik
     image: traefik:v3.7.14@sha256:e849695bc5c317da0cec22bfee4794fd9e15871fe554f864d31b625983e883ff
     command: # CLI arguments
-      - --global.checkNewVersion=true
+      - --global.checkNewVersion=false
       - --global.sendAnonymousUsage=false
-      # - --entryPoints.http.address=:80
       - --entryPoints.https.address=:443
       - --entryPoints.sftp.address=:2021
       # Allow these IPs to set the X-Forwarded-* headers - Cloudflare IPs: https://www.cloudflare.com/ips/
@@ -150,11 +149,22 @@ services:
         published: 2021
         protocol: tcp
         mode: host
+    configs:
+      - source: traefik_rules_esphome
+        target: /rules/esphome.yml
+      - source: traefik_rules_tls_opts
+        target: /rules/tls-opts.yml
+      - source: traefik_rules_printerscanner
+        target: /rules/printerscanner.yml
+      - source: traefik_rules_middlewares_chains
+        target: /rules/middlewares-chains.yml
+      - source: traefik_rules_middlewares
+        target: /rules/middlewares.yml
+      - source: traefik_rules_immich
+        target: /rules/immich.yml
     volumes:
-      - $VOLUME_DIR/traefik/rules/cloudserver:/rules # file provider directory
       - $VOLUME_DIR/traefik/acme/acme.json:/acme.json # cert location - you must create this empty file and change permissions to 600
       - $VOLUME_DIR/traefik/logs/cloudserver/traefik:/logs # for fail2ban or crowdsec
-      # - /var/run/docker.sock:/var/run/docker.sock:ro # If you use Docker Socket Proxy, comment this line out
     environment:
       - TZ
       # - CF_API_EMAIL=$CLOUDFLARE_EMAIL
@@ -363,7 +373,6 @@ services:
     command: -H tcp://socket-proxy:2375
     environment:
       - TZ
-      # - DOCKER_HOST=socket-proxy:2375
     volumes:
       - $VOLUME_DIR/portainer:/data
     networks:
@@ -596,22 +605,18 @@ services:
       - "traefik.http.routers.homer-rtr.service=homer-svc"
       - "traefik.http.services.homer-svc.loadbalancer.server.port=8080"
 
-  ############################# MAINTENANCE
-  # crappy! find a better replacement
-  # signal-cli-rest-api:
-  #   <<: *common-keys-apps # See EXTENSION FIELDS at the top
-  #   container_name: signal-cli-rest-api
-  #   image: bbernhard/signal-cli-rest-api:0.83@sha256:d36ca6b9825441553169664dd424e2bba2f35c39d07584122798b536ff42923b
-  #   environment:
-  #     - MODE=native # normal #supported modes: json-rpc, native, normal
-  #     # - AUTO_RECEIVE_SCHEDULE=*/5 * * * *
-  #   ports:
-  #     - "127.0.0.1:8088:8080/tcp"
-  #   volumes:
-  #     - "$VOLUME_DIR/signal-cli-config:/home/.local/share/signal-cli"
-  #   labels:
-  #     - "traefik.enable=true"
-
 configs:
   authelia_configuration:
     file: ./authelia/configuration.yml
+  traefik_rules_esphome:
+    file: ./traefik/rules/esphome.yml
+  traefik_rules_tls_opts:
+    file: ./traefik/rules/tls-opts.yml
+  traefik_rules_printerscanner:
+    file: ./traefik/rules/printerscanner.yml
+  traefik_rules_middlewares_chains:
+    file: ./traefik/rules/middlewares-chains.yml
+  traefik_rules_middlewares:
+    file: ./traefik/rules/middlewares.yml
+  traefik_rules_immich:
+    file: ./traefik/rules/immich.yml
