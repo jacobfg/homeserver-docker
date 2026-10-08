@@ -96,6 +96,12 @@ services:
     <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: traefik
     image: traefik:v3.7.14@sha256:e849695bc5c317da0cec22bfee4794fd9e15871fe554f864d31b625983e883ff
+    # Bound combined access/runtime logs; read them with docker logs traefik.
+    logging:
+      driver: local
+      options:
+        max-size: "10m"
+        max-file: "3"
     command: # CLI arguments
       - --global.checkNewVersion=false
       - --global.sendAnonymousUsage=false
@@ -107,12 +113,20 @@ services:
       - --api=true
       - --api.dashboard=true
       - --log=true
-      - --log.filePath=/logs/traefik.log
+      - --log.format=json # stdout/stderr are rotated by Docker below the size limit
       - --log.level=ERROR # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
-      - --accessLog=false # change if/when public
-      - --accessLog.filePath=/logs/access.log
-      - --accessLog.bufferingSize=100 # Configuring a buffer of 100 lines
-      - --accessLog.filters.statusCodes=204-299,400-499,500-599
+      - --accessLog=true
+      - --accessLog.format=json
+      - --accessLog.addInternals=true # Include dashboard/API access as well
+      - --accessLog.bufferingSize=100 # Async queue; continuously drained, not a batch threshold
+      # Keep status, router, client address and timing metadata for all HTTP statuses.
+      - --accessLog.fields.defaultMode=keep
+      - --accessLog.fields.headers.defaultMode=drop # Omit cookies, authorization and API keys
+      - --accessLog.fields.queryParameters.defaultMode=drop
+      - --accessLog.fields.names.ClientUsername=drop
+      # Paths may contain HA webhook IDs or other credentials; omit derived request lines too.
+      - --accessLog.fields.names.RequestPath=drop
+      - --accessLog.fields.names.RequestLine=drop
       - --providers.docker=true
       # - --providers.docker.endpoint=unix:///var/run/docker.sock # Use Docker Socket Proxy instead for improved security
       - --providers.docker.endpoint=tcp://socket-proxy:2375 # Use this instead of the previous line if you have socket proxy.
@@ -164,7 +178,6 @@ services:
         target: /rules/immich.yml
     volumes:
       - $VOLUME_DIR/traefik/acme/acme.json:/acme.json # cert location - you must create this empty file and change permissions to 600
-      - $VOLUME_DIR/traefik/logs/cloudserver/traefik:/logs # for fail2ban or crowdsec
     environment:
       - TZ
       # - CF_API_EMAIL=$CLOUDFLARE_EMAIL
