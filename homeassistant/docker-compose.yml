@@ -97,6 +97,13 @@ services:
     <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: traefik
     image: traefik:v3.7.14@sha256:e849695bc5c317da0cec22bfee4794fd9e15871fe554f864d31b625983e883ff
+    # Prepare file ownership and run the checks in traefik/NONROOT-ROLLOUT.md first.
+    user: "65532:65532"
+    cap_drop:
+      - ALL
+    sysctls:
+      # Container network namespace only; preserve HTTPS :443 without a bind capability.
+      net.ipv4.ip_unprivileged_port_start: "443"
     # Bound combined access/runtime logs; read them with docker logs traefik.
     logging:
       driver: local
@@ -179,7 +186,7 @@ services:
       - source: traefik_rules_immich
         target: /rules/immich.yml
     volumes:
-      - $VOLUME_DIR/traefik/acme/acme.json:/acme.json # cert location - you must create this empty file and change permissions to 600
+      - $VOLUME_DIR/traefik/acme/acme.json:/acme.json # Preserve existing certificates; owner 65532:65532, mode 0600.
     environment:
       - TZ
       - CF_DNS_API_TOKEN_FILE=/run/secrets/cf_dns_api_key
