@@ -360,10 +360,10 @@ services:
       resources:
         limits:
           cpus: '0.25'    # Caps CPU usage to a quarter of a single core
-          memory: 96M     # 32MB (Argon2id) + ~30MB (Base Go App) + safety buffer
+          memory: 256M    # 96 MiB caused confirmed OOM kills; allow headroom for login peaks.
         reservations:
           cpus: '0.05'    # Idles on virtually nothing
-          memory: 32M     # Standard running idle footprint
+          memory: 64M     # Soft reservation, not preallocated or guaranteed RAM.
     environment:
       - TZ
       - X_AUTHELIA_CONFIG=/etc/authelia/configuration.yml
