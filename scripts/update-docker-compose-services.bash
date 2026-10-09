@@ -39,6 +39,29 @@ function retireCodeServer() {
     fi
 }
 
+function updateScheduledLibation() {
+    # Pause scheduling before updating the one-shot container. Stopping Ofelia
+    # does not stop a Libation job that is already running.
+    docker compose stop --timeout 10 ofelia || return 1
+
+    local job_id job_running
+    job_id="$(docker compose --profile scheduled ps --all --quiet libation)" || return 1
+    if [[ -n "$job_id" ]]; then
+        job_running="$(docker inspect --format '{{.State.Running}}' "$job_id")" || return 1
+        if [[ "$job_running" == "true" ]]; then
+            echo "Libation is running; deferring this update to avoid interrupting downloads." >&2
+            echo "For the first migration, stop the old looping Libation container when idle, then rerun." >&2
+            docker compose start ofelia # Restore the existing scheduler, if present.
+            return 1
+        fi
+    fi
+
+    # Explicit service selection enables its 'scheduled' profile without running
+    # it. Ofelia has no depends_on Libation, so the next command cannot start it.
+    docker compose up --no-start --no-deps libation || return 1
+    docker compose up -d --remove-orphans ofelia-socket-proxy ofelia || return 1
+}
+
 dockerAuth
 retireCodeServer || exit 1
 
@@ -48,8 +71,13 @@ while read -d $'\0' STACK ; do
     echo $STACK
 
     # pull images then update and remove orphans
-    docker compose pull
-    docker compose up -d --remove-orphans
+    if [[ "$STACK" == "./libation" ]] && docker compose config --services | grep -qx ofelia; then
+        docker compose --profile scheduled pull || exit 1
+        updateScheduledLibation || exit 1
+    else
+        docker compose pull
+        docker compose up -d --remove-orphans
+    fi
 
     # workflow uses digest, tag local image for niceness
     yq --yaml-fix-merge-anchor-to-spec=true -r '.services[].image' docker-compose.yml | grep '@sha256:' | sed 's~^\([^:]\+\):\([^@]\+\)@\(.\+\)$~\1@\3 \1:\2~' | xargs -n2 docker tag

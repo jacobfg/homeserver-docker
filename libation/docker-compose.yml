@@ -2,12 +2,16 @@
 
 # use existing t2_proxy network defined by docker-env stack
 networks:
+  ofelia_socket_proxy:
+    internal: true # Only the scheduler can reach its Docker API proxy.
   t2_proxy:
     name: t2_proxy
     external: true
 
 services:
   libation:
+    # Explicitly created by the updater; ordinary `compose up` must not run this job.
+    profiles: [scheduled]
     # Background imports/conversion can run more slowly when interactive services are busy.
     deploy:
       resources:
@@ -19,12 +23,12 @@ services:
     cpu_shares: 256 # Lower relative priority under contention (default is 1024).
     container_name: libation
     image: rmcrackan/libation:14.2.2@sha256:fe188ac3c4ce63cc305971c76e648748341427e16bcf884011da8a384fd3908c
-    restart: unless-stopped
+    restart: "no" # Ofelia starts each run; do not loop after successful completion.
     user: $PUID:$PGID
     environment:
       - TZ
       - LIBATION_DB_DIR=/db
-      - SLEEP_TIME=4h
+      - SLEEP_TIME=-1 # Run one scan/download cycle, then release process memory.
     volumes:
       # use secrets ?
       - $VOLUME_DIR/libation/config:/config
@@ -33,5 +37,96 @@ services:
       - $VOLUME_DIR/libation/logs:/logs
     networks:
       - t2_proxy
+    labels:
+      - "traefik.enable=false"
+
+  ofelia:
+    container_name: ofelia
+    image: mcuadros/ofelia:0.3.22@sha256:efcbe2c5cf658a25de6443c1462d653f9cc03791d642e01fc6c638a00f97e492
+    restart: unless-stopped
+    user: "65532:65532"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    command: [daemon, --docker, --docker-filter, name=ofelia]
+    environment:
+      - TZ
+      - DOCKER_HOST=tcp://ofelia-socket-proxy:2375
+    networks: [ofelia_socket_proxy]
+    depends_on:
+      ofelia-socket-proxy:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 128M # Includes Ofelia's per-job stdout/stderr buffers.
+        reservations:
+          memory: 32M
+    memswap_limit: 128m
+    cpu_shares: 256
+    logging:
+      driver: local
+      options:
+        max-size: "5m"
+        max-file: "2"
+    labels:
+      traefik.enable: "false"
+      ofelia.enabled: "true"
+      ofelia.service: "true"
+      # Starts the existing Compose container; does not create an ephemeral copy.
+      # First run is four hours after scheduler startup; missed runs are not replayed.
+      ofelia.job-run.libation.schedule: "@every 4h"
+      ofelia.job-run.libation.container: "libation"
+      ofelia.job-run.libation.no-overlap: "true"
+      ofelia.job-run.libation.delete: "false"
+
+  ofelia-socket-proxy:
+    container_name: ofelia-socket-proxy
+    image: wollomatic/socket-proxy:1.13.1@sha256:3935b709275e4ec35d6ed5a5c4a1f0d01ed31eec5e7234efc3357ecd47689002
+    restart: unless-stopped
+    user: "0:0" # Access the root-owned host socket without requiring a host-specific Docker GID.
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    command:
+      - '-listenip=0.0.0.0'
+      - '-allowfrom=ofelia' # Resolve the scheduler's current IP via Docker DNS.
+      - '-allowHEAD=(/v[0-9]+[.][0-9]+)?/(_ping|version)'
+      # List for label discovery, then inspect and read logs for the existing job.
+      - '-allowGET=(/v[0-9]+[.][0-9]+)?/(_ping|version|containers/json|containers/(libation|[a-f0-9]{64})/(json|logs))'
+      # Ofelia starts by ID after inspection. This permits starting any full container
+      # ID, not exclusively Libation; create/exec/stop/delete remain denied.
+      - '-allowPOST=(/v[0-9]+[.][0-9]+)?/containers/(libation|[a-f0-9]{64})/start'
+      - '-allowhealthcheck'
+      - '-watchdoginterval=60'
+      - '-stoponwatchdog'
+      - '-loglevel=warn'
+    environment:
+      - GOMEMLIMIT=48MiB # Soft Go memory target, leaving headroom below the hard limit.
+    volumes:
+      # API ACLs enforce permissions; :ro alone does not make the Docker API read-only.
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks: [ofelia_socket_proxy]
+    healthcheck:
+      test: [CMD, /healthcheck]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 64M # Initial ceiling; monitor memory.peak during scheduled runs.
+        reservations:
+          memory: 16M
+    memswap_limit: 64m
+    cpu_shares: 256
+    logging:
+      driver: local
+      options:
+        max-size: "5m"
+        max-file: "2"
     labels:
       - "traefik.enable=false"
