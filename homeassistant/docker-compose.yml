@@ -97,6 +97,15 @@ services:
     <<: *common-keys-core # See EXTENSION FIELDS at the top
     container_name: traefik
     image: traefik:v3.7.14@sha256:e849695bc5c317da0cec22bfee4794fd9e15871fe554f864d31b625983e883ff
+    # Initial budget; validate under concurrent uploads, streaming and stack updates.
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 128M # Soft reservation; does not preallocate RAM.
+    memswap_limit: 512m # Combined RAM + swap limit; equal to RAM disables swap.
+    cpu_shares: 2048 # Prefer the proxy under CPU contention; allow bursts without a CPU cap.
     # Prepare file ownership and run the checks in traefik/NONROOT-ROLLOUT.md first.
     user: "65532:65532"
     cap_drop:
@@ -193,6 +202,7 @@ services:
       - TZ
       - CF_DNS_API_TOKEN_FILE=/run/secrets/cf_dns_api_key
       - CF_ZONE_API_TOKEN_FILE=/run/secrets/cf_dns_api_key
+      - GOMEMLIMIT=384MiB # Go soft memory target; leave headroom below the container limit.
       - DOMAINNAME_CLOUD_SERVER # Passing the domain name to the traefik container to be able to use the variable in rules.
       - DOCKER_SERVER_IP # Passing the docker server IP to the traefik container to be able to use the variable in rules.
     secrets:
