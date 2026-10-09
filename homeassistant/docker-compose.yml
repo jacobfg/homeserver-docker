@@ -321,6 +321,13 @@ services:
   # TODO: try adblock
   blocky:
     <<: *common-keys-core # See EXTENSION FIELDS at the top
+    deploy:
+      resources:
+        limits:
+          memory: 128M # Observed peak ~33 MiB; recheck during blocklist refreshes.
+        reservations:
+          memory: 32M # Soft reservation, not preallocated RAM.
+    cpu_shares: 2048 # Prioritise DNS under CPU contention; no hard CPU ceiling.
     image: spx01/blocky:v0.22@sha256:ba17812054a15b58ac80772afe404e7caa1da8c972f0c9ff7754eb3924fd5f57
     container_name: blocky
     restart: always
@@ -406,6 +413,13 @@ services:
   # https://www.home-assistant.io/installation/raspberrypi
   homeassistant:
     <<: *common-keys-apps-hostmode # See EXTENSION FIELDS at the top
+    deploy:
+      resources:
+        limits:
+          memory: 3G # Observed peak ~1.32 GiB over nine hours; allow startup/maintenance headroom.
+        reservations:
+          memory: 512M # Soft reservation; validate longer-term integration and recorder workloads.
+    cpu_shares: 2048 # Prioritise home automation over background jobs under contention.
     container_name: homeassistant
     image: homeassistant/home-assistant:2026.9.4@sha256:3e6710a7ab2a61311d9d899b719f6c3657791c63e8f4942cec4ebc42401d6b76
     # depends_on:
@@ -510,6 +524,15 @@ services:
 
   duplicacy:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
+    # Keep background backup work from monopolising CPU on the shared host.
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0' # Aggregate ceiling; does not reserve or pin two cores.
+          memory: 1536M # Observed peak ~712 MiB over 43 hours; validate larger backups.
+        reservations:
+          memory: 256M # Soft reservation, not preallocated RAM.
+    cpu_shares: 256 # Lower relative priority under contention (default is 1024).
     container_name: duplicacy
     hostname: 4eb908d4f748 # for licensing
     image: saspus/duplicacy-web:v1.8.3@sha256:f98539e025045cfc6f25cceb73ba3777de2eabe30d5115cc8b858ac42317b88b
@@ -583,6 +606,13 @@ services:
   mosquitto:
     # TODO: mosquito tls (really not needed on a private hosted based network)
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
+    deploy:
+      resources:
+        limits:
+          memory: 64M # Observed peak ~13 MiB; recheck retained messages and reconnect bursts.
+        reservations:
+          memory: 16M # Soft reservation, not preallocated RAM.
+    cpu_shares: 2048 # Prioritise MQTT delivery under CPU contention.
     container_name: mosquitto
     image: eclipse-mosquitto:2.0.22@sha256:199ea8ef2e35ec2b1b37e59cfd1dbae538ed4dfa4a2251a121a52215a6248a21
     networks:
@@ -599,6 +629,13 @@ services:
 
   zigbee2mqtt:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
+    deploy:
+      resources:
+        limits:
+          memory: 512M # Observed peak ~210 MiB; validate restarts and device updates.
+        reservations:
+          memory: 128M # Soft reservation, not preallocated RAM.
+    cpu_shares: 2048 # Prioritise device control under CPU contention.
     container_name: zigbee2mqtt
     image: koenkk/zigbee2mqtt:2.14.2@sha256:addbfb08fcef2e4477de1535636118241e10d13e898fbe4d9faba8a4d7396311
     volumes:
@@ -628,6 +665,13 @@ services:
   # NodeRED
   node-red:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
+    deploy:
+      resources:
+        limits:
+          memory: 768M # Observed peak ~288 MiB; validate the largest scheduled flows.
+        reservations:
+          memory: 192M # Soft reservation, not preallocated RAM.
+    cpu_shares: 2048 # Prioritise automation flows under CPU contention.
     image: nodered/node-red:4.1.15-22-minimal@sha256:5b4b3de279526288906521476d49c032dcbd15f5703c8fcc64cf26b73ad16199
     container_name: node-red
     environment:

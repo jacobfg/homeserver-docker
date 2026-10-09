@@ -8,6 +8,15 @@ networks:
 
 services:
   libation:
+    # Background imports/conversion can run more slowly when interactive services are busy.
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0' # Aggregate ceiling; does not reserve or pin two cores.
+          memory: 4G # Forced execution peaked at ~2.35 GiB; monitor larger conversions.
+        reservations:
+          memory: 128M # Soft reservation, not preallocated RAM.
+    cpu_shares: 256 # Lower relative priority under contention (default is 1024).
     container_name: libation
     image: rmcrackan/libation:14.2.2@sha256:fe188ac3c4ce63cc305971c76e648748341427e16bcf884011da8a384fd3908c
     restart: unless-stopped
