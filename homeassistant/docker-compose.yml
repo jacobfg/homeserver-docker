@@ -179,6 +179,8 @@ services:
         target: /rules/tls-opts.yml
       - source: traefik_rules_printerscanner
         target: /rules/printerscanner.yml
+      - source: traefik_printerscanner_certificate
+        target: /certs/printerscanner.pem
       - source: traefik_rules_middlewares_chains
         target: /rules/middlewares-chains.yml
       - source: traefik_rules_middlewares
@@ -680,6 +682,8 @@ configs:
     file: ./traefik/rules/tls-opts.yml
   traefik_rules_printerscanner:
     file: ./traefik/rules/printerscanner.yml
+  traefik_printerscanner_certificate:
+    file: ./traefik/certs/printerscanner.pem
   traefik_rules_middlewares_chains:
     file: ./traefik/rules/middlewares-chains.yml
   traefik_rules_middlewares:
