@@ -461,10 +461,11 @@ services:
     deploy:
       resources:
         limits:
+          cpus: '1.0' # Contain runaway CPU use; validate responsiveness during management tasks.
           memory: 256M # Observed peak ~80 MiB; allow headroom for browsing and updates.
         reservations:
           memory: 64M # Soft reservation, not preallocated RAM.
-    cpu_shares: 1024 # Normal priority under contention; allow CPU bursts without a hard ceiling.
+    cpu_shares: 1024 # Normal relative priority under contention, within the CPU ceiling.
     container_name: portainer
     image: portainer/portainer-ce:2.45.1@sha256:4d616db18cfeb5dd41a69c0958bc825c84483ea9cde1106eb82a5d26f3bd8b0e
     restart: always
@@ -500,10 +501,11 @@ services:
     deploy:
       resources:
         limits:
+          cpus: '1.0' # Contain runaway CPU use; validate concurrent IoT music downloads.
           memory: 64M # Observed peak ~5.5 MiB; validate concurrent IoT music downloads.
         reservations:
           memory: 16M # Soft reservation; file cache also counts toward the limit.
-    cpu_shares: 1024 # Normal priority; avoid throttling brief file-serving bursts.
+    cpu_shares: 1024 # Normal relative priority under contention, within the CPU ceiling.
     container_name: static-web-sever
     image: joseluisq/static-web-server:2.44.0@sha256:2c1a7c3e0feaea5859307403b74e1c575f3ec1499094fc077344173d11abaae2
     volumes:
@@ -723,10 +725,11 @@ services:
     deploy:
       resources:
         limits:
+          cpus: '0.50' # Initial safety ceiling for the lightweight dashboard; monitor throttling.
           memory: 64M # Observed peak ~6.3 MiB; leave headroom for startup and asset requests.
         reservations:
           memory: 16M # Soft reservation, not preallocated RAM.
-    cpu_shares: 1024 # Normal priority; no hard CPU ceiling based on idle measurements.
+    cpu_shares: 1024 # Normal relative priority under contention, within the CPU ceiling.
     image: b4bz/homer:v26.08.3@sha256:febc8967c9f7648ec37633ef3ae1ec90dbe8b7c46fecab80299f08f05be7ecb6
     container_name: homer
     volumes:
