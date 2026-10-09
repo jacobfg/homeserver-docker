@@ -1,0 +1,96 @@
+# Intentionally no deploy weight: excluded from the routine stack updater.
+# Both services are opt-in and do not restart automatically after a host reboot.
+services:
+  resource-monitor:
+    profiles: [diagnostics]
+    build: .
+    image: homeserver-resource-monitor:local
+    container_name: resource-monitor
+    restart: "no"
+    init: true
+    user: "0:0"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    # Match host PID -> cgroup paths when reading the host procfs mount.
+    cgroup: host
+    command: ["${MONITOR_DURATION:-43200}", "${MONITOR_INTERVAL:-10}"]
+    environment:
+      DOCKER_HOST: tcp://resource-monitor-socket-proxy:2375
+      MONITOR_PROC_ROOT: /host/proc
+      MONITOR_CGROUP_ROOT: /host/cgroup
+      MONITOR_OUTPUT_ROOT: /reports
+    volumes:
+      - ../scripts/monitor-container-resources.bash:/usr/local/bin/monitor-container-resources.bash:ro
+      - /proc:/host/proc:ro
+      - /sys/fs/cgroup:/host/cgroup:ro
+      - ${RESOURCE_REPORT_DIR:-/home/op/resource-monitor}:/reports
+    networks: [monitor_socket_proxy]
+    depends_on:
+      resource-monitor-socket-proxy:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 128M
+        reservations:
+          memory: 16M
+    memswap_limit: 128m
+    cpu_shares: 256
+    logging:
+      driver: local
+      options:
+        max-size: "5m"
+        max-file: "2"
+    labels:
+      traefik.enable: "false"
+
+  resource-monitor-socket-proxy:
+    profiles: [diagnostics]
+    container_name: resource-monitor-socket-proxy
+    image: wollomatic/socket-proxy:1.13.1@sha256:3935b709275e4ec35d6ed5a5c4a1f0d01ed31eec5e7234efc3357ecd47689002
+    restart: "no"
+    user: "0:0" # Read/write socket access is needed even for read-only HTTP requests.
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    command:
+      - '-listenip=0.0.0.0'
+      - '-allowfrom=resource-monitor'
+      - '-allowHEAD=(/v[0-9]+[.][0-9]+)?/(_ping|version)'
+      # Only discovery and inspect: no logs, file reads, exec, start, create or delete.
+      - '-allowGET=(/v[0-9]+[.][0-9]+)?/(_ping|version|containers/json|containers/[a-zA-Z0-9_.-]+/json)'
+      - '-allowhealthcheck'
+      - '-loglevel=warn'
+    environment:
+      GOMEMLIMIT: 48MiB
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks: [monitor_socket_proxy]
+    healthcheck:
+      test: [CMD, /healthcheck]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 64M
+        reservations:
+          memory: 16M
+    memswap_limit: 64m
+    cpu_shares: 256
+    logging:
+      driver: local
+      options:
+        max-size: "5m"
+        max-file: "2"
+    labels:
+      traefik.enable: "false"
+
+networks:
+  monitor_socket_proxy:
+    internal: true
