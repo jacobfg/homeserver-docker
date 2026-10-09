@@ -208,6 +208,7 @@ services:
   # Dedicated discovery proxy: only Traefik joins this internal network; no published ports.
   traefik-socket-proxy:
     <<: *common-keys-core
+    container_name: traefik-socket-proxy
     image: ghcr.io/tecnativa/docker-socket-proxy:v0.5.0@sha256:1f5038b54f06c3e18422902cf00ba21803d1c97805aae032e5e6673d532d3459
     # Initial bounds; verify peak usage during stack updates and Docker discovery.
     deploy:
