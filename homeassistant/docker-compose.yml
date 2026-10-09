@@ -428,11 +428,11 @@ services:
       ## HTTP Services
       - "traefik.http.routers.staticserver-rtr.service=staticserver-svc"
       - "traefik.http.services.staticserver-svc.loadbalancer.server.port=80"
-      ## LOCAL ACCESS - Allow local (home) access without auth
+      ## IoT ACCESS ; other clients use Authelia above.
       ## HTTP Routers
       - "traefik.http.routers.staticserver-api-rtr.entrypoints=https"
       - "traefik.http.routers.staticserver-api-rtr.priority=99"
-      - "traefik.http.routers.staticserver-api-rtr.rule=Host(`static.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.0.0/16`)"
+      - "traefik.http.routers.staticserver-api-rtr.rule=Host(`static.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.2.0/24`)"
       - "traefik.http.routers.staticserver-api-rtr.tls=true"
       ## Middlewares
       - "traefik.http.routers.staticserver-api-rtr.middlewares=chain-no-auth@file"
