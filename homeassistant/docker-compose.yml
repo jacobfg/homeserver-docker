@@ -199,7 +199,7 @@ services:
       ## Services - API
       - "traefik.http.routers.traefik-rtr.service=api@internal"
       ## Middlewares
-      - "traefik.http.routers.traefik-rtr.middlewares=middlewares-homer-cors@file,chain-authelia@file" #cors
+      - "traefik.http.routers.traefik-rtr.middlewares=middlewares-homer-cors@file,middlewares-admin-headers@file,chain-authelia@file"
 
   # Docker Socket Proxy - Security Enchanced Proxy for Docker Socket
   socket-proxy:
@@ -397,7 +397,7 @@ services:
       - "traefik.http.routers.portainer-rtr.rule=Host(`portainer.$DOMAINNAME_CLOUD_SERVER`)"
       - "traefik.http.routers.portainer-rtr.tls=true"
       ## Middlewares
-      - "traefik.http.routers.portainer-rtr.middlewares=middlewares-homer-cors@file,chain-authelia@file"
+      - "traefik.http.routers.portainer-rtr.middlewares=middlewares-homer-cors@file,middlewares-admin-headers@file,chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.portainer-rtr.service=portainer-svc"
       - "traefik.http.services.portainer-svc.loadbalancer.server.port=9000"
