@@ -1,9 +1,9 @@
 # deploy weight 70
 
 networks:
-  # TODO: move to own isolated network
-  abs_green_internal:
-    name: abs_green_internal
+  # Created by the homeassistant stack (deploy weight 10) before this stack (70).
+  fittools_internal:
+    name: fittools_internal
     external: true
 
 services:
@@ -20,9 +20,10 @@ services:
     environment:
       - TZ=$TZ
     networks:
-      - abs_green_internal
+      - fittools_internal
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=fittools_internal"
       ## HTTP Routers
       - "traefik.http.routers.fittools-rtr.entrypoints=https"
       - "traefik.http.routers.fittools-rtr.rule=Host(`fittools.$DOMAINNAME_CLOUD_SERVER`)"

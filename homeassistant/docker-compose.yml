@@ -17,6 +17,10 @@ networks:
   traefik_socket_proxy:
     internal: true
     driver: bridge
+  fittools_internal:
+    name: fittools_internal
+    internal: true # Dedicated backend network shared only by Traefik and Fittools.
+    driver: bridge
   socket_proxy:
     name: socket_proxy
     internal: true
@@ -170,6 +174,7 @@ services:
       abs_green_internal:
         ipv4_address: 192.168.92.254
       traefik_socket_proxy:
+      fittools_internal:
     depends_on:
       - traefik-socket-proxy
     ports:
