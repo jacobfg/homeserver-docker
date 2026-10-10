@@ -94,7 +94,10 @@ services:
         max-size: "5m"
         max-file: "2"
     volumes:
-      - $VOLUME_DIR/audiobookshelf/audiobooks:/data/audiobooks
+      - $VOLUME_DIR/audiobookshelf/audiobooks/$ABS_LIBRARY1_DIR:/data/audiobooks/$ABS_LIBRARY1_DIR:ro
+      - $VOLUME_DIR/audiobookshelf/audiobooks/$ABS_LIBRARY2_DIR:/data/audiobooks/$ABS_LIBRARY2_DIR
+      - $VOLUME_DIR/audiobookshelf/audiobooks/$ABS_LIBRARY3_DIR:/data/audiobooks/$ABS_LIBRARY3_DIR
+      - $VOLUME_DIR/audiobookshelf/audiobooks/$ABS_LIBRARY4_DIR:/data/audiobooks/$ABS_LIBRARY4_DIR
     environment:
       - TZ=$TZ
     networks:
