@@ -422,12 +422,11 @@ services:
     environment:
       - TZ
       - X_AUTHELIA_CONFIG=/etc/authelia/configuration.yml
-      - AUTHELIA_JWT_SECRET_FILE=/run/secrets/authelia_jwt_secret
+      - X_AUTHELIA_CONFIG_FILTERS=template # Load OIDC signing material from existing Docker secrets.
+      - AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE=/run/secrets/authelia_jwt_secret
       - AUTHELIA_SESSION_SECRET_FILE=/run/secrets/authelia_session_secret
       - AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE=/run/secrets/authelia_storage_encryption_key
       - AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE=/run/secrets/authelia_identity_providers_oidc_hmac_secret_file
-      - AUTHELIA_IDENTITY_PROVIDERS_OIDC_ISSUER_CERTIFICATE_CHAIN_FILE=/run/secrets/authelia_identity_providers_oidc_issuer_certificate_chain_file
-      - AUTHELIA_IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY_FILE=/run/secrets/authelia_identity_providers_oidc_issuer_private_key_file
     secrets:
       - authelia_jwt_secret
       - authelia_session_secret
