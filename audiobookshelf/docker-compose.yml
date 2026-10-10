@@ -8,6 +8,9 @@ networks:
   abs_green_internal:
     name: abs_green_internal
     external: true
+  uploads_internal:
+    name: uploads_internal
+    external: true
 
 services:
   audiobookshelf:
@@ -64,22 +67,41 @@ services:
     extra_hosts:
       - "auth.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP" # required for oidc auth
 
-  # TODO: replace
-  filebrowser:
-    container_name: filebrowser
-    image: filebrowser/filebrowser@sha256:a469ea076d4a1b4b1d86a41d130f2f536cd9da996a2b1fb39c0d7635f9d89b9a
+  dufs:
+    container_name: dufs
+    image: sigoden/dufs:v0.46.0@sha256:8dd3b750015734703e64b55641fb7d2254c112e0ff3967074766177dc15dc982
     restart: unless-stopped
     user: $PUID:$PGID
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    # Uploads stream to the writable data mount; no database or writable root needed.
+    command: ["/data", "--bind", "0.0.0.0", "--port", "5000", "--allow-upload"]
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 256M # Initial ceiling; monitor during concurrent large uploads.
+        reservations:
+          memory: 32M
+    memswap_limit: 256M
+    pids_limit: 64
+    logging:
+      driver: local
+      options:
+        max-size: "5m"
+        max-file: "2"
     volumes:
-      - $VOLUME_DIR/filebrowser/database:/database
-      - $VOLUME_DIR/filebrowser/config:/config
-      - $VOLUME_DIR/audiobookshelf/audiobooks:/srv/audiobooks
+      - $VOLUME_DIR/audiobookshelf/audiobooks:/data/audiobooks
     environment:
       - TZ=$TZ
     networks:
-      - t2_proxy
+      - uploads_internal
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=uploads_internal"
       ## HTTP Routers
       - "traefik.http.routers.filebrowser-rtr.entrypoints=https"
       - "traefik.http.routers.filebrowser-rtr.rule=Host(`filebrowser.$DOMAINNAME_CLOUD_SERVER`)"
@@ -88,7 +110,7 @@ services:
       - "traefik.http.routers.filebrowser-rtr.middlewares=middlewares-homer-cors@file,chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.filebrowser-rtr.service=filebrowser-svc"
-      - "traefik.http.services.filebrowser-svc.loadbalancer.server.port=8080"
+      - "traefik.http.services.filebrowser-svc.loadbalancer.server.port=5000"
 
   abs_green_proxy:
     container_name: abs_green_proxy
