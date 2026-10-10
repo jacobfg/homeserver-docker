@@ -115,27 +115,9 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=abs_green_internal"
-      ## HTTP Routers
-      - "traefik.http.routers.abs-green-proxy-rtr.entrypoints=https"
-      - "traefik.http.routers.abs-green-proxy-rtr.priority=1" # FOR ALLOWING LOCAL ACCESS
-      - "traefik.http.routers.abs-green-proxy-rtr.rule=Host(`abs-green-proxy.$DOMAINNAME_CLOUD_SERVER`)"
-      - "traefik.http.routers.abs-green-proxy-rtr.tls=true"
-      ## Middlewares
-      - "traefik.http.routers.abs-green-proxy-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
-      - "traefik.http.routers.abs-green-proxy-rtr.service=abs-green-proxy-svc"
       - "traefik.http.services.abs-green-proxy-svc.loadbalancer.server.port=8081"
       - "traefik.http.services.abs-green-proxy-svc.loadbalancer.responseforwarding.flushinterval=1ms"
-      ## LOCAL ACCESS - Allow local (home) access without traefik auth
-      ## HTTP Routers
-      - "traefik.http.routers.abs-green-proxy-local-rtr.entrypoints=https"
-      - "traefik.http.routers.abs-green-proxy-local-rtr.priority=99"
-      - "traefik.http.routers.abs-green-proxy-local-rtr.rule=Host(`abs-green-proxy.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.0.0/16`)" # Really just the devices with AudioBookShelf Green App
-      - "traefik.http.routers.abs-green-proxy-local-rtr.tls=true"
-      ## Middlewares
-      - "traefik.http.routers.abs-green-proxy-local-rtr.middlewares=chain-no-auth@file"
-      ## HTTP Services
-      - "traefik.http.routers.abs-green-proxy-local-rtr.service=abs-green-proxy-svc"
       ## GARMIN WATCH PROXY - specific sidecar routes have higher priority.
       - "traefik.http.routers.abs-green-garmin-proxy-rtr.entrypoints=https"
       - "traefik.http.routers.abs-green-garmin-proxy-rtr.priority=100"
