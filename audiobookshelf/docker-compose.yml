@@ -84,10 +84,10 @@ services:
         limits:
           cpus: '1.0'
           memory: 256M # Initial ceiling; monitor during concurrent large uploads.
+          pids: 64
         reservations:
           memory: 32M
     memswap_limit: 256M
-    pids_limit: 64
     logging:
       driver: local
       options:
