@@ -470,15 +470,20 @@ services:
       - "traefik.http.routers.homeassistant-rtr.service=homeassistant-svc"
       - "traefik.http.services.homeassistant-svc.loadbalancer.passHostHeader=true"
       - "traefik.http.services.homeassistant-svc.loadbalancer.server.url=http://$DOCKER_SERVER_IP:8123/"
-      ## HTTP Routers
+      # Main LAN API clients use HA authentication directly; preserve Homer's CORS/preflights.
+      - "traefik.http.routers.homeassistant-lan-api-rtr.entrypoints=https"
+      - "traefik.http.routers.homeassistant-lan-api-rtr.priority=99"
+      - "traefik.http.routers.homeassistant-lan-api-rtr.rule=Host(`homeassistant.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.1.0/24`) && PathPrefix(`/api/`)"
+      - "traefik.http.routers.homeassistant-lan-api-rtr.tls=true"
+      - "traefik.http.routers.homeassistant-lan-api-rtr.middlewares=middlewares-homer-cors@file,chain-no-auth@file"
+      - "traefik.http.routers.homeassistant-lan-api-rtr.service=homeassistant-svc"
+      # Duplicacy reaches Traefik over t2_proxy. Allow only webhook paths from that subnet.
+      # HA webhook IDs remain secrets; this does not grant Docker clients general API access.
       - "traefik.http.routers.homeassistant-webhook-rtr.entrypoints=https"
       - "traefik.http.routers.homeassistant-webhook-rtr.priority=99"
-      - "traefik.http.routers.homeassistant-webhook-rtr.rule=Host(`homeassistant.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.0.0/16`) && PathPrefix(`/api/`)"
+      - "traefik.http.routers.homeassistant-webhook-rtr.rule=Host(`homeassistant.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.90.0/24`) && PathPrefix(`/api/webhook/`)"
       - "traefik.http.routers.homeassistant-webhook-rtr.tls=true"
-      ## Middlewares
-      # LAN API requests use this higher-priority router, including Homer's browser preflights.
-      - "traefik.http.routers.homeassistant-webhook-rtr.middlewares=middlewares-homer-cors@file,chain-no-auth@file"
-      ## HTTP Services
+      - "traefik.http.routers.homeassistant-webhook-rtr.middlewares=chain-no-auth@file"
       - "traefik.http.routers.homeassistant-webhook-rtr.service=homeassistant-svc"
 
   # https://www.homeautomationguy.io/home-assistant-tips/installing-docker-home-assistant-and-portainer-on-ubuntu-linux/
