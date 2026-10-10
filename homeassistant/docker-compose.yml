@@ -128,6 +128,7 @@ services:
       - --global.sendAnonymousUsage=false
       - --entryPoints.https.address=:443
       - --entryPoints.sftp.address=:2021
+      - --entryPoints.dot.address=:853
       # Clients connect directly; Cloudflare provides DNS only. Trust no upstream proxy headers.
       - --entrypoints.https.forwardedHeaders.insecure=false
       # - --entryPoints.traefik.address=:8080
@@ -178,6 +179,10 @@ services:
     depends_on:
       - traefik-socket-proxy
     ports:
+      - target: 853
+        published: 853
+        protocol: tcp
+        mode: host
       - target: 443
         published: 443
         protocol: tcp
@@ -323,17 +328,16 @@ services:
     labels: []
 
   # Light Split Horizon / Ad Blocking DNS Server
-  # TODO: try adblock
   blocky:
     <<: *common-keys-core # See EXTENSION FIELDS at the top
     deploy:
       resources:
         limits:
-          memory: 128M # Observed peak ~33 MiB; recheck during blocklist refreshes.
+          memory: 256M # Ads blocking now enabled; allow headroom for list loading/refreshes.
         reservations:
           memory: 32M # Soft reservation, not preallocated RAM.
     cpu_shares: 2048 # Prioritise DNS under CPU contention; no hard CPU ceiling.
-    image: spx01/blocky:v0.22@sha256:ba17812054a15b58ac80772afe404e7caa1da8c972f0c9ff7754eb3924fd5f57
+    image: spx01/blocky:v0.35.0@sha256:4f165b63db0d76c96ecc47c7a8f57caeedc003a912bdce29abb0e283ce02e16b
     container_name: blocky
     restart: always
     ports:
@@ -341,11 +345,23 @@ services:
       - 53:53/udp
     environment:
       - TZ
-    volumes:
-      - $VOLUME_DIR/blocky/config.yml:/app/config.yml
+    configs:
+      - source: blocky_config
+        target: /app/config.yml
     labels:
-      - "traefik.enable=false"
+      # Traefik terminates DoT with its existing wildcard certificate; Blocky needs no private key.
+      - "traefik.enable=true"
+      - "traefik.docker.network=t2_proxy"
+      - "traefik.tcp.routers.blocky-dot.entrypoints=dot"
+      - "traefik.tcp.routers.blocky-dot.rule=HostSNI(`dns.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.tcp.routers.blocky-dot.tls=true"
+      - "traefik.tcp.routers.blocky-dot.tls.options=dot-tls@file"
+      - "traefik.tcp.routers.blocky-dot.middlewares=blocky-dot-lan@docker"
+      - "traefik.tcp.middlewares.blocky-dot-lan.ipallowlist.sourcerange=192.168.1.0/24,192.168.2.0/24"
+      - "traefik.tcp.routers.blocky-dot.service=blocky-dns"
+      - "traefik.tcp.services.blocky-dns.loadbalancer.server.port=53"
     extra_hosts:
+      - "dns.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
       - "audiobookshelf.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
       - "auth.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
       - "duplicacy.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
@@ -773,3 +789,5 @@ configs:
     file: ./traefik/rules/middlewares.yml
   traefik_rules_immich:
     file: ./traefik/rules/immich.yml
+  blocky_config:
+    file: ./blocky/config.yml

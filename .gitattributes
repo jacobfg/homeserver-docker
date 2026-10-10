@@ -2,6 +2,7 @@
 secrets/** filter=git-crypt diff=git-crypt
 homeassistant/authelia/** filter=git-crypt diff=git-crypt
 homeassistant/traefik/** filter=git-crypt diff=git-crypt
+homeassistant/blocky/** filter=git-crypt diff=git-crypt
 .gitattributes !filter !diff
 README.md !filter !diff
 **/docker-compose.yml !filter !diff
