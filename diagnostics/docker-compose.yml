@@ -14,7 +14,7 @@ services:
     security_opt: ["no-new-privileges:true"]
     # Match host PID -> cgroup paths when reading the host procfs mount.
     cgroup: host
-    command: ["${MONITOR_DURATION:-43200}", "${MONITOR_INTERVAL:-10}"]
+    command: ["${MONITOR_DURATION:-604800}", "${MONITOR_INTERVAL:-10}"]
     environment:
       DOCKER_HOST: tcp://resource-monitor-socket-proxy:2375
       MONITOR_PROC_ROOT: /host/proc

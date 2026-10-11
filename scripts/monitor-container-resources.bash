@@ -1,6 +1,6 @@
 #!/bin/bash
 # Host-side cgroup v2 sampler. No commands are executed inside containers.
-# Usage: bash monitor-container-resources.bash [seconds=43200] [interval=10] [output-dir] [container ...]
+# Usage: bash monitor-container-resources.bash [seconds=604800] [interval=10] [output-dir] [container ...]
 # Report during collection: bash monitor-container-resources.bash --summarize OUTPUT_DIR
 set -u
 
@@ -76,7 +76,7 @@ if [[ ${1:-} == --summarize ]]; then
 fi
 
 [[ $EUID == 0 ]] || { echo "Run as root to read host cgroups." >&2; exit 1; }
-duration=${1:-43200}
+duration=${1:-604800} # Seven days.
 interval=${2:-10}
 [[ $duration =~ ^[1-9][0-9]*$ && $interval =~ ^[1-9][0-9]*$ ]] || {
     echo "Duration and interval must be positive whole seconds." >&2; exit 1;

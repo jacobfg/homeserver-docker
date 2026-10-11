@@ -2,7 +2,7 @@ This stack captures host and container resource usage on demand. It is excluded
 from `scripts/update-docker-compose-services.bash` and all services use the
 `diagnostics` profile. Neither service automatically restarts after a host reboot.
 
-From this directory on Lightwhale, start a 12-hour capture at 10-second intervals:
+From this directory on Lightwhale, start a seven-day capture at 10-second intervals:
 
 ```bash
 docker compose up -d --build resource-monitor
@@ -21,7 +21,9 @@ For a short first check, or a different duration:
 MONITOR_DURATION=60 MONITOR_INTERVAL=5 docker compose up -d --build resource-monitor
 ```
 
-Then run the first command again to switch to the default overnight duration.
+Then run the first command again to switch to the default seven-day duration
+(604800 seconds). Changing the duration recreates the sampler and starts a new
+capture; existing reports remain in their timestamped directories.
 `RESOURCE_REPORT_DIR` overrides the host report directory. To summarize while a
 capture is still running (substitute the actual timestamped directory):
 
