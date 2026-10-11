@@ -310,9 +310,7 @@ services:
     networks:
       socket_proxy:
         ipv4_address: 192.168.91.254 # You can specify a static IP
-    # privileged: true # true for VM. False for unprivileged LXC container.
-    ports:
-      - 127.0.0.1:2375:2375 # Port 2375 should only ever get exposed to the internal network. When possible use this line.
+    # Portainer connects over socket_proxy; no host port mapping is needed.
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
