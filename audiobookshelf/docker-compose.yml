@@ -57,13 +57,21 @@ services:
       ## HTTP Services
       - "traefik.http.routers.audiobookshelf-bypass-rtr.service=audiobookshelf-svc"
       ## GARMIN WATCH API - custom hostname; normal ABS hostname is unchanged.
-      # Restricted to the IoT subnet; authentication is the watch's ABS Bearer token, passed through to ABS.
+      # Allow the configured phone/watch networks; authentication is the watch's ABS Bearer token.
       - "traefik.http.routers.audiobookshelf-garmin-api-rtr.entrypoints=https"
       - "traefik.http.routers.audiobookshelf-garmin-api-rtr.priority=100"
       - "traefik.http.routers.audiobookshelf-garmin-api-rtr.rule=Host(`garmin-abs.$DOMAINNAME_CLOUD_SERVER`) && (ClientIP(`$ABS_BYPASS1_CIDR`) || ClientIP(`$ABS_BYPASS3_CIDR`)) && PathPrefix(`/api/`)"
       - "traefik.http.routers.audiobookshelf-garmin-api-rtr.tls=true"
       - "traefik.http.routers.audiobookshelf-garmin-api-rtr.middlewares=chain-no-auth@file"
       - "traefik.http.routers.audiobookshelf-garmin-api-rtr.service=audiobookshelf-svc"
+      # Same Garmin paths and source restrictions on the TLS 1.2-compatible :8443 listener.
+      - "traefik.http.routers.audiobookshelf-garmin-api-rtr-tls12.entrypoints=garmin-https"
+      - "traefik.http.routers.audiobookshelf-garmin-api-rtr-tls12.priority=100"
+      - "traefik.http.routers.audiobookshelf-garmin-api-rtr-tls12.rule=Host(`garmin-abs.$DOMAINNAME_CLOUD_SERVER`) && (ClientIP(`$ABS_BYPASS1_CIDR`) || ClientIP(`$ABS_BYPASS3_CIDR`)) && PathPrefix(`/api/`)"
+      - "traefik.http.routers.audiobookshelf-garmin-api-rtr-tls12.tls=true"
+      - "traefik.http.routers.audiobookshelf-garmin-api-rtr-tls12.middlewares=chain-no-auth@file"
+      - "traefik.http.routers.audiobookshelf-garmin-api-rtr-tls12.service=audiobookshelf-svc"
+      - "traefik.http.routers.audiobookshelf-garmin-api-rtr-tls12.tls.options=garmin-tls@file"
     extra_hosts:
       - "auth.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP" # required for oidc auth
 
@@ -150,6 +158,14 @@ services:
       - "traefik.http.routers.abs-green-garmin-proxy-rtr.tls=true"
       - "traefik.http.routers.abs-green-garmin-proxy-rtr.middlewares=chain-no-auth@file"
       - "traefik.http.routers.abs-green-garmin-proxy-rtr.service=abs-green-proxy-svc"
+      # Same Garmin paths and source restrictions on the TLS 1.2-compatible :8443 listener.
+      - "traefik.http.routers.abs-green-garmin-proxy-rtr-tls12.entrypoints=garmin-https"
+      - "traefik.http.routers.abs-green-garmin-proxy-rtr-tls12.priority=100"
+      - "traefik.http.routers.abs-green-garmin-proxy-rtr-tls12.rule=Host(`garmin-abs.$DOMAINNAME_CLOUD_SERVER`) && (ClientIP(`$ABS_BYPASS1_CIDR`) || ClientIP(`$ABS_BYPASS3_CIDR`)) && PathPrefix(`/audiobookshelf/`)"
+      - "traefik.http.routers.abs-green-garmin-proxy-rtr-tls12.tls=true"
+      - "traefik.http.routers.abs-green-garmin-proxy-rtr-tls12.middlewares=chain-no-auth@file"
+      - "traefik.http.routers.abs-green-garmin-proxy-rtr-tls12.service=abs-green-proxy-svc"
+      - "traefik.http.routers.abs-green-garmin-proxy-rtr-tls12.tls.options=garmin-tls@file"
     extra_hosts:
       - "audiobookshelf.$DOMAINNAME_CLOUD_SERVER:192.168.92.254" # doesn't have access to lan ip
 
@@ -192,6 +208,14 @@ services:
       - "traefik.http.routers.garmin-media-catalogue-rtr.tls=true"
       - "traefik.http.routers.garmin-media-catalogue-rtr.middlewares=chain-no-auth@file"
       - "traefik.http.routers.garmin-media-catalogue-rtr.service=garmin-media-svc"
+      # Same Garmin paths and source restrictions on the TLS 1.2-compatible :8443 listener.
+      - "traefik.http.routers.garmin-media-catalogue-rtr-tls12.entrypoints=garmin-https"
+      - "traefik.http.routers.garmin-media-catalogue-rtr-tls12.priority=200"
+      - "traefik.http.routers.garmin-media-catalogue-rtr-tls12.rule=Host(`garmin-abs.$DOMAINNAME_CLOUD_SERVER`) && (ClientIP(`$ABS_BYPASS1_CIDR`) || ClientIP(`$ABS_BYPASS3_CIDR`)) && (Path(`/audiobookshelf/playlists`) || Path(`/audiobookshelf/playlist`) || Path(`/audiobookshelf/book`) || PathPrefix(`/garmin/playlist-status/`))"
+      - "traefik.http.routers.garmin-media-catalogue-rtr-tls12.tls=true"
+      - "traefik.http.routers.garmin-media-catalogue-rtr-tls12.middlewares=chain-no-auth@file"
+      - "traefik.http.routers.garmin-media-catalogue-rtr-tls12.service=garmin-media-svc"
+      - "traefik.http.routers.garmin-media-catalogue-rtr-tls12.tls.options=garmin-tls@file"
       ## Garmin-rendered MP3 downloads, not ABS originals.
       - "traefik.http.routers.garmin-media-download-rtr.entrypoints=https"
       - "traefik.http.routers.garmin-media-download-rtr.priority=200"
@@ -199,6 +223,14 @@ services:
       - "traefik.http.routers.garmin-media-download-rtr.tls=true"
       - "traefik.http.routers.garmin-media-download-rtr.middlewares=chain-no-auth@file"
       - "traefik.http.routers.garmin-media-download-rtr.service=garmin-media-svc"
+      # Same Garmin paths and source restrictions on the TLS 1.2-compatible :8443 listener.
+      - "traefik.http.routers.garmin-media-download-rtr-tls12.entrypoints=garmin-https"
+      - "traefik.http.routers.garmin-media-download-rtr-tls12.priority=200"
+      - "traefik.http.routers.garmin-media-download-rtr-tls12.rule=Host(`garmin-abs.$DOMAINNAME_CLOUD_SERVER`) && (ClientIP(`$ABS_BYPASS1_CIDR`) || ClientIP(`$ABS_BYPASS3_CIDR`)) && PathRegexp(`^/api/items/[^/]+/file/[^/]+/download`)"
+      - "traefik.http.routers.garmin-media-download-rtr-tls12.tls=true"
+      - "traefik.http.routers.garmin-media-download-rtr-tls12.middlewares=chain-no-auth@file"
+      - "traefik.http.routers.garmin-media-download-rtr-tls12.service=garmin-media-svc"
+      - "traefik.http.routers.garmin-media-download-rtr-tls12.tls.options=garmin-tls@file"
       - "traefik.http.services.garmin-media-svc.loadbalancer.server.port=8082"
     extra_hosts:
       - "audiobookshelf.$DOMAINNAME_CLOUD_SERVER:192.168.92.254" # doesn't have access to lan ip

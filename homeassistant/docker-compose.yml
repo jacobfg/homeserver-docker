@@ -143,6 +143,7 @@ services:
       - --entryPoints.https.address=:443
       - --entryPoints.sftp.address=:2021
       - --entryPoints.dot.address=:853
+      - --entryPoints.garmin-https.address=:8443 # Garmin-only TLS compatibility test listener.
       # Clients connect directly; Cloudflare provides DNS only. Trust no upstream proxy headers.
       - --entrypoints.https.forwardedHeaders.insecure=false
       # Container loopback only: no published port or LAN-accessible health endpoint.
@@ -196,6 +197,10 @@ services:
     depends_on:
       - traefik-socket-proxy
     ports:
+      - target: 8443
+        published: 8443
+        protocol: tcp
+        mode: host
       - target: 853
         published: 853
         protocol: tcp
