@@ -128,7 +128,7 @@ services:
     environment:
       - TZ=$TZ
       - SHOW_SWAGGER=false
-      - LOG_LEVEL=warning
+      - LOG_LEVEL=debug
       - SERVER_ENDPOINT=https://audiobookshelf.$DOMAINNAME_CLOUD_SERVER
     volumes:
       - $VOLUME_DIR/abs_green_proxy/data:/data
