@@ -4,6 +4,9 @@ homeassistant/authelia/** filter=git-crypt diff=git-crypt
 homeassistant/traefik/** filter=git-crypt diff=git-crypt
 homeassistant/blocky/** filter=git-crypt diff=git-crypt
 audiobookshelf/garmin_media_sidecar/** filter=git-crypt diff=git-crypt
+sftp-server/*/** filter=git-crypt diff=git-crypt
 .gitattributes !filter !diff
+.gitignore !filter !diff
 README.md !filter !diff
+sftp-server/*/README.md filter=git-crypt diff=git-crypt
 **/docker-compose.yml !filter !diff
