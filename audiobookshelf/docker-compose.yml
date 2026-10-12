@@ -125,7 +125,7 @@ services:
 
   abs_green_proxy:
     container_name: abs_green_proxy
-    image: ghcr.io/jacobfg/audiobooksgreenproxy:2026.10.08
+    image: ghcr.io/jacobfg/audiobooksgreenproxy:2026.10.08@sha256:32354ff24a51c1710e14e7a673f64d7307094935e4415e27ac0d8d87866210c9
     restart: unless-stopped
     user: $PUID:$PGID
     deploy:
@@ -171,7 +171,7 @@ services:
 
   garmin_media_sidecar:
     container_name: garmin_media_sidecar
-    image: ghcr.io/jacobfg/audiobooksgreengarminsidecar:0.2.0
+    image: ghcr.io/jacobfg/audiobooksgreengarminsidecar:0.2.0@sha256:033553082841931d5a2c396739ea7d2e3f1794faf50e38832363239e45d99b5c
     restart: unless-stopped
     user: $PUID:$PGID
     deploy:
