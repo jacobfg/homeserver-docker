@@ -55,6 +55,20 @@
         'docker',
       ],
       matchPackageNames: [
+        'homeassistant/home-assistant',
+        'ghcr.io/esphome/esphome',
+        'b4bz/homer',
+        'ghcr.io/jacobfg/audiobooksgreenproxy',
+      ],
+      // Calendar versions (YYYY.M.release, YY.MM.release, or YYYY.MM.DD).
+      // Omit major so year changes are minor; month/release changes are patches.
+      versioning: 'regex:^v?(?<minor>\\d+)\\.(?<patch>\\d+)\\.(?<build>\\d+)$',
+    },
+    {
+      matchDatasources: [
+        'docker',
+      ],
+      matchPackageNames: [
         'ghcr.io/esphome/esphome',
       ],
       enabled: false,
