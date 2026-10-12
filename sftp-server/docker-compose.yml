@@ -71,6 +71,11 @@ services:
       - $VOLUME_DIR/sftpgo/data:/srv/sftpgo/data
       - $VOLUME_DIR/sftpgo/backups:/srv/sftpgo/backups
       - $VOLUME_DIR/sftpgo/config:/var/lib/sftpgo
+      # Existing Dufs libraries: keep library 1 read-only.
+      - $VOLUME_DIR/audiobookshelf/audiobooks/${ABS_LIBRARY1_DIR:?Set ABS_LIBRARY1_DIR}:/srv/sftpgo/audiobooks/library1:ro
+      - $VOLUME_DIR/audiobookshelf/audiobooks/${ABS_LIBRARY2_DIR:?Set ABS_LIBRARY2_DIR}:/srv/sftpgo/audiobooks/library2
+      - $VOLUME_DIR/audiobookshelf/audiobooks/${ABS_LIBRARY3_DIR:?Set ABS_LIBRARY3_DIR}:/srv/sftpgo/audiobooks/library3
+      - $VOLUME_DIR/audiobookshelf/audiobooks/${ABS_LIBRARY4_DIR:?Set ABS_LIBRARY4_DIR}:/srv/sftpgo/audiobooks/library4
     labels:
       - "traefik.enable=true"
       # sftp - allow trusted subnets and printer in IoT network
