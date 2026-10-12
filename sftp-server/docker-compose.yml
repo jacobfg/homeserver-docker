@@ -29,6 +29,7 @@ services:
     expose:
       - "1111/tcp"
       - "2222/tcp"
+      - "2223/tcp"
     user: $PUID:$PGID
     environment:
       # Common
@@ -41,6 +42,16 @@ services:
       # HTTP
       - "SFTPGO_HTTPD__BINDINGS__0__PORT=2222"
       - "SFTPGO_HTTPD__BINDINGS__0__PROXY_ALLOWED=192.168.90.254"
+      # WebAdmin/WebClient: OIDC only. No password/token/API-key login here.
+      - "SFTPGO_HTTPD__BINDINGS__0__DISABLED_LOGIN_METHODS=252"
+      - "SFTPGO_HTTPD__BINDINGS__0__ENABLE_REST_API=false"
+      # Internal automation API: no web UI and only admin API-key authentication.
+      # Not published to the host or routed through Traefik.
+      - "SFTPGO_HTTPD__BINDINGS__1__PORT=2223"
+      - "SFTPGO_HTTPD__BINDINGS__1__ENABLE_WEB_ADMIN=false"
+      - "SFTPGO_HTTPD__BINDINGS__1__ENABLE_WEB_CLIENT=false"
+      - "SFTPGO_HTTPD__BINDINGS__1__ENABLE_REST_API=true"
+      - "SFTPGO_HTTPD__BINDINGS__1__DISABLED_LOGIN_METHODS=176"
       # Defender (similar concept as Fail2ban) — see https://github.com/drakkan/sftpgo/blob/main/docs/defender.md
       - "SFTPGO_COMMON__DEFENDER__ENABLED=true"
       - "SFTPGO_COMMON__DEFENDER__BAN_TIME=30"
