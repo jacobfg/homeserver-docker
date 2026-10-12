@@ -9,4 +9,5 @@ sftp-server/*/** filter=git-crypt diff=git-crypt
 .gitignore !filter !diff
 README.md !filter !diff
 sftp-server/*/README.md filter=git-crypt diff=git-crypt
+homeassistant/blocky/README.md filter=git-crypt diff=git-crypt
 **/docker-compose.yml !filter !diff
