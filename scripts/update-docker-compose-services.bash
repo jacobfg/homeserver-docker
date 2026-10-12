@@ -75,8 +75,8 @@ while read -d $'\0' STACK ; do
         docker compose --profile scheduled pull || exit 1
         updateScheduledLibation || exit 1
     else
-        docker compose pull
-        docker compose up -d --remove-orphans
+        docker compose pull || exit 1
+        docker compose up -d --remove-orphans || exit 1
     fi
 
     # workflow uses digest, tag local image for niceness
