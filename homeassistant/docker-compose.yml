@@ -17,6 +17,14 @@ networks:
   traefik_socket_proxy:
     internal: true
     driver: bridge
+  fittools_internal:
+    name: fittools_internal
+    internal: true # Dedicated backend network shared only by Traefik and Fittools.
+    driver: bridge
+  uploads_internal:
+    name: uploads_internal
+    internal: true # Only Traefik and the authenticated browser upload backend.
+    driver: bridge
   socket_proxy:
     name: socket_proxy
     internal: true
@@ -108,11 +116,21 @@ services:
     cpu_shares: 2048 # Prefer the proxy under CPU contention; allow bursts without a CPU cap.
     # Prepare file ownership and run the checks in traefik/NONROOT-ROLLOUT.md first.
     user: "65532:65532"
+    read_only: true # ACME's existing bind mount remains writable for renewals.
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m,mode=1777
     cap_drop:
       - ALL
     sysctls:
       # Container network namespace only; preserve HTTPS :443 without a bind capability.
       net.ipv4.ip_unprivileged_port_start: "443"
+    healthcheck:
+      # Local process liveness only; does not verify backends or certificate renewal.
+      test: ["CMD", "traefik", "healthcheck", "--ping", "--entrypoints.traefik.address=127.0.0.1:8080"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     # Bound combined access/runtime logs; read them with docker logs traefik.
     logging:
       driver: local
@@ -124,9 +142,13 @@ services:
       - --global.sendAnonymousUsage=false
       - --entryPoints.https.address=:443
       - --entryPoints.sftp.address=:2021
+      - --entryPoints.dot.address=:853
+      - --entryPoints.garmin-https.address=:8443 # Garmin-only TLS compatibility test listener.
       # Clients connect directly; Cloudflare provides DNS only. Trust no upstream proxy headers.
       - --entrypoints.https.forwardedHeaders.insecure=false
-      # - --entryPoints.traefik.address=:8080
+      # Container loopback only: no published port or LAN-accessible health endpoint.
+      - --entryPoints.traefik.address=127.0.0.1:8080
+      - --ping=true
       - --api=true
       - --api.dashboard=true
       - --log=true
@@ -170,9 +192,19 @@ services:
       abs_green_internal:
         ipv4_address: 192.168.92.254
       traefik_socket_proxy:
+      fittools_internal:
+      uploads_internal:
     depends_on:
       - traefik-socket-proxy
     ports:
+      - target: 8443
+        published: 8443
+        protocol: tcp
+        mode: host
+      - target: 853
+        published: 853
+        protocol: tcp
+        mode: host
       - target: 443
         published: 443
         protocol: tcp
@@ -278,9 +310,7 @@ services:
     networks:
       socket_proxy:
         ipv4_address: 192.168.91.254 # You can specify a static IP
-    # privileged: true # true for VM. False for unprivileged LXC container.
-    ports:
-      - 127.0.0.1:2375:2375 # Port 2375 should only ever get exposed to the internal network. When possible use this line.
+    # Portainer connects over socket_proxy; no host port mapping is needed.
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
@@ -318,17 +348,16 @@ services:
     labels: []
 
   # Light Split Horizon / Ad Blocking DNS Server
-  # TODO: try adblock
   blocky:
     <<: *common-keys-core # See EXTENSION FIELDS at the top
     deploy:
       resources:
         limits:
-          memory: 128M # Observed peak ~33 MiB; recheck during blocklist refreshes.
+          memory: 256M # Ads blocking now enabled; allow headroom for list loading/refreshes.
         reservations:
           memory: 32M # Soft reservation, not preallocated RAM.
     cpu_shares: 2048 # Prioritise DNS under CPU contention; no hard CPU ceiling.
-    image: spx01/blocky:v0.22@sha256:ba17812054a15b58ac80772afe404e7caa1da8c972f0c9ff7754eb3924fd5f57
+    image: spx01/blocky:v0.35.0@sha256:4f165b63db0d76c96ecc47c7a8f57caeedc003a912bdce29abb0e283ce02e16b
     container_name: blocky
     restart: always
     ports:
@@ -336,11 +365,23 @@ services:
       - 53:53/udp
     environment:
       - TZ
-    volumes:
-      - $VOLUME_DIR/blocky/config.yml:/app/config.yml
+    configs:
+      - source: blocky_config
+        target: /app/config.yml
     labels:
-      - "traefik.enable=false"
+      # Traefik terminates DoT with its existing wildcard certificate; Blocky needs no private key.
+      - "traefik.enable=true"
+      - "traefik.docker.network=t2_proxy"
+      - "traefik.tcp.routers.blocky-dot.entrypoints=dot"
+      - "traefik.tcp.routers.blocky-dot.rule=HostSNI(`dns.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.tcp.routers.blocky-dot.tls=true"
+      - "traefik.tcp.routers.blocky-dot.tls.options=dot-tls@file"
+      - "traefik.tcp.routers.blocky-dot.middlewares=blocky-dot-lan@docker"
+      - "traefik.tcp.middlewares.blocky-dot-lan.ipallowlist.sourcerange=192.168.1.0/24,192.168.2.0/24"
+      - "traefik.tcp.routers.blocky-dot.service=blocky-dns"
+      - "traefik.tcp.services.blocky-dns.loadbalancer.server.port=53"
     extra_hosts:
+      - "dns.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
       - "audiobookshelf.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
       - "auth.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
       - "duplicacy.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
@@ -384,12 +425,11 @@ services:
     environment:
       - TZ
       - X_AUTHELIA_CONFIG=/etc/authelia/configuration.yml
-      - AUTHELIA_JWT_SECRET_FILE=/run/secrets/authelia_jwt_secret
+      - X_AUTHELIA_CONFIG_FILTERS=template # Load OIDC signing material from existing Docker secrets.
+      - AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE=/run/secrets/authelia_jwt_secret
       - AUTHELIA_SESSION_SECRET_FILE=/run/secrets/authelia_session_secret
       - AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE=/run/secrets/authelia_storage_encryption_key
       - AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE=/run/secrets/authelia_identity_providers_oidc_hmac_secret_file
-      - AUTHELIA_IDENTITY_PROVIDERS_OIDC_ISSUER_CERTIFICATE_CHAIN_FILE=/run/secrets/authelia_identity_providers_oidc_issuer_certificate_chain_file
-      - AUTHELIA_IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY_FILE=/run/secrets/authelia_identity_providers_oidc_issuer_private_key_file
     secrets:
       - authelia_jwt_secret
       - authelia_session_secret
@@ -404,7 +444,8 @@ services:
       - "traefik.http.routers.authelia-rtr.rule=Host(`auth.$DOMAINNAME_CLOUD_SERVER`)"
       - "traefik.http.routers.authelia-rtr.tls=true"
       ## Middlewares
-      - "traefik.http.routers.authelia-rtr.middlewares=middlewares-homer-cors@file,chain-authelia@file"
+      # The login portal handles its own authentication; retain CORS, rate limiting and headers.
+      - "traefik.http.routers.authelia-rtr.middlewares=middlewares-homer-cors@file,chain-no-auth@file"
       # - "traefik.http.routers.authelia-rtr.middlewares=cors@file,chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.authelia-rtr.service=authelia-svc"
@@ -444,20 +485,33 @@ services:
       - "traefik.http.routers.homeassistant-rtr.service=homeassistant-svc"
       - "traefik.http.services.homeassistant-svc.loadbalancer.passHostHeader=true"
       - "traefik.http.services.homeassistant-svc.loadbalancer.server.url=http://$DOCKER_SERVER_IP:8123/"
-      ## HTTP Routers
+      # Main LAN API clients use HA authentication directly; preserve Homer's CORS/preflights.
+      - "traefik.http.routers.homeassistant-lan-api-rtr.entrypoints=https"
+      - "traefik.http.routers.homeassistant-lan-api-rtr.priority=99"
+      - "traefik.http.routers.homeassistant-lan-api-rtr.rule=Host(`homeassistant.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.1.0/24`) && PathPrefix(`/api/`)"
+      - "traefik.http.routers.homeassistant-lan-api-rtr.tls=true"
+      - "traefik.http.routers.homeassistant-lan-api-rtr.middlewares=middlewares-homer-cors@file,chain-no-auth@file"
+      - "traefik.http.routers.homeassistant-lan-api-rtr.service=homeassistant-svc"
+      # Duplicacy reaches Traefik over t2_proxy. Allow only webhook paths from that subnet.
+      # HA webhook IDs remain secrets; this does not grant Docker clients general API access.
       - "traefik.http.routers.homeassistant-webhook-rtr.entrypoints=https"
       - "traefik.http.routers.homeassistant-webhook-rtr.priority=99"
-      - "traefik.http.routers.homeassistant-webhook-rtr.rule=Host(`homeassistant.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.0.0/16`) && PathPrefix(`/api/`)"
+      - "traefik.http.routers.homeassistant-webhook-rtr.rule=Host(`homeassistant.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.90.0/24`) && PathPrefix(`/api/webhook/`)"
       - "traefik.http.routers.homeassistant-webhook-rtr.tls=true"
-      ## Middlewares
-      # LAN API requests use this higher-priority router, including Homer's browser preflights.
-      - "traefik.http.routers.homeassistant-webhook-rtr.middlewares=middlewares-homer-cors@file,chain-no-auth@file"
-      ## HTTP Services
+      - "traefik.http.routers.homeassistant-webhook-rtr.middlewares=chain-no-auth@file"
       - "traefik.http.routers.homeassistant-webhook-rtr.service=homeassistant-svc"
 
   # https://www.homeautomationguy.io/home-assistant-tips/installing-docker-home-assistant-and-portainer-on-ubuntu-linux/
   portainer:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0' # Contain runaway CPU use; validate responsiveness during management tasks.
+          memory: 256M # Observed peak ~80 MiB; allow headroom for browsing and updates.
+        reservations:
+          memory: 64M # Soft reservation, not preallocated RAM.
+    cpu_shares: 1024 # Normal relative priority under contention, within the CPU ceiling.
     container_name: portainer
     image: portainer/portainer-ce:2.45.1@sha256:4d616db18cfeb5dd41a69c0958bc825c84483ea9cde1106eb82a5d26f3bd8b0e
     restart: always
@@ -490,6 +544,14 @@ services:
 
   static-web-server:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0' # Contain runaway CPU use; validate concurrent IoT music downloads.
+          memory: 64M # Observed peak ~5.5 MiB; validate concurrent IoT music downloads.
+        reservations:
+          memory: 16M # Soft reservation; file cache also counts toward the limit.
+    cpu_shares: 1024 # Normal relative priority under contention, within the CPU ceiling.
     container_name: static-web-sever
     image: joseluisq/static-web-server:2.44.0@sha256:2c1a7c3e0feaea5859307403b74e1c575f3ec1499094fc077344173d11abaae2
     volumes:
@@ -692,20 +754,28 @@ services:
       ## HTTP Services
       - "traefik.http.routers.nodered-rtr.service=nodered-svc"
       - "traefik.http.services.nodered-svc.loadbalancer.server.port=1880"
-      ## Homer RSS access - allow browser-originated reachability checks only
-      ## ideally https://github.com/bastienwirtz/homer/pull/940 or similar is merged
-      - "traefik.http.routers.nodered-rss-rtr.entrypoints=https"
-      - "traefik.http.routers.nodered-rss-rtr.priority=98"
-      - "traefik.http.routers.nodered-rss-rtr.rule=Host(`nodered.$DOMAINNAME_CLOUD_SERVER`) && Path(`/dashboard-endpoint`) && Method(`GET`) && Header(`Origin`,`https://home.$DOMAINNAME_CLOUD_SERVER`)"
-      - "traefik.http.routers.nodered-rss-rtr.tls=true"
-      - "traefik.http.routers.nodered-rss-rtr.middlewares=middlewares-homer-cors@file,chain-no-auth@file"
-      - "traefik.http.routers.nodered-rss-rtr.service=nodered-svc"
+      ## Same-origin Homer feed: configure Homer message.url as /dashboard-endpoint.
+      ## Keep the Node-RED path unchanged; the browser sends its session cookie without cross-origin CORS.
+      - "traefik.http.routers.homer-rss-rtr.entrypoints=https"
+      - "traefik.http.routers.homer-rss-rtr.priority=98" # Higher than Homer's catch-all router.
+      - "traefik.http.routers.homer-rss-rtr.rule=Host(`home.$DOMAINNAME_CLOUD_SERVER`) && Path(`/dashboard-endpoint`) && Method(`GET`)"
+      - "traefik.http.routers.homer-rss-rtr.tls=true"
+      - "traefik.http.routers.homer-rss-rtr.middlewares=chain-authelia@file"
+      - "traefik.http.routers.homer-rss-rtr.service=nodered-svc"
     extra_hosts:
       - "homeassistant.$DOMAINNAME_CLOUD_SERVER:192.168.90.254"
 
   # Homer
   homer:
     <<: *common-keys-apps # See EXTENSION FIELDS at the top
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50' # Initial safety ceiling for the lightweight dashboard; monitor throttling.
+          memory: 64M # Observed peak ~6.3 MiB; leave headroom for startup and asset requests.
+        reservations:
+          memory: 16M # Soft reservation, not preallocated RAM.
+    cpu_shares: 1024 # Normal relative priority under contention, within the CPU ceiling.
     image: b4bz/homer:v26.08.3@sha256:febc8967c9f7648ec37633ef3ae1ec90dbe8b7c46fecab80299f08f05be7ecb6
     container_name: homer
     volumes:
@@ -744,3 +814,5 @@ configs:
     file: ./traefik/rules/middlewares.yml
   traefik_rules_immich:
     file: ./traefik/rules/immich.yml
+  blocky_config:
+    file: ./blocky/config.yml

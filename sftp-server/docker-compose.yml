@@ -24,24 +24,34 @@ networks:
 services:
   sftpgo:
     <<: *common-keys-apps
-    image: drakkan/sftpgo:v2.5.4-alpine@sha256:be8a85fee749f0bd9cbd4f268235f624e486983e6870105c851e9b1ec19bf22a
+    image: drakkan/sftpgo:v2.7.6-alpine@sha256:484f430b2115ec8e015644b1a5e54a5f5b8568f883cb5146e9043885f691d8f7
     container_name: sftpgo
     expose:
       - "1111/tcp"
       - "2222/tcp"
+      - "2223/tcp"
     user: $PUID:$PGID
     environment:
       # Common
       - SFTPGO_LOGGING__LEVEL
       # Proxy Protocol
       - "SFTPGO_COMMON__PROXY_PROTOCOL=2"
-      - "SFTPGO_COMMON__PROXY_ALLOWED=0.0.0.0"
+      - "SFTPGO_COMMON__PROXY_ALLOWED=192.168.90.254"
       # SFTP
       - "SFTPGO_SFTPD__BINDINGS__0__PORT=1111"
-      - "SFTPGO_SFTPD__BINDINGS__0__PROXY_ALLOWED=0.0.0.0"
       # HTTP
       - "SFTPGO_HTTPD__BINDINGS__0__PORT=2222"
-      - "SFTPGO_HTTPD__BINDINGS__0__PROXY_ALLOWED=0.0.0.0"
+      - "SFTPGO_HTTPD__BINDINGS__0__PROXY_ALLOWED=192.168.90.254"
+      # WebAdmin/WebClient: OIDC only. No password/token/API-key login here.
+      - "SFTPGO_HTTPD__BINDINGS__0__DISABLED_LOGIN_METHODS=252"
+      - "SFTPGO_HTTPD__BINDINGS__0__ENABLE_REST_API=false"
+      # Internal automation API: no web UI and only admin API-key authentication.
+      # Not published to the host or routed through Traefik.
+      - "SFTPGO_HTTPD__BINDINGS__1__PORT=2223"
+      - "SFTPGO_HTTPD__BINDINGS__1__ENABLE_WEB_ADMIN=false"
+      - "SFTPGO_HTTPD__BINDINGS__1__ENABLE_WEB_CLIENT=false"
+      - "SFTPGO_HTTPD__BINDINGS__1__ENABLE_REST_API=true"
+      - "SFTPGO_HTTPD__BINDINGS__1__DISABLED_LOGIN_METHODS=176"
       # Defender (similar concept as Fail2ban) — see https://github.com/drakkan/sftpgo/blob/main/docs/defender.md
       - "SFTPGO_COMMON__DEFENDER__ENABLED=true"
       - "SFTPGO_COMMON__DEFENDER__BAN_TIME=30"

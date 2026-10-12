@@ -70,6 +70,16 @@
     },
     {
       matchDatasources: [
+        'docker',
+      ],
+      matchPackageNames: [
+        'drakkan/sftpgo',
+      ],
+      // Track version updates while keeping the Alpine image variant.
+      versioning: 'regex:^v?(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-alpine$',
+    },
+    {
+      matchDatasources: [
         'github-releases',
       ],
       versioning: 'regex:^v?(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$',
