@@ -56,7 +56,7 @@
       ],
       matchPackageNames: [
         'homeassistant/home-assistant',
-        'ghcr.io/esphome/esphome',
+        // 'ghcr.io/esphome/esphome',
         'b4bz/homer',
         'ghcr.io/jacobfg/audiobooksgreenproxy',
       ],
