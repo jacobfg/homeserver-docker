@@ -16,37 +16,78 @@ get_process_command() {
   fi
 }
 
-get_container_name() {
-  local pid="$1"
-  local address="$2"
-  local proto="$3"
+load_container_data() {
+  local proc_root="${1:-/proc}"
+  local ids id snapshot kind name init_pid namespace
+  local containers=()
+  CONTAINER_PROCESSES=""
+  CONTAINER_PORTS=""
+  ids=$(docker ps --quiet --no-trunc) || return 1
+  while IFS= read -r id; do
+    [[ -n "$id" ]] && containers+=("$id")
+  done <<< "$ids"
+  [[ ${#containers[@]} -gt 0 ]] || return 0
 
-  local CGROUP CONTAINER_ID
-  if [[ ! "$pid" =~ ^[0-9]+$ ]] ||
-     ! CGROUP=$(cat "/proc/$pid/cgroup" 2>/dev/null); then
-    echo "-"
-    return
-  fi
-  if [[ "$CGROUP" =~ ^0::/system.slice/docker- ]] ; then
-    CONTAINER_ID=$(echo $CGROUP | sed 's~^.*/docker-\([a-z0-9]\+\)\.scope~\1~')
-    docker inspect --format '{{.Name}}' "${CONTAINER_ID}" | sed 's/^\///'
-    return
-  elif [[ "$CGROUP" =~ ^0::/system.slice/docker.service$ ]] ; then
-    # echo "docker system"
-    get_docker_proxy "$address" "$proto"
-    return
-  fi
-  echo "-"
+  # Inspect once, and include every published binding, not just the first.
+  snapshot=$(docker inspect --format '{{printf "container|%s|%s|%v\n" .Id .Name .State.Pid}}{{range $port, $bindings := .NetworkSettings.Ports}}{{range $bindings}}{{printf "port|%s|%s|%s:%s\n" $.Name $port .HostIp .HostPort}}{{end}}{{end}}' "${containers[@]}") || return 1
+  while IFS='|' read -r kind id name init_pid; do
+    case "$kind" in
+      container)
+        namespace=$(readlink "$proc_root/$init_pid/ns/pid" 2>/dev/null) || namespace=""
+        CONTAINER_PROCESSES+="$id|${name#/}|$init_pid|$namespace"$'\n'
+        ;;
+      port)
+        # These fields contain container name, container port/protocol, binding.
+        CONTAINER_PORTS+="${name##*/}|$init_pid|${id#/}"$'\n'
+        ;;
+    esac
+  done <<< "$snapshot"
 }
 
 get_docker_proxy() {
-  local address="$1"
-  local proto="$2"
-  CONTAINER=$(docker inspect --format '{{range $p, $conf := .NetworkSettings.Ports}}{{if $conf}}{{ $p }} {{(index $conf 0).HostIP}}:{{(index $conf 0).HostPort}} {{$.Name}}{{"\n"}}{{end}}{{end}}' $(sudo docker ps -aq --no-trunc) | grep -v '127.0.0.1' | sed 's~^[0-9]\+/~~ ; s~ /~ ~' | grep "$proto $address" | awk '{print $3}')
-  if [[ ! -z "$CONTAINER" ]] ; then
-    echo "$CONTAINER"
+  local address="$1" proto="$2"
+  local protocol binding name
+  while IFS='|' read -r protocol binding name; do
+    if [[ "$protocol" == "$proto" && "$binding" == "$address" ]]; then
+      printf '%s\n' "$name"
+      return
+    fi
+  done <<< "${CONTAINER_PORTS:-}"
+  echo "-"
+}
+
+get_container_name() {
+  local pid="$1" address="$2" proto="$3"
+  local proc_root="${4:-/proc}"
+  local cgroup id name init_pid namespace process_namespace host_namespace
+  if [[ ! "$pid" =~ ^[0-9]+$ ]]; then
+    echo "-"
     return
   fi
+  if [[ "$(get_process_command "$pid" "$proc_root")" == docker-proxy ]]; then
+    get_docker_proxy "$address" "$proto"
+    return
+  fi
+
+  cgroup=$(cat "$proc_root/$pid/cgroup" 2>/dev/null) || cgroup=""
+  process_namespace=$(readlink "$proc_root/$pid/ns/pid" 2>/dev/null) || process_namespace=""
+  host_namespace=$(readlink "$proc_root/1/ns/pid" 2>/dev/null) || host_namespace=""
+  while IFS='|' read -r id name init_pid namespace; do
+    [[ -n "$id" ]] || continue
+    # Covers cgroup v1/v2, systemd docker-ID.scope and cgroupfs /docker/ID.
+    if [[ "$cgroup" == *"$id"* || "$pid" == "$init_pid" ]]; then
+      printf '%s\n' "$name"
+      return
+    fi
+    # Host-network containers still normally have their own PID namespace.
+    # Never attribute all host processes to a container using --pid=host.
+    if [[ -n "$process_namespace" && -n "$host_namespace" &&
+          "$process_namespace" != "$host_namespace" &&
+          "$process_namespace" == "$namespace" ]]; then
+      printf '%s\n' "$name"
+      return
+    fi
+  done <<< "${CONTAINER_PROCESSES:-}"
   echo "-"
 }
 
@@ -65,6 +106,8 @@ if [[ $EUID -ne 0 ]]; then
   echo "This script must be run as root" 
   exit 1
 fi
+
+load_container_data || exit 1
 
 printf "%-20s %-25s %-10s %-20s\n" "COMMAND" "ADDRESS" "PID" "CONTAINER"
 
