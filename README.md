@@ -70,6 +70,9 @@ Diagnostic build assets live in `gitops/diagnostics/`, Terraform lives in
 `gitops/sftp-server/`, and operational helpers remain in `scripts/`. Run all
 Compose commands through the root project, rather than targeting module files.
 
+A standalone [audible-rs trial image](gitops/audible-rs/README.md) is available for
+manual testing alongside Libation, with separate configuration and downloads.
+
 ### On-demand Portainer
 
 From any directory, invoke these scripts by their repository path:
