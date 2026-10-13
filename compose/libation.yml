@@ -23,7 +23,7 @@ services:
       # use secrets ?
       - $VOLUME_DIR/libation/config:/config
       - $VOLUME_DIR/libation/db:/db
-      - $VOLUME_DIR/audiobookshelf/audiobooks/jacobfg:/data
+      - $VOLUME_DIR/audiobookshelf/audiobooks/$ABS_LIBRARY1_DIR:/data
       - $VOLUME_DIR/libation/logs:/logs
     networks:
       - t2_proxy
