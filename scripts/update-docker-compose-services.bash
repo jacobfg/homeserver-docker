@@ -1,27 +1,14 @@
-#!/bin/bash
-
-SCRIPT_DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd)"
-
-# read .env file
-export $(xargs < "${SCRIPT_DIR}/.env")
-
-function findOrderStacks() {
-    find . -maxdepth 2 -mindepth 2 -type f -name 'docker-compose.yml' -exec egrep -H '^# deploy weight [0-9]+' {} \; \
-    | sed 's/:# deploy weight /:/' \
-    | sort -t: -g -k2 \
-    | sed -e 's~/docker-compose.yml:[0-9]\+$~~' \
-    | tr '\n' '\0'
-}
-
-function dockerAuth() {
-  echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_USERNAME" --password-stdin || exit 1
-}
+#!/usr/bin/env bash
+set -euo pipefail
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/compose-common.bash"
+require_compose_tools
 
 function retireCodeServer() {
-    # Removed stacks are no longer discovered below, so --remove-orphans cannot
-    # retire their containers. Keep this migration safe to run on every update.
+    # The retired service belonged to a different project, so --remove-orphans
+    # cannot retire its container. Keep this migration safe to run on every update.
     # A restored stack definition takes precedence (for example, on rollback).
-    if [[ -f "$SCRIPT_DIR/../vscode-server/docker-compose.yml" ]]; then
+    if [[ -f "$COMPOSE_ROOT/compose/vscode-server.yml" || -f "$COMPOSE_ROOT/vscode-server/docker-compose.yml" ]]; then
         return 0
     fi
 
@@ -39,63 +26,78 @@ function retireCodeServer() {
     fi
 }
 
-function updateScheduledLibation() {
-    # Pause scheduling before updating the one-shot container. Stopping Ofelia
-    # does not stop a Libation job that is already running.
-    docker compose stop --timeout 10 ofelia || return 1
+# Validate all profiles so optional containers are known during orphan cleanup.
+# Explicit service lists below keep those profiles from starting optional tools.
+model="$(compose --profile '*' config --format json)"
+selected="$(jq -er '[.services | to_entries[] |
+    select((.value.profiles // []) | length == 0) | .key] |
+    if length == 0 then error("No default services") else .[] end' <<< "$model")"
+services=()
+while IFS= read -r service; do services+=("$service"); done <<< "$selected"
 
-    local job_id job_running
-    job_id="$(docker compose --profile scheduled ps --all --quiet libation)" || return 1
-    if [[ -n "$job_id" ]]; then
-        job_running="$(docker inspect --format '{{.State.Running}}' "$job_id")" || return 1
-        if [[ "$job_running" == "true" ]]; then
-            echo "Libation is running; deferring this update to avoid interrupting downloads." >&2
-            echo "For the first migration, stop the old looping Libation container when idle, then rerun." >&2
-            docker compose start ofelia # Restore the existing scheduler, if present.
-            return 1
-        fi
+# Registry credentials stay separate from Compose's root application environment.
+# Read only these two dotenv keys; do not evaluate the file as shell code.
+credentials="$(docker compose --project-directory "$SCRIPT_DIR" \
+    --env-file "$SCRIPT_DIR/.env" -f - config --format json <<'COMPOSE'
+services:
+  registry-credentials:
+    image: scratch
+    environment:
+      GITHUB_USERNAME: ${GITHUB_USERNAME:?Set GITHUB_USERNAME}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:?Set GITHUB_TOKEN}
+COMPOSE
+)"
+username="$(jq -er '.services["registry-credentials"].environment.GITHUB_USERNAME' <<< "$credentials")"
+jq -er '.services["registry-credentials"].environment.GITHUB_TOKEN' <<< "$credentials" |
+    docker login ghcr.io -u "$username" --password-stdin
+unset credentials
+
+# Pull before pausing the scheduler or modifying containers.
+compose --profile '*' pull "${services[@]}" libation
+retireCodeServer
+
+scheduler_id="$(compose ps --status running --quiet ofelia)"
+scheduler_paused=false
+restore_scheduler() {
+    local status=$?
+    trap - EXIT
+    if [[ "$scheduler_paused" == true && -n "$scheduler_id" ]]; then
+        # Restore only a scheduler that was running before this update.
+        docker start "$scheduler_id" >/dev/null || \
+            echo "Could not restore Ofelia; inspect it and restart scheduling manually." >&2
     fi
-
-    # Explicit service selection enables its 'scheduled' profile without running
-    # it. Ofelia has no depends_on Libation, so the next command cannot start it.
-    docker compose up --no-start --no-deps libation || return 1
-    docker compose up -d --remove-orphans ofelia-socket-proxy ofelia || return 1
+    exit "$status"
 }
-
-dockerAuth
-retireCodeServer || exit 1
-
-# update each stack
-while read -d $'\0' STACK ; do
-    cd "$SCRIPT_DIR/../$STACK"
-    echo $STACK
-
-    # pull images then update and remove orphans
-    if [[ "$STACK" == "./libation" ]] && docker compose config --services | grep -qx ofelia; then
-        docker compose --profile scheduled pull || exit 1
-        updateScheduledLibation || exit 1
-    else
-        docker compose pull || exit 1
-        docker compose up -d --remove-orphans || exit 1
+trap restore_scheduler EXIT
+# Arm recovery before stopping: a failed stop may still have changed state.
+scheduler_paused=true
+compose stop --timeout 10 ofelia
+job_id="$(compose --profile scheduled ps --all --quiet libation)"
+if [[ -n "$job_id" ]]; then
+    job_running="$(docker inspect --format '{{.State.Running}}' "$job_id")"
+    if [[ "$job_running" == true ]]; then
+        echo "Libation is running; deferring this update to avoid interrupting downloads." >&2
+        exit 1
     fi
+fi
 
-    # workflow uses digest, tag local image for niceness
-    yq --yaml-fix-merge-anchor-to-spec=true -r '.services[].image' docker-compose.yml | grep '@sha256:' | sed 's~^\([^:]\+\):\([^@]\+\)@\(.\+\)$~\1@\3 \1:\2~' | xargs -n2 docker tag
+# Create/update the one-shot job without executing it, before enabling scheduling.
+compose --profile '*' up --no-start --no-deps libation
+compose --profile '*' up -d --remove-orphans "${services[@]}"
+scheduler_paused=false
 
-done < <(findOrderStacks)
+# Keep human-readable image tags alongside the pinned digest references.
+images="$(jq -r '.services | to_entries[] |
+    select(((.value.profiles // []) | length == 0) or .key == "libation") |
+    .value.image // empty | select(contains("@sha256:"))' <<< "$model" | sort -u)"
+while IFS= read -r image; do
+    [[ -n "$image" ]] || continue
+    tagged="${image%@*}"
+    # Only tag references with an explicit tag after the last slash.
+    [[ "${tagged##*/}" == *:* ]] || continue
+    repository="${tagged%:*}"
+    docker tag "$repository@${image#*@}" "$tagged"
+done <<< "$images"
 
-# clean all unused images
 docker image prune -f
-
-# prune everything
-# docker system prune -af
-
-echo
-echo Run script to see host ports that are open to the local LAN
-echo
-echo    bash $SCRIPT_DIR/host-open-ipv4-ports.bash
-echo
-echo Does docker need a prune ? check all containers are running ok
-echo
-echo    docker system prune -af
-echo
+printf '\nInspect LAN-facing ports with: bash %s/host-open-ipv4-ports.bash\n' "$SCRIPT_DIR"

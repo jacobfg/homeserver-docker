@@ -1,0 +1,276 @@
+# Included by the root compose.yaml; run Compose from the repository root.
+services:
+  ############################# FRONTENDS
+  # Traefik 3 - Reverse Proxy
+  traefik:
+    security_opt:
+      - no-new-privileges:true
+    restart: always
+    container_name: traefik
+    image: traefik:v3.7.14@sha256:575fa15b135078fe5e50aa847987d96dbddd7b093c172429618404df73f3fa7c
+    # Initial budget; validate under concurrent uploads, streaming and stack updates.
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 128M # Soft reservation; does not preallocate RAM.
+    memswap_limit: 512m # Combined RAM + swap limit; equal to RAM disables swap.
+    cpu_shares: 2048 # Prefer the proxy under CPU contention; allow bursts without a CPU cap.
+    # Prepare file ownership and run the checks in traefik/NONROOT-ROLLOUT.md first.
+    user: "65532:65532"
+    read_only: true # ACME's existing bind mount remains writable for renewals.
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m,mode=1777
+    cap_drop:
+      - ALL
+    sysctls:
+      # Container network namespace only; preserve HTTPS :443 without a bind capability.
+      net.ipv4.ip_unprivileged_port_start: "443"
+    healthcheck:
+      # Local process liveness only; does not verify backends or certificate renewal.
+      test: ["CMD", "traefik", "healthcheck", "--ping", "--entrypoints.traefik.address=127.0.0.1:8080"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    # Bound combined access/runtime logs; read them with docker logs traefik.
+    logging:
+      driver: local
+      options:
+        max-size: "10m"
+        max-file: "3"
+    command: # CLI arguments
+      - --global.checkNewVersion=false
+      - --global.sendAnonymousUsage=false
+      - --entryPoints.https.address=:443
+      - --entryPoints.sftp.address=:2021
+      - --entryPoints.dot.address=:853
+      - --entryPoints.garmin-https.address=:8443 # Garmin-only TLS compatibility test listener.
+      # Clients connect directly; Cloudflare provides DNS only. Trust no upstream proxy headers.
+      - --entrypoints.https.forwardedHeaders.insecure=false
+      # Container loopback only: no published port or LAN-accessible health endpoint.
+      - --entryPoints.traefik.address=127.0.0.1:8080
+      - --ping=true
+      - --api=true
+      - --api.dashboard=true
+      - --log=true
+      - --log.format=json # stdout/stderr are rotated by Docker below the size limit
+      - --log.level=ERROR # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
+      - --accessLog=true
+      - --accessLog.format=json
+      - --accessLog.addInternals=true # Include dashboard/API access as well
+      - --accessLog.bufferingSize=100 # Async queue; continuously drained, not a batch threshold
+      # Keep status, router, client address and timing metadata for all HTTP statuses.
+      - --accessLog.fields.defaultMode=keep
+      - --accessLog.fields.headers.defaultMode=drop # Omit cookies, authorization and API keys
+      - --accessLog.fields.queryParameters.defaultMode=drop
+      - --accessLog.fields.names.ClientUsername=drop
+      # Paths may contain HA webhook IDs or other credentials; omit derived request lines too.
+      - --accessLog.fields.names.RequestPath=drop
+      - --accessLog.fields.names.RequestLine=drop
+      - --providers.docker=true
+      - --providers.docker.endpoint=tcp://traefik-socket-proxy:2375
+      - --providers.docker.exposedByDefault=false
+      - --entrypoints.https.http.tls.options=tls-opts@file
+      # Add dns-cloudflare as default certresolver for all services. Also enables TLS and no need to specify on individual services
+      - --entrypoints.https.http.tls.certresolver=dns-cloudflare
+      - --entrypoints.https.http.tls.domains[0].main=$DOMAINNAME_CLOUD_SERVER
+      - --entrypoints.https.http.tls.domains[0].sans=*.$DOMAINNAME_CLOUD_SERVER
+      # - --entrypoints.https.http.tls.domains[1].main=$DOMAINNAME2 # Pulls main cert for second domain
+      # - --entrypoints.https.http.tls.domains[1].sans=*.$DOMAINNAME2 # Pulls wildcard cert for second domain
+      - --providers.docker.network=t2_proxy
+      # - --providers.docker.swarmMode=false
+      - --providers.file.directory=/rules # Load dynamic configuration from one or more .toml or .yml files in a directory
+      - --providers.file.watch=true # Only works on top level files in the rules folder
+      # - --certificatesResolvers.dns-cloudflare.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory # LetsEncrypt Staging Server - uncomment when testing
+      - --certificatesResolvers.dns-cloudflare.acme.email=$CLOUDFLARE_EMAIL
+      - --certificatesResolvers.dns-cloudflare.acme.storage=/acme.json
+      - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.provider=cloudflare
+      - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.resolvers=1.1.1.1:53,1.0.0.1:53
+      - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.delayBeforeCheck=90 # To delay DNS check and reduce LE hitrate
+    networks:
+      t2_proxy:
+        ipv4_address: 192.168.90.254 # You can specify a static IP
+      abs_green_internal:
+        ipv4_address: 192.168.92.254
+      traefik_socket_proxy:
+      fittools_internal:
+    depends_on:
+      - traefik-socket-proxy
+    ports:
+      - target: 8443
+        published: 8443
+        protocol: tcp
+        mode: host
+      - target: 853
+        published: 853
+        protocol: tcp
+        mode: host
+      - target: 443
+        published: 443
+        protocol: tcp
+        mode: host
+      - target: 2021
+        published: 2021
+        protocol: tcp
+        mode: host
+    configs:
+      - source: traefik_rules_esphome
+        target: /rules/esphome.yml
+      - source: traefik_rules_tls_opts
+        target: /rules/tls-opts.yml
+      - source: traefik_rules_printerscanner
+        target: /rules/printerscanner.yml
+      - source: traefik_printerscanner_certificate
+        target: /certs/printerscanner.pem
+      - source: traefik_rules_middlewares_chains
+        target: /rules/middlewares-chains.yml
+      - source: traefik_rules_middlewares
+        target: /rules/middlewares.yml
+      - source: traefik_rules_immich
+        target: /rules/immich.yml
+    volumes:
+      - $VOLUME_DIR/traefik/acme/acme.json:/acme.json # Preserve existing certificates; owner 65532:65532, mode 0600.
+    environment:
+      - TZ
+      - CF_DNS_API_TOKEN_FILE=/run/secrets/cf_dns_api_key
+      - CF_ZONE_API_TOKEN_FILE=/run/secrets/cf_dns_api_key
+      - GOMEMLIMIT=384MiB # Go soft memory target; leave headroom below the container limit.
+      - DOMAINNAME_CLOUD_SERVER # Passing the domain name to the traefik container to be able to use the variable in rules.
+      - DOCKER_SERVER_IP # Passing the docker server IP to the traefik container to be able to use the variable in rules.
+    secrets:
+      - cf_dns_api_key
+    labels:
+      - "traefik.enable=true"
+      # HTTP Routers
+      - "traefik.http.routers.traefik-rtr.entrypoints=https"
+      - "traefik.http.routers.traefik-rtr.priority=1"
+      - "traefik.http.routers.traefik-rtr.rule=Host(`traefik.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.traefik-rtr.tls=true" # Some people had 404s without this
+      # - "traefik.http.routers.traefik-rtr.tls.certresolver=dns-cloudflare" # Comment out this line after first run of traefik to force the use of wildcard certs
+      - "traefik.http.routers.traefik-rtr.tls.domains[0].main=$DOMAINNAME_CLOUD_SERVER"
+      - "traefik.http.routers.traefik-rtr.tls.domains[0].sans=*.$DOMAINNAME_CLOUD_SERVER"
+      # - "traefik.http.routers.traefik-rtr.tls.domains[1].main=$DOMAINNAME2" # Pulls main cert for second domain
+      # - "traefik.http.routers.traefik-rtr.tls.domains[1].sans=*.$DOMAINNAME2" # Pulls wildcard cert for second domain
+      ## Services - API
+      - "traefik.http.routers.traefik-rtr.service=api@internal"
+      ## Middlewares
+      - "traefik.http.routers.traefik-rtr.middlewares=middlewares-homer-cors@file,middlewares-admin-headers@file,chain-authelia@file"
+
+  # Dedicated discovery proxy: only Traefik joins this internal network; no published ports.
+  traefik-socket-proxy:
+    security_opt:
+      - no-new-privileges:true
+    restart: always
+    container_name: traefik-socket-proxy
+    image: ghcr.io/tecnativa/docker-socket-proxy:v0.5.0@sha256:1f5038b54f06c3e18422902cf00ba21803d1c97805aae032e5e6673d532d3459
+    # Initial bounds; verify peak usage during stack updates and Docker discovery.
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50' # Maximum half of one CPU core.
+          memory: 128M
+        reservations:
+          memory: 32M # Soft reservation in Compose, not a guaranteed minimum.
+    memswap_limit: 128m # RAM + swap equals the RAM limit: disable container swap.
+    cpu_shares: 2048 # Higher relative CPU weight under contention (default is 1024).
+    networks:
+      - traefik_socket_proxy
+    volumes:
+      # The API ACLs below restrict operations; a read-only socket mount alone does not.
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - LOG_LEVEL=warning
+      - CONTAINERS=1
+      - EVENTS=1
+      - PING=1
+      - VERSION=1
+      - POST=0
+      # All other API sections are denied by this pinned image's defaults.
+    logging:
+      driver: local
+      options:
+        max-size: "5m"
+        max-file: "2"
+    labels:
+      - "traefik.enable=false"
+
+  # Light Split Horizon / Ad Blocking DNS Server
+  blocky:
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          memory: 256M # Ads blocking now enabled; allow headroom for list loading/refreshes.
+        reservations:
+          memory: 32M # Soft reservation, not preallocated RAM.
+    cpu_shares: 2048 # Prioritise DNS under CPU contention; no hard CPU ceiling.
+    image: spx01/blocky:v0.35.0@sha256:4f165b63db0d76c96ecc47c7a8f57caeedc003a912bdce29abb0e283ce02e16b
+    container_name: blocky
+    restart: always
+    ports:
+      - 53:53/tcp
+      - 53:53/udp
+    environment:
+      - TZ
+    configs:
+      - source: blocky_config
+        target: /app/config.yml
+    labels:
+      # Traefik terminates DoT with its existing wildcard certificate; Blocky needs no private key.
+      - "traefik.enable=true"
+      - "traefik.docker.network=t2_proxy"
+      - "traefik.tcp.routers.blocky-dot.entrypoints=dot"
+      - "traefik.tcp.routers.blocky-dot.rule=HostSNI(`dns.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.tcp.routers.blocky-dot.tls=true"
+      - "traefik.tcp.routers.blocky-dot.tls.options=dot-tls@file"
+      - "traefik.tcp.routers.blocky-dot.middlewares=blocky-dot-lan@docker"
+      - "traefik.tcp.middlewares.blocky-dot-lan.ipallowlist.sourcerange=$ABS_BYPASS1_CIDR,$ABS_BYPASS2_CIDR,$ABS_BYPASS3_CIDR"
+      - "traefik.tcp.routers.blocky-dot.service=blocky-dns"
+      - "traefik.tcp.services.blocky-dns.loadbalancer.server.port=53"
+    extra_hosts:
+      - "dns.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      - "audiobookshelf.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      - "auth.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      - "duplicacy.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      - "esphome.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      - "filebrowser.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      - "home.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      - "homeassistant.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      - "influxdb.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      - "nodered.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      - "portainer.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      - "printerscanner.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      - "sftp.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      - "static.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      - "traefik.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      - "zigbee2mqtt.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      - "photos.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      - "fittools.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      - "garmin-abs.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+
+configs:
+  traefik_rules_esphome:
+    file: ../config/traefik/rules/esphome.yml
+  traefik_rules_tls_opts:
+    file: ../config/traefik/rules/tls-opts.yml
+  traefik_rules_printerscanner:
+    file: ../config/traefik/rules/printerscanner.yml
+  traefik_printerscanner_certificate:
+    file: ../config/traefik/certs/printerscanner.pem
+  traefik_rules_middlewares_chains:
+    file: ../config/traefik/rules/middlewares-chains.yml
+  traefik_rules_middlewares:
+    file: ../config/traefik/rules/middlewares.yml
+  traefik_rules_immich:
+    file: ../config/traefik/rules/immich.yml
+  blocky_config:
+    file: ../config/blocky/config.yml
+
+secrets:
+  cf_dns_api_key:
+    file: $SECRETS_DIR/cf_dns_api_key

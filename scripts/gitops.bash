@@ -26,7 +26,7 @@ fi
 # the saved plan. init/validate/fmt also work before live accounts are imported.
 case "${1:-}" in
     init|validate|fmt|plan|apply|import|show|state|providers|test)
-        exec terraform -chdir="$SCRIPT_DIR/../sftp-server/gitops" "$@"
+        exec terraform -chdir="$SCRIPT_DIR/../gitops/sftp-server" "$@"
         ;;
     *)
         echo "Usage: $0 {init|validate|fmt|plan|apply|import|show|state|providers|test} [arguments...]" >&2

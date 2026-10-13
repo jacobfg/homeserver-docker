@@ -1,0 +1,44 @@
+# Included by the root compose.yaml; run Compose from the repository root.
+services:
+  duplicacy:
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    # Keep background backup work from monopolising CPU on the shared host.
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0' # Aggregate ceiling; does not reserve or pin two cores.
+          memory: 1536M # Observed peak ~712 MiB over 43 hours; validate larger backups.
+        reservations:
+          memory: 256M # Soft reservation, not preallocated RAM.
+    cpu_shares: 256 # Lower relative priority under contention (default is 1024).
+    container_name: duplicacy
+    hostname: 4eb908d4f748 # for licensing
+    image: saspus/duplicacy-web:v1.8.3@sha256:f98539e025045cfc6f25cceb73ba3777de2eabe30d5115cc8b858ac42317b88b
+    environment:
+      - TZ
+      - USR_ID=0
+      - GRP_ID=0
+    volumes:
+      - $VOLUME_DIR/duplicacy/config:/config
+      - $VOLUME_DIR/duplicacy/logs:/logs
+      - $VOLUME_DIR/duplicacy/cache:/cache
+      - $VOLUME_DIR:/source/docker/volumes:ro
+      - /etc/systemd/system/docker-compose-app.service:/source/etc/systemd/system/docker-compose-app.service:ro
+      - /etc/docker/daemon.json:/source/etc/docker/daemon.json:ro
+    networks:
+      - t2_proxy
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.duplicacy-rtr.entrypoints=https"
+      - "traefik.http.routers.duplicacy-rtr.rule=Host(`duplicacy.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.duplicacy-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.duplicacy-rtr.middlewares=middlewares-homer-cors@file,chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.duplicacy-rtr.service=duplicacy-svc"
+      - "traefik.http.services.duplicacy-svc.loadbalancer.server.port=3875"
+    extra_hosts:
+      - "homeassistant.$DOMAINNAME_CLOUD_SERVER:192.168.90.254"

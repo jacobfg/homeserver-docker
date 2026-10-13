@@ -1,0 +1,104 @@
+# Included by the root compose.yaml; run Compose from the repository root.
+services:
+  # https://www.homeautomationguy.io/home-assistant-tips/installing-docker-home-assistant-and-portainer-on-ubuntu-linux/
+  portainer:
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0' # Contain runaway CPU use; validate responsiveness during management tasks.
+          memory: 256M # Observed peak ~80 MiB; allow headroom for browsing and updates.
+        reservations:
+          memory: 64M # Soft reservation, not preallocated RAM.
+    cpu_shares: 1024 # Normal relative priority under contention, within the CPU ceiling.
+    container_name: portainer
+    image: portainer/portainer-ce:2.45.2@sha256:03f94a406496dc84d37b552795fc424ccad8d0d7200353b6a82915f6e8f73ab0
+    profiles: [portainer]
+    restart: "no"
+    depends_on:
+      - socket-proxy
+    command: -H tcp://socket-proxy:2375
+    environment:
+      - TZ
+    volumes:
+      - $VOLUME_DIR/portainer:/data
+    networks:
+      - t2_proxy
+      - socket_proxy
+    ports:
+      - "127.0.0.1:9000:9000/tcp" # don't need to others
+    logging:
+      driver: none
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.portainer-rtr.entrypoints=https"
+      - "traefik.http.routers.portainer-rtr.priority=1"
+      - "traefik.http.routers.portainer-rtr.rule=Host(`portainer.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.portainer-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.portainer-rtr.middlewares=middlewares-homer-cors@file,middlewares-admin-headers@file,chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.portainer-rtr.service=portainer-svc"
+      - "traefik.http.services.portainer-svc.loadbalancer.server.port=9000"
+    extra_hosts:
+      - "auth.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP" # required for oidc auth
+
+  # On-demand Portainer Docker Socket Proxy
+  socket-proxy:
+    security_opt:
+      - no-new-privileges:true
+    profiles: [portainer]
+    restart: "no"
+    container_name: socket-proxy
+    image: ghcr.io/tecnativa/docker-socket-proxy:v0.5.0@sha256:1f5038b54f06c3e18422902cf00ba21803d1c97805aae032e5e6673d532d3459
+    # Initial bounds; verify peak usage while browsing Portainer and streaming logs.
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 128M
+        reservations:
+          memory: 32M # Soft reservation in Compose, not preallocated RAM.
+    memswap_limit: 128m # Disable container swap; this is the combined RAM + swap limit.
+    cpu_shares: 1024 # Normal relative CPU weight; Compose cannot guarantee a CPU minimum.
+    networks:
+      socket_proxy:
+        ipv4_address: 192.168.91.254 # You can specify a static IP
+    # Portainer connects over socket_proxy; no host port mapping is needed.
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - LOG_LEVEL=warning # debug,info,notice,warning,err,crit,alert,emerg
+      ## Variables match the URL prefix (i.e. AUTH blocks access to /auth/* parts of the API, etc.).
+      # 0 to revoke access.
+      # 1 to grant access.
+      ## Granted by Default
+      - EVENTS=1
+      - PING=1
+      - VERSION=1
+      ## Revoked by Default
+      # Security critical
+      - AUTH=0
+      - SECRETS=0
+      - POST=0 # portainer
+      # Not always needed
+      - BUILD=0
+      - COMMIT=0
+      - CONFIGS=0
+      - CONTAINERS=1 # Traefik, portainer, etc.
+      - DISTRIBUTION=0
+      - EXEC=0
+      - IMAGES=1 # Portainer
+      - INFO=1 # Portainer
+      - NETWORKS=1 # Portainer
+      - NODES=0
+      - PLUGINS=0
+      - SERVICES=1 # Portainer
+      - SESSION=0
+      - SWARM=0
+      - SYSTEM=0
+      - TASKS=1 # Portainer
+      - VOLUMES=1 # Portainer
+    labels: []

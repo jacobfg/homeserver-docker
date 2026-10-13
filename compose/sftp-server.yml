@@ -1,5 +1,3 @@
-# deploy weight 45
-
 # Common environment values
 x-environment: &default-tz-puid-pgid
   TZ: $TZ
@@ -13,12 +11,6 @@ x-common-keys-apps: &common-keys-apps
   security_opt:
     - no-new-privileges:true
   restart: unless-stopped
-
-# use existing t2_proxy network defined by docker-env stack
-networks:
-  t2_proxy:
-    name: t2_proxy
-    external: true
 
 ########################### SERVICES
 services:

@@ -1,9 +1,0 @@
-.terraform/
-*.tfstate
-*.tfstate.*
-*.tfplan
-crash.log
-crash.*.log
-*.local.tfvars
-*.local.tfvars.json
-# Provider checksums (.terraform.lock.hcl) should be committed.

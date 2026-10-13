@@ -1,9 +1,9 @@
-# Intentionally no deploy weight: excluded from the routine stack updater.
+# Included in the root project; excluded from routine updates by profile.
 # Both services are opt-in and do not restart automatically after a host reboot.
 services:
   resource-monitor:
     profiles: [diagnostics]
-    build: .
+    build: ../gitops/diagnostics
     image: homeserver-resource-monitor:local
     container_name: resource-monitor
     restart: "no"
@@ -90,7 +90,3 @@ services:
         max-file: "2"
     labels:
       traefik.enable: "false"
-
-networks:
-  monitor_socket_proxy:
-    internal: true

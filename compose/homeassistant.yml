@@ -1,0 +1,168 @@
+# Included by the root compose.yaml; run Compose from the repository root.
+services:
+  # https://www.home-assistant.io/installation/raspberrypi
+  homeassistant:
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 3G # Observed peak ~1.32 GiB over nine hours; allow startup/maintenance headroom.
+        reservations:
+          memory: 512M # Soft reservation; validate longer-term integration and recorder workloads.
+    cpu_shares: 2048 # Prioritise home automation over background jobs under contention.
+    container_name: homeassistant
+    image: homeassistant/home-assistant:2026.10.1@sha256:130241f28d01fa80dfa3b44f7d89781c188d8642ecab9024f079f19f9f82baa0
+    # depends_on:
+    #   - influxdb
+    network_mode: host
+    environment:
+      - TZ
+    volumes:
+      - $VOLUME_DIR/homeassistant:/config
+      - $BACKUP_DIR/homeassistant:/config/backups
+      - $STACKS_DIR/.git:/config/.homeserver-docker/.git:ro
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.homeassistant-rtr.entrypoints=https"
+      - "traefik.http.routers.homeassistant-rtr.priority=1"
+      - "traefik.http.routers.homeassistant-rtr.rule=Host(`homeassistant.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.homeassistant-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.homeassistant-rtr.middlewares=middlewares-homer-cors@file,chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.homeassistant-rtr.service=homeassistant-svc"
+      - "traefik.http.services.homeassistant-svc.loadbalancer.passHostHeader=true"
+      - "traefik.http.services.homeassistant-svc.loadbalancer.server.url=http://$DOCKER_SERVER_IP:8123/"
+      # Main LAN API clients use HA authentication directly; preserve Homer's CORS/preflights.
+      - "traefik.http.routers.homeassistant-lan-api-rtr.entrypoints=https"
+      - "traefik.http.routers.homeassistant-lan-api-rtr.priority=99"
+      - "traefik.http.routers.homeassistant-lan-api-rtr.rule=Host(`homeassistant.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`$ABS_BYPASS1_CIDR`) && PathPrefix(`/api/`)"
+      - "traefik.http.routers.homeassistant-lan-api-rtr.tls=true"
+      - "traefik.http.routers.homeassistant-lan-api-rtr.middlewares=middlewares-homer-cors@file,chain-no-auth@file"
+      - "traefik.http.routers.homeassistant-lan-api-rtr.service=homeassistant-svc"
+      # Duplicacy reaches Traefik over t2_proxy. Allow only webhook paths from that subnet.
+      # HA webhook IDs remain secrets; this does not grant Docker clients general API access.
+      - "traefik.http.routers.homeassistant-webhook-rtr.entrypoints=https"
+      - "traefik.http.routers.homeassistant-webhook-rtr.priority=99"
+      - "traefik.http.routers.homeassistant-webhook-rtr.rule=Host(`homeassistant.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.90.0/24`) && PathPrefix(`/api/webhook/`)"
+      - "traefik.http.routers.homeassistant-webhook-rtr.tls=true"
+      - "traefik.http.routers.homeassistant-webhook-rtr.middlewares=chain-no-auth@file"
+      - "traefik.http.routers.homeassistant-webhook-rtr.service=homeassistant-svc"
+
+  # NodeRED
+  node-red:
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 768M # Observed peak ~288 MiB; validate the largest scheduled flows.
+        reservations:
+          memory: 192M # Soft reservation, not preallocated RAM.
+    cpu_shares: 2048 # Prioritise automation flows under CPU contention.
+    image: nodered/node-red:4.1.16-22-minimal@sha256:f6521466afda096c229838a27ae7622d3db39b449e40901a16a4acad68cf4af9
+    container_name: node-red
+    environment:
+      - TZ
+    ports:
+      - "127.0.0.1:1880:1880/tcp"
+    volumes:
+      - $VOLUME_DIR/nodered/data:/data
+      - $BACKUP_DIR/energy-data:/energy-data
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.nodered-rtr.entrypoints=https"
+      - "traefik.http.routers.nodered-rtr.rule=Host(`nodered.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.nodered-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.nodered-rtr.middlewares=middlewares-homer-cors@file,chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.nodered-rtr.service=nodered-svc"
+      - "traefik.http.services.nodered-svc.loadbalancer.server.port=1880"
+      ## Same-origin Homer feed: configure Homer message.url as /dashboard-endpoint.
+      ## Keep the Node-RED path unchanged; the browser sends its session cookie without cross-origin CORS.
+      - "traefik.http.routers.homer-rss-rtr.entrypoints=https"
+      - "traefik.http.routers.homer-rss-rtr.priority=98" # Higher than Homer's catch-all router.
+      - "traefik.http.routers.homer-rss-rtr.rule=Host(`home.$DOMAINNAME_CLOUD_SERVER`) && Path(`/dashboard-endpoint`) && Method(`GET`)"
+      - "traefik.http.routers.homer-rss-rtr.tls=true"
+      - "traefik.http.routers.homer-rss-rtr.middlewares=chain-authelia@file"
+      - "traefik.http.routers.homer-rss-rtr.service=nodered-svc"
+    extra_hosts:
+      - "homeassistant.$DOMAINNAME_CLOUD_SERVER:192.168.90.254"
+
+  # Zigbee & MQTT
+  mosquitto:
+    # TODO: mosquito tls (really not needed on a private hosted based network)
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 64M # Observed peak ~13 MiB; recheck retained messages and reconnect bursts.
+        reservations:
+          memory: 16M # Soft reservation, not preallocated RAM.
+    cpu_shares: 2048 # Prioritise MQTT delivery under CPU contention.
+    container_name: mosquitto
+    image: eclipse-mosquitto:2.0.22@sha256:199ea8ef2e35ec2b1b37e59cfd1dbae538ed4dfa4a2251a121a52215a6248a21
+    networks:
+      t2_proxy:
+        ipv4_address: 192.168.90.252 # You can specify a static IP
+    volumes:
+      - $VOLUME_DIR/mosquitto/config:/mosquitto/config
+    ports:
+      - "127.0.0.1:1883:1883/tcp"
+      # - 9001:9001 # not using websockets
+    command: "mosquitto -c /mosquitto/config/mosquitto.conf"
+    labels:
+      - "traefik.enable=false"
+
+  zigbee2mqtt:
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M # Observed peak ~210 MiB; validate restarts and device updates.
+        reservations:
+          memory: 128M # Soft reservation, not preallocated RAM.
+    cpu_shares: 2048 # Prioritise device control under CPU contention.
+    container_name: zigbee2mqtt
+    image: koenkk/zigbee2mqtt:2.14.2@sha256:addbfb08fcef2e4477de1535636118241e10d13e898fbe4d9faba8a4d7396311
+    volumes:
+      - $VOLUME_DIR/zigbee2mqtt/data:/app/data
+      - /run/udev:/run/udev:ro
+    ports:
+      - "127.0.0.1:8080:8080/tcp"
+    environment:
+      - TZ
+      - ZIGBEE2MQTT_CONFIG_permit_join=true
+    secrets:
+      - zigbee2mqtt_secrets.yaml
+    devices:
+      - /dev/ttyUSB0:/dev/ttyUSB0
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.zigbee2mqtt-rtr.entrypoints=https"
+      - "traefik.http.routers.zigbee2mqtt-rtr.rule=Host(`zigbee2mqtt.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.zigbee2mqtt-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.zigbee2mqtt-rtr.middlewares=middlewares-homer-cors@file,chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.zigbee2mqtt-rtr.service=zigbee2mqtt-svc"
+      - "traefik.http.services.zigbee2mqtt-svc.loadbalancer.server.port=8080"
+
+secrets:
+  zigbee2mqtt_secrets.yaml:
+    file: $SECRETS_DIR/zigbee2mqtt_secrets.yaml

@@ -1,0 +1,70 @@
+# Included by the root compose.yaml; run Compose from the repository root.
+services:
+  # Authelia (Lite) - Self-Hosted Single Sign-On and Two-Factor Authentication
+  authelia:
+    security_opt:
+      - no-new-privileges:true
+    container_name: authelia
+    image: authelia/authelia:4.39.28@sha256:bd97cff4fcbf715b5ff1f9ae286afbe6033afce385302520b0368122d43a6f54
+    restart: always
+    networks:
+      - t2_proxy
+    volumes:
+      - $VOLUME_DIR/authelia:/config
+    configs:
+      - source: authelia_configuration
+        target: /etc/authelia/configuration.yml
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'    # Caps CPU usage to a quarter of a single core
+          memory: 256M    # 96 MiB caused confirmed OOM kills; allow headroom for login peaks.
+        reservations:
+          cpus: '0.05'    # Idles on virtually nothing
+          memory: 64M     # Soft reservation, not preallocated or guaranteed RAM.
+    environment:
+      - TZ
+      - X_AUTHELIA_CONFIG=/etc/authelia/configuration.yml
+      - X_AUTHELIA_CONFIG_FILTERS=template # Load OIDC signing material from existing Docker secrets.
+      - AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE=/run/secrets/authelia_jwt_secret
+      - AUTHELIA_SESSION_SECRET_FILE=/run/secrets/authelia_session_secret
+      - AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE=/run/secrets/authelia_storage_encryption_key
+      - AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE=/run/secrets/authelia_identity_providers_oidc_hmac_secret_file
+    secrets:
+      - authelia_jwt_secret
+      - authelia_session_secret
+      - authelia_storage_encryption_key
+      - authelia_identity_providers_oidc_hmac_secret_file
+      - authelia_identity_providers_oidc_issuer_certificate_chain_file
+      - authelia_identity_providers_oidc_issuer_private_key_file
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.authelia-rtr.entrypoints=https"
+      - "traefik.http.routers.authelia-rtr.rule=Host(`auth.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.authelia-rtr.tls=true"
+      ## Middlewares
+      # The login portal handles its own authentication; retain CORS, rate limiting and headers.
+      - "traefik.http.routers.authelia-rtr.middlewares=middlewares-homer-cors@file,chain-no-auth@file"
+      # - "traefik.http.routers.authelia-rtr.middlewares=cors@file,chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.authelia-rtr.service=authelia-svc"
+      - "traefik.http.services.authelia-svc.loadbalancer.server.port=9091"
+
+configs:
+  authelia_configuration:
+    file: ../config/authelia/configuration.yml
+
+secrets:
+  authelia_jwt_secret:
+    file: $SECRETS_DIR/authelia_jwt_secret
+  authelia_session_secret:
+    file: $SECRETS_DIR/authelia_session_secret
+  authelia_storage_encryption_key:
+    file: $SECRETS_DIR/authelia_storage_encryption_key
+  authelia_identity_providers_oidc_hmac_secret_file:
+    file: $SECRETS_DIR/authelia_identity_providers_oidc_hmac_secret_file
+  authelia_identity_providers_oidc_issuer_certificate_chain_file:
+    file: $SECRETS_DIR/authelia_identity_providers_oidc_issuer_certificate_chain_file
+  authelia_identity_providers_oidc_issuer_private_key_file:
+    file: $SECRETS_DIR/authelia_identity_providers_oidc_issuer_private_key_file

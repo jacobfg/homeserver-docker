@@ -1,0 +1,53 @@
+# Run Compose from this directory; included files are service modules.
+name: homeserver-docker
+
+include:
+  - compose/ingress.yml
+  - compose/auth.yml
+  - compose/homeassistant.yml
+  - compose/backup.yml
+  - compose/portainer.yml
+  - compose/metrics.yml
+  - compose/web.yml
+  - compose/audiobookshelf.yml
+  - compose/sftp-server.yml
+  - compose/libation.yml
+  - compose/fittools.yml
+  - compose/esphome.yml
+  - compose/apprise-poc.yml
+  - compose/diagnostics.yml
+
+# Shared resources have one owner. Preserve subnets used by routing and ACLs.
+networks:
+  t2_proxy:
+    name: t2_proxy
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.90.0/24
+  traefik_socket_proxy:
+    internal: true
+    driver: bridge
+  fittools_internal:
+    name: fittools_internal
+    internal: true # Dedicated backend network shared only by Traefik and Fittools.
+    driver: bridge
+  socket_proxy:
+    name: socket_proxy
+    internal: true
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.91.0/24
+  abs_green_internal:
+    name: abs_green_internal
+    internal: true
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.92.0/24
+
+  ofelia_socket_proxy:
+    internal: true
+  monitor_socket_proxy:
+    internal: true

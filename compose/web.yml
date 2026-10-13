@@ -1,0 +1,81 @@
+# Included by the root compose.yaml; run Compose from the repository root.
+services:
+  # Homer
+  homer:
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50' # Initial safety ceiling for the lightweight dashboard; monitor throttling.
+          memory: 64M # Observed peak ~6.3 MiB; leave headroom for startup and asset requests.
+        reservations:
+          memory: 16M # Soft reservation, not preallocated RAM.
+    cpu_shares: 1024 # Normal relative priority under contention, within the CPU ceiling.
+    image: b4bz/homer:v26.08.3@sha256:febc8967c9f7648ec37633ef3ae1ec90dbe8b7c46fecab80299f08f05be7ecb6
+    container_name: homer
+    volumes:
+      - $VOLUME_DIR/homer/assets/:/www/assets:ro
+      - $VOLUME_DIR/homer/custom-assets/:/www/custom-assets:ro
+    user: $PUID:$PGID
+    environment:
+      - INIT_ASSETS=0 # default
+      - IPV6_DISABLE=1
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.homer-rtr.entrypoints=https"
+      - "traefik.http.routers.homer-rtr.rule=Host(`home.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.homer-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.homer-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.homer-rtr.service=homer-svc"
+      - "traefik.http.services.homer-svc.loadbalancer.server.port=8080"
+
+  static-web-server:
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0' # Contain runaway CPU use; validate concurrent IoT music downloads.
+          memory: 64M # Observed peak ~5.5 MiB; validate concurrent IoT music downloads.
+        reservations:
+          memory: 16M # Soft reservation; file cache also counts toward the limit.
+    cpu_shares: 1024 # Normal relative priority under contention, within the CPU ceiling.
+    container_name: static-web-sever
+    image: joseluisq/static-web-server:2.44.1@sha256:94618e3d17802265a21926217e6f9e7832b311b6fbf5933684001739fafed06a
+    volumes:
+      # Serve files without allowing the container to modify them; update files on the host.
+      - $VOLUME_DIR/static-web-server/public:/public:ro
+    logging:
+      driver: none
+    networks:
+      - t2_proxy
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.staticserver-rtr.entrypoints=https"
+      - "traefik.http.routers.staticserver-rtr.priority=1"
+      - "traefik.http.routers.staticserver-rtr.rule=Host(`static.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.staticserver-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.staticserver-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.staticserver-rtr.service=staticserver-svc"
+      - "traefik.http.services.staticserver-svc.loadbalancer.server.port=80"
+      ## IoT ACCESS ; other clients use Authelia above.
+      ## HTTP Routers
+      - "traefik.http.routers.staticserver-api-rtr.entrypoints=https"
+      - "traefik.http.routers.staticserver-api-rtr.priority=99"
+      - "traefik.http.routers.staticserver-api-rtr.rule=Host(`static.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`$ABS_BYPASS3_CIDR`)"
+      - "traefik.http.routers.staticserver-api-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.staticserver-api-rtr.middlewares=chain-no-auth@file"
+      ## HTTP Services
+      - "traefik.http.routers.staticserver-api-rtr.service=staticserver-svc"

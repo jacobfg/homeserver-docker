@@ -17,6 +17,9 @@
     'github-actions',
     'custom.regex',
   ],
+  'docker-compose': {
+    managerFilePatterns: ['/^compose\\/[^/]+\\.yml$/'],
+  },
   packageRules: [
     {
       matchUpdateTypes: [
