@@ -5,18 +5,10 @@ Home Server Docker Environment
 <!-- markdownlint-disable no-inline-html -->
 
 <p align="center">
-<!--
-  <a href="https://github.com/prettier/prettier#readme">
-    <img alt="code style" src="https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square">
-  </a>
-  <a href="https://conventionalcommits.org">
-    <img alt="Conventional Commits: 1.0.0" src="https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg?style=flat-square">
-  </a>
--->
+
     <a href="https://renovatebot.com">
     <img alt="Renovate enabled" src="https://img.shields.io/badge/renovate-enabled-brightgreen.svg?style=flat-square">
     </a>
-    <!-- create link action & badge -->
     <a href="https://github.com/renovatebot/github-action/actions">
       <img alt="GitHub workflow status" src="https://img.shields.io/github/actions/workflow/status/jacobfg/homeserver-docker/renovatebot.yml?style=flat-square">
     </a>
@@ -103,53 +95,26 @@ see [resource monitoring](gitops/diagnostics/README.md) for targeted cleanup. ES
 Apprise remain under the existing `disabled` profile; Libation uses `scheduled`.
 Do not use `--profile '*' up` to deploy, because it would start every optional job.
 
-### One-time migration from separate projects
-
-Allow a maintenance window (including DNS downtime). **Do the teardown before
-pulling**, while the old files still define the separate projects. Record the
-old revision with `git rev-parse HEAD` for rollback. If deployment tooling applies
-a custom project name, use that same name during its teardown.
-
-From the repository root on the old revision:
+### Routine updates and helpers
 
 ```bash
-# Pause future jobs, then wait until this prints false before continuing.
-docker compose -f libation/docker-compose.yml stop ofelia
-docker inspect --format '{{.State.Running}}' libation
-
-# Remove consumers first, retaining all volumes and bind-mounted data.
-# Stop any diagnostic capture gracefully so it can write its summary.
-docker compose -f diagnostics/docker-compose.yml --profile diagnostics down
-docker compose -f apprise-poc/docker-compose.yml --profile disabled down
-docker compose -f esphome/docker-compose.yml --profile disabled down
-docker compose -f fittools/docker-compose.yml down
-docker compose -f audiobookshelf/docker-compose.yml down
-docker compose -f sftp-server/docker-compose.yml down
-docker compose -f libation/docker-compose.yml --profile scheduled down
-docker compose -f homeassistant/docker-compose.yml down
-
 git pull --ff-only
-docker compose --profile '*' config --quiet
 ./scripts/update-docker-compose-services.bash
 ```
 
-If Libation does not exist, there is no job to wait for. Use `down`, not just
-`stop`: old containers retain their names and project ownership when stopped.
-Do not add `--volumes`. Fix any teardown errors before starting the new project.
-If an old network remains, inspect its attached containers and remove it only
-when empty; do not prune unrelated networks. The new project must create its own
-networks rather than reuse networks labelled for an old project.
+| Helper | Purpose |
+| --- | --- |
+| `scripts/portainer.bash start\|stop` | Start or stop the Portainer group |
+| `scripts/stop-rm-start.bash SERVICE...` | Recreate selected Compose services |
+| `scripts/esphome-clean.sh` | Remove ESPHome build caches from the configured host volume |
+| `scripts/gitops.bash COMMAND...` | Run Terraform for SFTPGo; see [GitOps instructions](gitops/sftp-server/README.md) |
+| `scripts/host-open-ipv4-ports.bash` | Inspect host ports exposed to the LAN |
 
-Portainer, diagnostics, ESPHome and Apprise remain stopped after migration.
-Verify DNS, HTTPS/login, SFTP, home automation and audiobook routes. Confirm
-Libation exists but is stopped, and Ofelia is running.
-
-For rollback, pause Ofelia and wait for Libation to finish, then run
-`docker compose --profile '*' down` on the new revision without `--volumes`.
-Restore the recorded revision (`git switch --detach OLD_REVISION`, with a clean
-working tree), and run `bash scripts/update-docker-compose-services.bash` from the
-repository root. Restart any previously active optional tools explicitly.
-Application data stays in the existing bind mounts throughout.
+Run `bash scripts/esphome-clean.sh` while ESPHome is not compiling. It reads the
+root `.env` through Compose and uses the ESPHome `/config` bind mount under
+`VOLUME_DIR`. Only `.esphome` build, external-components, IDE, packages and PlatformIO
+caches are removed; device YAML and secrets are retained. It works from any
+working directory when invoked by its repository path.
 
 ### Script checks
 

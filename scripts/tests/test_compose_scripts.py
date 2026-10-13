@@ -56,7 +56,7 @@ class ComposeScripts(unittest.TestCase):
         self.addCleanup(self.tmp.cleanup)
         self.root = Path(self.tmp.name)
         (self.root / "scripts").mkdir()
-        for name in ("compose-common.bash", "portainer.bash", "update-docker-compose-services.bash"):
+        for name in ("compose-common.bash", "portainer.bash", "update-docker-compose-services.bash", "esphome-clean.sh"):
             shutil.copyfile(SCRIPTS / name, self.root / "scripts" / name)
         (self.root / "scripts/.env").write_text("")
         (self.root / "compose.yaml").write_text("name: homeserver-docker\n")
@@ -151,6 +151,48 @@ class ComposeScripts(unittest.TestCase):
         self.assertNotEqual(self.run_script("update-docker-compose-services.bash", PULL_FAIL="1").returncode, 0)
         self.assertFalse(self.actions("stop"))
         self.assertFalse(self.actions("up"))
+
+    def esphome_config(self):
+        config = self.root / "host volume/esphome/config"
+        config.mkdir(parents=True)
+        model = json.loads(self.model.read_text())
+        model["services"]["esphome"]["volumes"] = [
+            {"type": "bind", "source": str(config), "target": "/config"}]
+        self.model.write_text(json.dumps(model))
+        return config
+
+    def test_esphome_cleans_only_caches_from_resolved_mount(self):
+        config = self.esphome_config()
+        cache = config / ".esphome"
+        for name in ("build", "external_components", "idedata", "packages", "platformio"):
+            (cache / name).mkdir(parents=True)
+            (cache / name / "artifact").write_text("cache")
+        (config / "device.yaml").write_text("keep")
+        (config / "secrets.yaml").write_text("keep")
+        (cache / "storage").mkdir()
+        result = self.run_script("esphome-clean.sh")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(list(cache.iterdir()), [cache / "storage"])
+        self.assertTrue((config / "device.yaml").exists())
+        self.assertTrue((config / "secrets.yaml").exists())
+        self.assertIn(str(self.root / ".env"), self.calls()[-1])
+
+    def test_esphome_refuses_symlinked_cache_directory(self):
+        config = self.esphome_config()
+        elsewhere = self.root / "elsewhere"
+        (elsewhere / "build").mkdir(parents=True)
+        (config / ".esphome").symlink_to(elsewhere, target_is_directory=True)
+        self.assertNotEqual(self.run_script("esphome-clean.sh").returncode, 0)
+        self.assertTrue((elsewhere / "build").exists())
+
+    def test_esphome_missing_mount_fails_without_cleanup(self):
+        self.assertNotEqual(self.run_script("esphome-clean.sh").returncode, 0)
+
+    def test_esphome_absent_caches_are_a_noop(self):
+        self.esphome_config()
+        result = self.run_script("esphome-clean.sh")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("No ESPHome caches", result.stdout)
 
 
 if __name__ == "__main__":

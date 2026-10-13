@@ -17,7 +17,6 @@ services:
           memory: 128M # Soft reservation; does not preallocate RAM.
     memswap_limit: 512m # Combined RAM + swap limit; equal to RAM disables swap.
     cpu_shares: 2048 # Prefer the proxy under CPU contention; allow bursts without a CPU cap.
-    # Prepare file ownership and run the checks in traefik/NONROOT-ROLLOUT.md first.
     user: "65532:65532"
     read_only: true # ACME's existing bind mount remains writable for renewals.
     tmpfs:

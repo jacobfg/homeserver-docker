@@ -4,28 +4,6 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/compose-common.bash"
 require_compose_tools
 
-function retireCodeServer() {
-    # The retired service belonged to a different project, so --remove-orphans
-    # cannot retire its container. Keep this migration safe to run on every update.
-    # A restored stack definition takes precedence (for example, on rollback).
-    if [[ -f "$COMPOSE_ROOT/compose/vscode-server.yml" || -f "$COMPOSE_ROOT/vscode-server/docker-compose.yml" ]]; then
-        return 0
-    fi
-
-    local retired_container_id
-    retired_container_id="$(docker container ls --all --quiet \
-        --filter 'name=^/code-server$' \
-        --filter 'label=com.docker.compose.service=vscode-server' \
-        --filter 'label=com.docker.compose.project')" || return 1
-
-    if [[ -n "$retired_container_id" ]]; then
-        echo "Retiring the removed code-server Compose service (keeping its data)"
-        docker container stop "$retired_container_id" || return 1
-        # No --volumes: preserve volumes and the existing host bind-mount data.
-        docker container rm "$retired_container_id" || return 1
-    fi
-}
-
 # Validate all profiles so optional containers are known during orphan cleanup.
 # Explicit service lists below keep those profiles from starting optional tools.
 model="$(compose --profile '*' config --format json)"
@@ -54,7 +32,6 @@ unset credentials
 
 # Pull before pausing the scheduler or modifying containers.
 compose --profile '*' pull "${services[@]}" libation
-retireCodeServer
 
 scheduler_id="$(compose ps --status running --quiet ofelia)"
 scheduler_paused=false

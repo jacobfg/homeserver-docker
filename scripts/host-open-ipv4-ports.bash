@@ -1,11 +1,32 @@
 #!/bin/bash
 
+get_process_command() {
+  local pid="$1"
+  local proc_root="${2:-/proc}"
+  local command
+
+  # BusyBox ps does not support procps' -p PID -o comm= syntax.
+  # The process may exit between ss listing its socket and this read.
+  if [[ "$pid" =~ ^[0-9]+$ ]] &&
+     { IFS= read -r command < "$proc_root/$pid/comm"; } 2>/dev/null &&
+     [[ -n "$command" ]]; then
+    printf '%s\n' "$command"
+  else
+    printf '%s\n' '-'
+  fi
+}
+
 get_container_name() {
   local pid="$1"
   local address="$2"
   local proto="$3"
 
-  CGROUP=$(cat /proc/$pid/cgroup)
+  local CGROUP CONTAINER_ID
+  if [[ ! "$pid" =~ ^[0-9]+$ ]] ||
+     ! CGROUP=$(cat "/proc/$pid/cgroup" 2>/dev/null); then
+    echo "-"
+    return
+  fi
   if [[ "$CGROUP" =~ ^0::/system.slice/docker- ]] ; then
     CONTAINER_ID=$(echo $CGROUP | sed 's~^.*/docker-\([a-z0-9]\+\)\.scope~\1~')
     docker inspect --format '{{.Name}}' "${CONTAINER_ID}" | sed 's/^\///'
@@ -34,6 +55,11 @@ get_ports_processes() {
   ss -utnlp4 '! src 127.0.0.0/8' | awk '{print $1, $5, $7}' | sed 's~^\(.*\) users:.*,pid=\([0-9]\+\),.*$~\1 \2~' | tail -n +2 |  sort -t: -k2,2n | uniq
 }
 
+# Allow helpers to be sourced for tests without scanning the host.
+if [[ "${BASH_SOURCE[0]}" != "$0" ]]; then
+  return
+fi
+
 # if not root, exit
 if [[ $EUID -ne 0 ]]; then
   echo "This script must be run as root" 
@@ -46,6 +72,6 @@ get_ports_processes | while read -r proto address pid_info; do
   pid="${pid_info##pid=}"
   pid="${pid%,*}"
   container_name=$(get_container_name "$pid" "$address" "$proto")
-  command=$(ps -p "$pid" -o comm=)
+  command=$(get_process_command "$pid")
   printf "%-20s %-25s %-10s %-20s\n" "$command" "$address/$proto" "$pid" "$container_name"
 done
