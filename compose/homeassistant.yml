@@ -17,6 +17,8 @@ services:
     # depends_on:
     #   - influxdb
     network_mode: host
+    extra_hosts:
+      - "mosquitto:192.168.90.252" # Host networking cannot use Docker service DNS.
     environment:
       - TZ
     volumes:
