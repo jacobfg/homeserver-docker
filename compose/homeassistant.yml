@@ -70,8 +70,6 @@ services:
     container_name: node-red
     environment:
       - TZ
-    ports:
-      - "127.0.0.1:1880:1880/tcp"
     volumes:
       - $VOLUME_DIR/nodered/data:/data
       - $BACKUP_DIR/energy-data:/energy-data
@@ -117,9 +115,6 @@ services:
         ipv4_address: 192.168.90.252 # You can specify a static IP
     volumes:
       - $VOLUME_DIR/mosquitto/config:/mosquitto/config
-    ports:
-      - "127.0.0.1:1883:1883/tcp"
-      # - 9001:9001 # not using websockets
     command: "mosquitto -c /mosquitto/config/mosquitto.conf"
     labels:
       - "traefik.enable=false"
@@ -142,8 +137,6 @@ services:
     volumes:
       - $VOLUME_DIR/zigbee2mqtt/data:/app/data
       - /run/udev:/run/udev:ro
-    ports:
-      - "127.0.0.1:8080:8080/tcp"
     environment:
       - TZ
       - ZIGBEE2MQTT_CONFIG_permit_join=true
