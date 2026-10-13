@@ -1,0 +1,45 @@
+# Fictional example only. Replace the test key path with your encrypted keys.
+sftpgo_host = "http://127.0.0.1:2223"
+
+admin = {
+  username = "example-admin"
+  email    = "admin@example.invalid"
+}
+
+folders = {
+  documents = {
+    name        = "shared-documents"
+    mapped_path = "/mnt/documents"
+  }
+  incoming = {
+    name        = "incoming-files"
+    mapped_path = "/mnt/incoming"
+  }
+}
+
+accounts = {
+  reader = {
+    home_dir         = "/srv/sftpgo/data/reader"
+    email            = "reader@example.invalid"
+    public_key_files = ["tests/fixtures/scanner.pub"]
+    permissions      = { "/shared" = "list" }
+    folders = {
+      documents = { virtual_path = "/shared/documents", permissions = "list,download" }
+      incoming  = { virtual_path = "/dropbox", permissions = "*" }
+    }
+  }
+  scanner = {
+    home_dir         = "/srv/sftpgo/data/scanner"
+    email            = "scanner@example.invalid"
+    public_key_files = ["tests/fixtures/scanner.pub"]
+  }
+}
+
+web_client_url = "https://sftp.example.invalid/web/client"
+
+email_names = {
+  scan_action       = "scan-email"
+  scan_rule         = "scan-email"
+  large_scan_action = "large-scan-email"
+  large_scan_rule   = "large-scan-email"
+}

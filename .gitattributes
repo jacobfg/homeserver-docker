@@ -8,3 +8,15 @@ secrets/** filter=git-crypt diff=git-crypt
 gitops/** filter=git-crypt diff=git-crypt
 gitops/**/README.md filter=git-crypt diff=git-crypt
 compose/*.yml !filter !diff
+
+# SFTPGo: public implementation; deployment inputs remain encrypted by default.
+gitops/sftp-server/*.tf !filter !diff
+gitops/sftp-server/README.md !filter !diff
+gitops/sftp-server/.gitignore !filter !diff
+gitops/sftp-server/.terraform.lock.hcl !filter !diff
+gitops/sftp-server/deployment.tfvars.example !filter !diff
+gitops/sftp-server/tests/*.tftest.hcl !filter !diff
+gitops/sftp-server/tests/test_admin_lifecycle.py !filter !diff
+gitops/sftp-server/tests/fixtures/scanner.pub !filter !diff
+gitops/sftp-server/private/** filter=git-crypt diff=git-crypt
+gitops/sftp-server/keys/** filter=git-crypt diff=git-crypt

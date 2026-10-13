@@ -11,7 +11,7 @@ if [[ -n "${SFTPGO_API_KEY_FILE:-}" ]]; then
 fi
 # SFTPGo OSS requires a non-empty admin password even for OIDC accounts.
 # This write-only Terraform input never enters state or saved plans. Its value
-# is discarded; the version field controls when a rotation is requested.
+# is discarded; existing admins retain their password/version after import.
 if [[ -z "${TF_VAR_admin_seed_password:-}" ]]; then
     export TF_VAR_admin_seed_password
     TF_VAR_admin_seed_password="$(openssl rand -base64 48)"
