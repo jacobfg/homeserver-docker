@@ -108,8 +108,11 @@ git pull --ff-only
 | `scripts/stop-rm-start.bash SERVICE...` | Recreate selected Compose services |
 | `scripts/esphome-clean.sh` | Remove ESPHome build caches from the configured host volume |
 | `scripts/gitops.bash COMMAND...` | Run Terraform for SFTPGo; see [GitOps instructions](gitops/sftp-server/README.md) |
-| `scripts/host-open-ipv4-ports.bash` | Inspect host ports exposed to the LAN |
+| `scripts/host-open-ipv4-ports.bash` | Inspect host IPv4 ports, including loopback, and identify containers |
 | `scripts/container-open-ipv4-ports.bash` | Show live container IPv4 listening/bound ports and network IPs |
+
+The host script includes loopback bindings such as `127.0.0.1:2222` and checks
+all running Docker containers, including containers outside this repository.
 
 Run the port scripts as root on the Docker host. The container script reads `/proc/<pid>/net/tcp` and `/proc/<pid>/net/udp`
 using host tools compatible with BusyBox; neither `nsenter` nor tools inside

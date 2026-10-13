@@ -77,4 +77,4 @@ while IFS= read -r image; do
 done <<< "$images"
 
 docker image prune -f
-printf '\nInspect LAN-facing ports with: bash %s/host-open-ipv4-ports.bash\n' "$SCRIPT_DIR"
+printf '\nInspect host IPv4 ports (including loopback) with: bash %s/host-open-ipv4-ports.bash\n' "$SCRIPT_DIR"

@@ -77,6 +77,26 @@ class ContainerLookup(unittest.TestCase):
             self.assertEqual(self.lookup(300, "0.0.0.0:53", proto), "blocky")
         self.assertEqual(self.lookup(300, "0.0.0.0:530", "tcp"), "-")
 
+    def test_external_container_with_remapped_loopback_ssh_port(self):
+        self.snapshot += "container|" + "c" * 64 + "|/management|700\n"
+        self.snapshot += "port|/management|22/tcp|127.0.0.1:2222\n"
+        self.process(701, "docker-proxy")
+        self.assertEqual(self.lookup(701, "127.0.0.1:2222"), "management")
+        self.assertEqual(self.lookup(701, "127.0.0.1:22"), "-")
+
+    def test_socket_scan_includes_loopback(self):
+        result = subprocess.run([
+            "bash", "-c", '''
+source "$1"
+ss() {
+  [[ "$*" == '-utnlp4' ]] || return 1
+  printf '%s\n' 'Netid State Recv-Q Send-Q Local Peer Process'
+  printf '%s\n' 'tcp LISTEN 0 128 127.0.0.1:2222 0.0.0.0:* users:(("docker-proxy",pid=701,fd=4))'
+}
+get_ports_processes
+''', "test", str(SCRIPT)], capture_output=True, text=True, check=True)
+        self.assertEqual(result.stdout.strip(), "tcp 127.0.0.1:2222 701")
+
     def test_cgroup_v1_v2_and_systemd(self):
         for pid, cgroup in enumerate((
             f"5:cpu:/docker/{self.container_id}\n",

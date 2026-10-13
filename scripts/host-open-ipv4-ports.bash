@@ -92,8 +92,16 @@ get_container_name() {
 }
 
 get_ports_processes() {
-  # some processes may have multiple listening sockets for udp
-  ss -utnlp4 '! src 127.0.0.0/8' | awk '{print $1, $5, $7}' | sed 's~^\(.*\) users:.*,pid=\([0-9]\+\),.*$~\1 \2~' | tail -n +2 |  sort -t: -k2,2n | uniq
+  # Include loopback publications; UDP may have duplicate listening sockets.
+  ss -utnlp4 | awk 'NR > 1 {
+    pid = "-"
+    if ($0 ~ /pid=[0-9]+/) {
+      pid = $0
+      sub(/^.*pid=/, "", pid)
+      sub(/[^0-9].*$/, "", pid)
+    }
+    print $1, $5, pid
+  }' | sort -t: -k2,2n | uniq
 }
 
 # Allow helpers to be sourced for tests without scanning the host.
