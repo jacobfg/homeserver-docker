@@ -2,15 +2,22 @@
 import os
 from pathlib import Path
 import subprocess
+import tempfile
 import unittest
 
 SCRIPT = Path(__file__).resolve().parents[1] / 'container-open-ipv4-ports.bash'
 
 
 class ContainerPorts(unittest.TestCase):
-    def report(self, snapshot, sockets='', fail=False):
-        return subprocess.run([
-            'bash', '-c', '''
+    def report(self, snapshot, tcp='', udp='', fail=False):
+        with tempfile.TemporaryDirectory() as proc_root:
+            net = Path(proc_root) / '123/net'
+            net.mkdir(parents=True)
+            if not fail:
+                (net / 'tcp').write_text('sl local_address rem_address st\n' + tcp)
+                (net / 'udp').write_text('sl local_address rem_address st\n' + udp)
+            return subprocess.run([
+                'bash', '-c', '''
 source "$1"
 docker() {
   if [[ "$1" == ps ]]; then
@@ -19,26 +26,30 @@ docker() {
     printf '%s\n' "$SNAPSHOT"
   fi
 }
-nsenter() {
-  [[ "$*" == "-t 123 -n -- ss -H -lntu4" ]] || return 2
-  [[ "$FAIL" != true ]] || return 1
-  printf '%s\n' "$SOCKETS"
-}
-report_container_ports
-''', 'test', str(SCRIPT)],
-            env={**os.environ, 'SNAPSHOT': snapshot, 'SOCKETS': sockets,
-                 'FAIL': 'true' if fail else 'false'},
-            capture_output=True, text=True)
+report_container_ports "$2"
+''', 'test', str(SCRIPT), proc_root],
+                env={**os.environ, 'SNAPSHOT': snapshot},
+                capture_output=True, text=True)
 
     def test_internal_ports_multiple_ips_loopback_and_deduplication(self):
         result = self.report('id|/app|123|bridge|frontend=172.18.0.2 backend=172.19.0.2 ',
-                             'tcp LISTEN 0 128 0.0.0.0:8080 0.0.0.0:*\n'
-                             'udp UNCONN 0 0 127.0.0.1:5353 0.0.0.0:*\n'
-                             'udp UNCONN 0 0 127.0.0.1:5353 0.0.0.0:*')
+                             tcp='0: 00000000:1F90 00000000:0000 0A\n',
+                             udp='0: 0100007F:14E9 00000000:0000 07\n'
+                                 '1: 0100007F:14E9 00000000:0000 07\n')
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn('0.0.0.0:8080/tcp', result.stdout)
         self.assertEqual(result.stdout.count('127.0.0.1:5353/udp'), 1)
         self.assertIn('frontend=172.18.0.2 backend=172.19.0.2', result.stdout)
+
+    def test_specific_ip_and_connected_sockets(self):
+        result = self.report('id|/app|123|bridge|net=192.168.90.2 ',
+                             tcp='0: 025AA8C0:01BB 00000000:0000 0A\n'
+                                 '1: 025AA8C0:C001 0100007F:0050 01\n',
+                             udp='0: 025AA8C0:C002 0100007F:0035 01\n')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('192.168.90.2:443/tcp', result.stdout)
+        self.assertNotIn(':49153', result.stdout)
+        self.assertNotIn(':49154', result.stdout)
 
     def test_host_network_is_not_misattributed(self):
         result = self.report('id|/homeassistant|999|host|')

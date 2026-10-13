@@ -111,8 +111,9 @@ git pull --ff-only
 | `scripts/host-open-ipv4-ports.bash` | Inspect host ports exposed to the LAN |
 | `scripts/container-open-ipv4-ports.bash` | Show live container IPv4 listening/bound ports and network IPs |
 
-Run the port scripts as root on the Docker host. The container script requires
-host `nsenter` and `ss`; no tools need to be installed inside containers. It shows
+Run the port scripts as root on the Docker host. The container script reads `/proc/<pid>/net/tcp` and `/proc/<pid>/net/udp`
+using host tools compatible with BusyBox; neither `nsenter` nor tools inside
+containers are needed. It shows
 actual TCP listeners and UDP bound sockets, including unpublished and loopback
 ports, alongside each container's network IPs. A loopback bind remains local to
 its namespace; listing a container IP does not mean that socket listens on it.
