@@ -109,6 +109,15 @@ git pull --ff-only
 | `scripts/esphome-clean.sh` | Remove ESPHome build caches from the configured host volume |
 | `scripts/gitops.bash COMMAND...` | Run Terraform for SFTPGo; see [GitOps instructions](gitops/sftp-server/README.md) |
 | `scripts/host-open-ipv4-ports.bash` | Inspect host ports exposed to the LAN |
+| `scripts/container-open-ipv4-ports.bash` | Show live container IPv4 listening/bound ports and network IPs |
+
+Run the port scripts as root on the Docker host. The container script requires
+host `nsenter` and `ss`; no tools need to be installed inside containers. It shows
+actual TCP listeners and UDP bound sockets, including unpublished and loopback
+ports, alongside each container's network IPs. A loopback bind remains local to
+its namespace; listing a container IP does not mean that socket listens on it.
+Containers sharing a network namespace show that namespace's sockets. Host-network
+containers have no separate IP and are marked for inspection with the host script.
 
 Run `bash scripts/esphome-clean.sh` while ESPHome is not compiling. It reads the
 root `.env` through Compose and uses the ESPHome `/config` bind mount under
