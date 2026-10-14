@@ -115,8 +115,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2.0'
-          memory: 1G
+          cpus: '4.0'
+          memory: 2G
     environment:
       - TZ=$TZ
       # Direct Docker-network access: no Traefik or Authelia loop for polling,
