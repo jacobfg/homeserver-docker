@@ -82,23 +82,21 @@ including the Garmin proxy and sidecar on `abs_green_internal`.
 
 `config/traefik/rules/homer-api.yml` owns Homer's existing `/dashboard-endpoint`
 feed and same-origin widget API routes. Set the widget's `endpoint` to the path
-below, keeping its `url` pointed at the application's normal hostname:
+below, keeping its `url` pointed at the application's normal hostname.
 
-| Widget backend | Homer `endpoint` | Forwarded paths/methods |
-| --- | --- | --- |
-| Home Assistant | `/services/homeassistant` | `/api/*`, GET |
-| Portainer | `/services/portainer` | `/api/*`, GET |
-| Traefik | `/services/traefik` | `/api/*`, GET |
-| Immich | `/services/immich` | `/api/*`, GET |
-
-These routes authenticate with Authelia before stripping the service prefix.
+The routes authenticate with Authelia before stripping the service prefix.
 Backend API credentials are still required where applicable. Portainer must be
 running for its widget to work. The message URL remains `/dashboard-endpoint`.
+Status widgets can probe the backend root through their `/services/<name>`
+endpoint; GET and HEAD are supported. Keep `url` as the normal application URL.
+For example, a Node-RED Ping tile uses `endpoint: /services/nodered` alongside
+its existing `url`. Append any existing custom health path to the new endpoint.
 
 Homer's live configuration resides in `$VOLUME_DIR/homer/assets`, not this
-repository. Its same-origin endpoints have been updated and verified; the
-Homer-specific CORS middleware and references have been removed. Configure new
-widgets with same-origin endpoints and add their API routes as needed.
+repository. The Homer-specific CORS middleware and references have been removed.
+Update the ESPHome, Node-RED, Authelia, Duplicacy and Fittools tile endpoints to
+the paths above when deploying these routes, and verify their status checks.
+Configure new widgets with same-origin endpoints and add their routes as needed.
 
 Recreate Traefik and the affected services (`audiobookshelf`, `abs_green_proxy`,
 `garmin_media_sidecar`, `homeassistant`, `node-red`, `static-web-server`) together
