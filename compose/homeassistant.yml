@@ -53,6 +53,14 @@ services:
       - "traefik.http.routers.homeassistant-webhook-rtr.tls=true"
       - "traefik.http.routers.homeassistant-webhook-rtr.middlewares=chain-no-auth@file"
       - "traefik.http.routers.homeassistant-webhook-rtr.service=homeassistant-svc"
+      # Garmin IoT via TLS <1.3 ;-(
+      - "traefik.http.routers.homeassistant-lan-api--rtr-tls12.entrypoints=garmin-https"
+      - "traefik.http.routers.homeassistant-lan-api--rtr-tls12.priority=200"
+      - "traefik.http.routers.homeassistant-lan-api--rtr-tls12.rule=Host(`homeassistant.$DOMAINNAME_CLOUD_SERVER`) && (ClientIP(`$ABS_BYPASS3_CIDR`) || ClientIP(`$ABS_BYPASS1_CIDR`)) && PathPrefix(`/api/`)"
+      - "traefik.http.routers.homeassistant-lan-api--rtr-tls12.tls=true"
+      - "traefik.http.routers.homeassistant-lan-api--rtr-tls12.middlewares=chain-no-auth@file"
+      - "traefik.http.routers.homeassistant-lan-api--rtr-tls12.service=homeassistant-svc"
+      - "traefik.http.routers.homeassistant-lan-api--rtr-tls12.tls.options=garmin-tls@file"
 
   # NodeRED
   node-red:

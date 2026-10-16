@@ -232,6 +232,9 @@ services:
       - "traefik.tcp.routers.blocky-dot.service=blocky-dns"
       - "traefik.tcp.services.blocky-dns.loadbalancer.server.port=53"
     extra_hosts:
+      # `test` only exists here to validate any dnat rules for DNS
+      - "test.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      # service records
       - "dns.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
       - "audiobookshelf.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
       - "auth.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
