@@ -140,6 +140,9 @@ services:
       - CF_DNS_API_TOKEN_FILE=/run/secrets/cf_dns_api_key
       - CF_ZONE_API_TOKEN_FILE=/run/secrets/cf_dns_api_key
       - GOMEMLIMIT=384MiB # Go soft memory target; leave headroom below the container limit.
+      # Server-side widget credentials; missing keys disable their Homer API routes.
+      - HOMER_PORTAINER_API_KEY=${HOMER_PORTAINER_API_KEY:-}
+      - HOMER_HOMEASSISTANT_TOKEN=${HOMER_HOMEASSISTANT_TOKEN:-}
       - ABS_BYPASS1_CIDR # Source restrictions for the file-based Garmin routes.
       - ABS_BYPASS3_CIDR
       - ABS_BYPASS4_CIDR
