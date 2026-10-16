@@ -36,7 +36,7 @@ services:
       - "traefik.http.routers.influxdb-rtr.rule=Host(`influxdb.$DOMAINNAME_CLOUD_SERVER`)"
       - "traefik.http.routers.influxdb-rtr.tls=true"
       ## Middlewares
-      - "traefik.http.routers.influxdb-rtr.middlewares=middlewares-homer-cors@file,chain-authelia@file"
+      - "traefik.http.routers.influxdb-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.influxdb-rtr.service=influxdb-svc"
       - "traefik.http.services.influxdb-svc.loadbalancer.server.port=8086"

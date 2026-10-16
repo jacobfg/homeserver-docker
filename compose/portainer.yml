@@ -38,7 +38,7 @@ services:
       - "traefik.http.routers.portainer-rtr.rule=Host(`portainer.$DOMAINNAME_CLOUD_SERVER`)"
       - "traefik.http.routers.portainer-rtr.tls=true"
       ## Middlewares
-      - "traefik.http.routers.portainer-rtr.middlewares=middlewares-homer-cors@file,middlewares-admin-headers@file,chain-authelia@file"
+      - "traefik.http.routers.portainer-rtr.middlewares=middlewares-admin-headers@file,chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.portainer-rtr.service=portainer-svc"
       - "traefik.http.services.portainer-svc.loadbalancer.server.port=9000"

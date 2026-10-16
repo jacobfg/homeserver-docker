@@ -33,20 +33,12 @@ services:
       - "traefik.http.routers.homeassistant-rtr.rule=Host(`homeassistant.$DOMAINNAME_CLOUD_SERVER`)"
       - "traefik.http.routers.homeassistant-rtr.tls=true"
       ## Middlewares
-      - "traefik.http.routers.homeassistant-rtr.middlewares=middlewares-homer-cors@file,chain-authelia@file"
+      - "traefik.http.routers.homeassistant-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.homeassistant-rtr.service=homeassistant-svc"
       - "traefik.http.services.homeassistant-svc.loadbalancer.passHostHeader=true"
       - "traefik.http.services.homeassistant-svc.loadbalancer.server.url=http://$DOCKER_SERVER_IP:8123/"
-      # Main LAN API clients use HA authentication directly; preserve Homer's CORS/preflights.
-      - "traefik.http.routers.homeassistant-lan-api-rtr.entrypoints=https"
-      - "traefik.http.routers.homeassistant-lan-api-rtr.priority=99"
-      - "traefik.http.routers.homeassistant-lan-api-rtr.rule=Host(`homeassistant.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`$ABS_BYPASS1_CIDR`) && PathPrefix(`/api/`)"
-      - "traefik.http.routers.homeassistant-lan-api-rtr.tls=true"
-      - "traefik.http.routers.homeassistant-lan-api-rtr.middlewares=middlewares-homer-cors@file,chain-authelia@file" # FIX ?
-      - "traefik.http.routers.homeassistant-lan-api-rtr.service=homeassistant-svc"
       # Duplicacy reaches Traefik over t2_proxy. Allow only webhook paths from that subnet.
-      # HA webhook IDs remain secrets; this does not grant Docker clients general API access.
       - "traefik.http.routers.homeassistant-webhook-rtr.entrypoints=https"
       - "traefik.http.routers.homeassistant-webhook-rtr.priority=99"
       - "traefik.http.routers.homeassistant-webhook-rtr.rule=Host(`homeassistant.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.90.0/24`) && PathPrefix(`/api/webhook/`)"
@@ -82,7 +74,7 @@ services:
       - "traefik.http.routers.nodered-rtr.rule=Host(`nodered.$DOMAINNAME_CLOUD_SERVER`)"
       - "traefik.http.routers.nodered-rtr.tls=true"
       ## Middlewares
-      - "traefik.http.routers.nodered-rtr.middlewares=middlewares-homer-cors@file,chain-authelia@file"
+      - "traefik.http.routers.nodered-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.nodered-rtr.service=nodered-svc"
       - "traefik.http.services.nodered-svc.loadbalancer.server.port=1880"
@@ -145,7 +137,7 @@ services:
       - "traefik.http.routers.zigbee2mqtt-rtr.rule=Host(`zigbee2mqtt.$DOMAINNAME_CLOUD_SERVER`)"
       - "traefik.http.routers.zigbee2mqtt-rtr.tls=true"
       ## Middlewares
-      - "traefik.http.routers.zigbee2mqtt-rtr.middlewares=middlewares-homer-cors@file,chain-authelia@file"
+      - "traefik.http.routers.zigbee2mqtt-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.zigbee2mqtt-rtr.service=zigbee2mqtt-svc"
       - "traefik.http.services.zigbee2mqtt-svc.loadbalancer.server.port=8080"

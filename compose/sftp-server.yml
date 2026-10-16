@@ -82,7 +82,7 @@ services:
       - "traefik.http.routers.sftpgo-https.entrypoints=https"
       - "traefik.http.routers.sftpgo-https.rule=Host(`sftp.$DOMAINNAME_CLOUD_SERVER`)"
       - "traefik.http.routers.sftpgo-https.tls=true"
-      - "traefik.http.routers.sftpgo-https.middlewares=middlewares-homer-cors@file,chain-authelia@file"
+      - "traefik.http.routers.sftpgo-https.middlewares=chain-authelia@file"
       - "traefik.http.routers.sftpgo-https.service=sftpgo-https"
       - "traefik.http.services.sftpgo-https.loadbalancer.server.port=2222"
     extra_hosts:

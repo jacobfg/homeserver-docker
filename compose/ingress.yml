@@ -162,7 +162,7 @@ services:
       ## Services - API
       - "traefik.http.routers.traefik-rtr.service=api@internal"
       ## Middlewares
-      - "traefik.http.routers.traefik-rtr.middlewares=middlewares-homer-cors@file,middlewares-admin-headers@file,chain-authelia@file"
+      - "traefik.http.routers.traefik-rtr.middlewares=middlewares-admin-headers@file,chain-authelia@file"
 
   # Dedicated discovery proxy: only Traefik joins this internal network; no published ports.
   traefik-socket-proxy:

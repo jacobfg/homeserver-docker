@@ -44,9 +44,8 @@ services:
       - "traefik.http.routers.authelia-rtr.rule=Host(`auth.$DOMAINNAME_CLOUD_SERVER`)"
       - "traefik.http.routers.authelia-rtr.tls=true"
       ## Middlewares
-      # The login portal handles its own authentication; retain CORS, rate limiting and headers.
-      - "traefik.http.routers.authelia-rtr.middlewares=middlewares-homer-cors@file,chain-no-auth@file"
-      # - "traefik.http.routers.authelia-rtr.middlewares=cors@file,chain-authelia@file"
+      # The login portal handles its own authentication; retain rate limiting and headers.
+      - "traefik.http.routers.authelia-rtr.middlewares=chain-no-auth@file"
       ## HTTP Services
       - "traefik.http.routers.authelia-rtr.service=authelia-svc"
       - "traefik.http.services.authelia-svc.loadbalancer.server.port=9091"

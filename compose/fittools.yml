@@ -21,7 +21,7 @@ services:
       - "traefik.http.routers.fittools-rtr.rule=Host(`fittools.$DOMAINNAME_CLOUD_SERVER`)"
       - "traefik.http.routers.fittools-rtr.tls=true"
       ## Middlewares
-      - "traefik.http.routers.fittools-rtr.middlewares=middlewares-homer-cors@file,chain-authelia@file"
+      - "traefik.http.routers.fittools-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.fittools-rtr.service=fittools-svc"
       - "traefik.http.services.fittools-svc.loadbalancer.server.port=8080"

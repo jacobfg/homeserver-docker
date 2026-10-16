@@ -95,11 +95,10 @@ These routes authenticate with Authelia before stripping the service prefix.
 Backend API credentials are still required where applicable. Portainer must be
 running for its widget to work. The message URL remains `/dashboard-endpoint`.
 
-The Homer migration is staged: its live configuration resides in
-`$VOLUME_DIR/homer/assets`, not this repository. Update and verify those widgets,
-then add routes for any remaining widgets using their actual API paths and
-methods. Existing `middlewares-homer-cors` references remain until all callers
-have migrated; removing them beforehand would break the current dashboard.
+Homer's live configuration resides in `$VOLUME_DIR/homer/assets`, not this
+repository. Its same-origin endpoints have been updated and verified; the
+Homer-specific CORS middleware and references have been removed. Configure new
+widgets with same-origin endpoints and add their API routes as needed.
 
 Recreate Traefik and the affected services (`audiobookshelf`, `abs_green_proxy`,
 `garmin_media_sidecar`, `homeassistant`, `node-red`, `static-web-server`) together

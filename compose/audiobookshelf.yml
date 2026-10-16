@@ -27,20 +27,12 @@ services:
       ## HTTP Services
       - "traefik.http.routers.audiobookshelf-rtr.service=audiobookshelf-svc"
       - "traefik.http.services.audiobookshelf-svc.loadbalancer.server.port=8088"
-      ## LOCAL ACCESS - Allow local (home) access without traefik auth
-      ## HTTP Routers
+      # Client Apps that can't handle auth reverse proxy
       - "traefik.http.routers.audiobookshelf-bypass-rtr.entrypoints=https"
       - "traefik.http.routers.audiobookshelf-bypass-rtr.priority=99"
-      # - "traefik.http.routers.audiobookshelf-bypass-rtr.rule=Host(`audiobookshelf.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`192.168.0.0/16`)"
-      # || PathPrefix(`/s/`)
-      # (PathPrefix(`/api`) || PathPrefix(`/socket.io`) || PathPrefix(`/manifest.json`) || PathPrefix(`/auth`)) &&
-      # - "traefik.http.routers.audiobookshelf-bypass-rtr.rule=Host(`audiobookshelf.$DOMAINNAME_CLOUD_SERVER`) && ( (Method(`POST`) && Path(`/auth/openid`) && Query(`scope=openid`)) || (Method(`GET`) && Path(`/auth/openid`) && Query(`scope=openid`)) || (Method(`GET`) && Path(`/api/oidc/authorization`) && Query(`scope=openid`)) || (Method(`GET`) && (Path(`/`) && Query(`flow=openid_connect`)) ) && ClientIP(`$ABS_BYPASS_CIDR`)"
-      # - "traefik.http.routers.audiobookshelf-bypass-rtr.rule=Host(`audiobookshelf.$DOMAINNAME_CLOUD_SERVER`) && ( PathPrefix(`/api/`) || PathPrefix(`/socket.io`) || PathPrefix(`/manifest.json`) || PathPrefix(`/auth`)) || (Method(`GET`) && (Path(`/`) && Query(`flow=openid_connect`)) ) && ClientIP(`$ABS_BYPASS_CIDR`)"
       - "traefik.http.routers.audiobookshelf-bypass-rtr.rule=Host(`audiobookshelf.$DOMAINNAME_CLOUD_SERVER`) && (ClientIP(`$ABS_BYPASS1_CIDR`) || ClientIP(`$ABS_BYPASS2_CIDR`) || ClientIP(`192.168.92.0/24`))"
       - "traefik.http.routers.audiobookshelf-bypass-rtr.tls=true"
-      ## Middlewares
       - "traefik.http.routers.audiobookshelf-bypass-rtr.middlewares=chain-no-auth@file"
-      ## HTTP Services
       - "traefik.http.routers.audiobookshelf-bypass-rtr.service=audiobookshelf-svc"
       ## GARMIN WATCH API - custom hostname; normal ABS hostname is unchanged.
       # Allow the configured phone/watch networks; authentication is the watch's ABS Bearer token.
