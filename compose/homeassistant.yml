@@ -38,6 +38,13 @@ services:
       - "traefik.http.routers.homeassistant-rtr.service=homeassistant-svc"
       - "traefik.http.services.homeassistant-svc.loadbalancer.passHostHeader=true"
       - "traefik.http.services.homeassistant-svc.loadbalancer.server.url=http://$DOCKER_SERVER_IP:8123/"
+      # Main LAN API clients use HA api direct - aka Garmin iOS app
+      - "traefik.http.routers.homeassistant-lan-api-rtr.entrypoints=https"
+      - "traefik.http.routers.homeassistant-lan-api-rtr.priority=99"
+      - "traefik.http.routers.homeassistant-lan-api-rtr.rule=Host(`homeassistant.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`$ABS_BYPASS1_CIDR`) && PathPrefix(`/api/`)"
+      - "traefik.http.routers.homeassistant-lan-api-rtr.tls=true"
+      - "traefik.http.routers.homeassistant-lan-api-rtr.middlewares=chain-authelia@file"
+      - "traefik.http.routers.homeassistant-lan-api-rtr.service=homeassistant-svc"
       # Duplicacy reaches Traefik over t2_proxy. Allow only webhook paths from that subnet.
       - "traefik.http.routers.homeassistant-webhook-rtr.entrypoints=https"
       - "traefik.http.routers.homeassistant-webhook-rtr.priority=99"
