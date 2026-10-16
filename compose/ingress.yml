@@ -115,6 +115,10 @@ services:
         protocol: tcp
         mode: host
     configs:
+      - source: traefik_rules_garmin
+        target: /rules/garmin.yml
+      - source: traefik_rules_homer_api
+        target: /rules/homer-api.yml
       - source: traefik_rules_esphome
         target: /rules/esphome.yml
       - source: traefik_rules_tls_opts
@@ -136,6 +140,9 @@ services:
       - CF_DNS_API_TOKEN_FILE=/run/secrets/cf_dns_api_key
       - CF_ZONE_API_TOKEN_FILE=/run/secrets/cf_dns_api_key
       - GOMEMLIMIT=384MiB # Go soft memory target; leave headroom below the container limit.
+      - ABS_BYPASS1_CIDR # Source restrictions for the file-based Garmin routes.
+      - ABS_BYPASS3_CIDR
+      - ABS_BYPASS4_CIDR
       - DOMAINNAME_CLOUD_SERVER # Passing the domain name to the traefik container to be able to use the variable in rules.
       - DOCKER_SERVER_IP # Passing the docker server IP to the traefik container to be able to use the variable in rules.
     secrets:
@@ -228,7 +235,7 @@ services:
       - "traefik.tcp.routers.blocky-dot.tls=true"
       - "traefik.tcp.routers.blocky-dot.tls.options=dot-tls@file"
       - "traefik.tcp.routers.blocky-dot.middlewares=blocky-dot-lan@docker"
-      - "traefik.tcp.middlewares.blocky-dot-lan.ipallowlist.sourcerange=$ABS_BYPASS1_CIDR,$ABS_BYPASS2_CIDR,$ABS_BYPASS3_CIDR"
+      - "traefik.tcp.middlewares.blocky-dot-lan.ipallowlist.sourcerange=$ABS_BYPASS1_CIDR,$ABS_BYPASS2_CIDR,$ABS_BYPASS3_CIDR,$ABS_BYPASS4_CIDR"
       - "traefik.tcp.routers.blocky-dot.service=blocky-dns"
       - "traefik.tcp.services.blocky-dns.loadbalancer.server.port=53"
     extra_hosts:
@@ -256,6 +263,10 @@ services:
       - "garmin-abs.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
 
 configs:
+  traefik_rules_garmin:
+    file: ../config/traefik/rules/garmin.yml
+  traefik_rules_homer_api:
+    file: ../config/traefik/rules/homer-api.yml
   traefik_rules_esphome:
     file: ../config/traefik/rules/esphome.yml
   traefik_rules_tls_opts:

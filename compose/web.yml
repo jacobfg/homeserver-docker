@@ -81,11 +81,3 @@ services:
       - "traefik.http.routers.staticserver-api-rtr.middlewares=chain-no-auth@file"
       ## HTTP Services
       - "traefik.http.routers.staticserver-api-rtr.service=staticserver-svc"
-      ## Test
-      - "traefik.http.routers.staticserver-api-rtr-tls12.entrypoints=garmin-https"
-      - "traefik.http.routers.staticserver-api-rtr-tls12.priority=200"
-      - "traefik.http.routers.staticserver-api-rtr-tls12.rule=Host(`static.$DOMAINNAME_CLOUD_SERVER`) && (ClientIP(`$ABS_BYPASS3_CIDR`) || ClientIP(`$ABS_BYPASS1_CIDR`))"
-      - "traefik.http.routers.staticserver-api-rtr-tls12.tls=true"
-      - "traefik.http.routers.staticserver-api-rtr-tls12.middlewares=chain-no-auth@file"
-      - "traefik.http.routers.staticserver-api-rtr-tls12.service=staticserver-svc"
-      - "traefik.http.routers.staticserver-api-rtr-tls12.tls.options=garmin-tls@file"

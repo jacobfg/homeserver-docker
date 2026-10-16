@@ -70,6 +70,43 @@ Diagnostic build assets live in `gitops/diagnostics/`, Terraform lives in
 `gitops/sftp-server/`, and operational helpers remain in `scripts/`. Run all
 Compose commands through the root project, rather than targeting module files.
 
+### Dashboard and Garmin routes
+
+`config/traefik/rules/garmin.yml` owns only the port 8443 routes on the
+TLS 1.2-compatible `garmin-https` listener, including its `garmin-tls` policy.
+Port 443 / TLS 1.3 routes remain in their existing Compose labels. Source CIDRs, paths, priorities and backend authentication are preserved.
+The listener and port remain static settings in `compose/ingress.yml`. Traefik
+receives `ABS_BYPASS1_CIDR` and `ABS_BYPASS3_CIDR` for the file's templates.
+The file routes reuse the Docker-discovered backend services via `@docker`,
+including the Garmin proxy and sidecar on `abs_green_internal`.
+
+`config/traefik/rules/homer-api.yml` owns Homer's existing `/dashboard-endpoint`
+feed and same-origin widget API routes. Set the widget's `endpoint` to the path
+below, keeping its `url` pointed at the application's normal hostname:
+
+| Widget backend | Homer `endpoint` | Forwarded paths/methods |
+| --- | --- | --- |
+| Home Assistant | `/services/homeassistant` | `/api/*`, GET |
+| Portainer | `/services/portainer` | `/api/*`, GET |
+| Traefik | `/services/traefik` | `/api/*`, GET |
+| Immich | `/services/immich` | `/api/*`, GET |
+
+These routes authenticate with Authelia before stripping the service prefix.
+Backend API credentials are still required where applicable. Portainer must be
+running for its widget to work. The message URL remains `/dashboard-endpoint`.
+
+The Homer migration is staged: its live configuration resides in
+`$VOLUME_DIR/homer/assets`, not this repository. Update and verify those widgets,
+then add routes for any remaining widgets using their actual API paths and
+methods. Existing `middlewares-homer-cors` references remain until all callers
+have migrated; removing them beforehand would break the current dashboard.
+
+Recreate Traefik and the affected services (`audiobookshelf`, `abs_green_proxy`,
+`garmin_media_sidecar`, `homeassistant`, `node-red`, `static-web-server`) together
+when deploying, so the new config mounts/environment and removed labels take
+effect. Verify Garmin catalogue/downloads on both ports and the Home Assistant
+and static-file routes on port 8443 from their allowed source networks.
+
 ### On-demand Portainer
 
 From any directory, invoke these scripts by their repository path:
