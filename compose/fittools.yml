@@ -1,7 +1,7 @@
 services:
   fittools:
     container_name: fittools
-    image: ghcr.io/jacobfg/garmin-fit-scripts:0.1.0@sha256:f4f2d53fc3562d8097dfcb835229db1a9b0c90c0f42616a934daca755c6871ba
+    image: ghcr.io/jacobfg/garmin-fit-scripts:0.2.0@sha256:8f1489ee7b63296d501d939daff2013db006347190358588c656fce903c58a69
     restart: unless-stopped
     user: $PUID:$PGID
     deploy:
