@@ -1,7 +1,7 @@
 services:
   fittools:
     container_name: fittools
-    image: ghcr.io/jacobfg/garmin-fit-scripts:0.2.1@sha256:cb509d1dfad054b243f5d642cf7dcd9a2b1e7fb2d54cf5b3384c61f0c2ce5d67
+    image: ghcr.io/jacobfg/fittools:0.2.2@sha256:8f3cd3094ee74f5be7a8844a00475a10d820f8b3cbe74013c4932688f781b2f9
     restart: unless-stopped
     user: $PUID:$PGID
     deploy:
@@ -11,6 +11,10 @@ services:
           memory: 128M
     environment:
       - TZ=$TZ
+      - FIT_DEVICE_PRESETS_FILE=/config/device-presets.json
+    configs:
+      - source: fittools_device_presets
+        target: /config/device-presets.json
     networks:
       - fittools_internal
     labels:
@@ -25,3 +29,7 @@ services:
       ## HTTP Services
       - "traefik.http.routers.fittools-rtr.service=fittools-svc"
       - "traefik.http.services.fittools-svc.loadbalancer.server.port=8080"
+
+configs:
+  fittools_device_presets:
+    file: ../config/fittools/device-presets.json
