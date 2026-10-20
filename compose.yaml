@@ -12,6 +12,7 @@ include:
   - compose/audiobookshelf.yml
   - compose/sftp-server.yml
   - compose/libation.yml
+  - compose/scheduler.yml
   - compose/fittools.yml
   - compose/esphome.yml
   - compose/apprise-poc.yml
@@ -47,7 +48,7 @@ networks:
       config:
         - subnet: 192.168.92.0/24
 
-  ofelia_socket_proxy:
+  scheduler_socket_proxy:
     internal: true
   monitor_socket_proxy:
     internal: true

@@ -33,7 +33,7 @@ unset credentials
 # Pull before pausing the scheduler or modifying containers.
 compose --profile '*' pull "${services[@]}" libation
 
-scheduler_id="$(compose ps --status running --quiet ofelia)"
+scheduler_id="$(compose ps --status running --quiet scheduler)"
 scheduler_paused=false
 restore_scheduler() {
     local status=$?
@@ -41,14 +41,14 @@ restore_scheduler() {
     if [[ "$scheduler_paused" == true && -n "$scheduler_id" ]]; then
         # Restore only a scheduler that was running before this update.
         docker start "$scheduler_id" >/dev/null || \
-            echo "Could not restore Ofelia; inspect it and restart scheduling manually." >&2
+            echo "Could not restore the scheduler; inspect it and restart scheduling manually." >&2
     fi
     exit "$status"
 }
 trap restore_scheduler EXIT
 # Arm recovery before stopping: a failed stop may still have changed state.
 scheduler_paused=true
-compose stop --timeout 10 ofelia
+compose stop --timeout 10 scheduler
 job_id="$(compose --profile scheduled ps --all --quiet libation)"
 if [[ -n "$job_id" ]]; then
     job_running="$(docker inspect --format '{{.State.Running}}' "$job_id")"

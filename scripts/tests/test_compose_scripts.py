@@ -8,10 +8,10 @@ import tempfile
 import unittest
 
 SCRIPTS = Path(__file__).resolve().parents[1]
-MODEL = {"services": {
+MODEL = {"name": "homeserver-docker", "services": {
     "traefik": {"image": "example/proxy:v1@sha256:abc"},
-    "ofelia": {"image": "example/scheduler:v1"},
-    "ofelia-socket-proxy": {"image": "example/socket:v1"},
+    "scheduler": {"image": "example/scheduler:v1"},
+    "scheduler-socket-proxy": {"image": "example/socket:v1"},
     "libation": {"profiles": ["scheduled"], "image": "example/job:v1"},
     "portainer": {"profiles": ["portainer"]},
     "socket-proxy": {"profiles": ["portainer"]},
@@ -39,7 +39,7 @@ elif args[0] == "login":
 elif "pull" in args and os.environ.get("PULL_FAIL") == "1":
     sys.exit(1)
 elif "ps" in args:
-    if args[-1] == "ofelia" and os.environ.get("SCHEDULER", "running") == "running":
+    if args[-1] == "scheduler" and os.environ.get("SCHEDULER", "running") == "running":
         print("scheduler-id")
     elif args[-1] == "libation":
         print("job-id")
@@ -116,11 +116,11 @@ class ComposeScripts(unittest.TestCase):
     def test_update_prepares_job_before_start_and_excludes_optional(self):
         result = self.run_script("update-docker-compose-services.bash")
         self.assertEqual(result.returncode, 0, result.stderr)
-        expected = {"traefik", "ofelia", "ofelia-socket-proxy"}
+        expected = {"traefik", "scheduler", "scheduler-socket-proxy"}
         self.assertEqual(set(self.actions("pull")[0][1:]), expected | {"libation"})
         self.assertEqual(self.actions("up"), [
             ["up", "--no-start", "--no-deps", "libation"],
-            ["up", "-d", "--remove-orphans", "traefik", "ofelia", "ofelia-socket-proxy"]])
+            ["up", "-d", "--remove-orphans", "traefik", "scheduler", "scheduler-socket-proxy"]])
         calls = self.calls()
         self.assertLess(next(i for i,c in enumerate(calls) if "pull" in c),
                         next(i for i,c in enumerate(calls) if "stop" in c))

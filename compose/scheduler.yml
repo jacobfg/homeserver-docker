@@ -1,0 +1,67 @@
+services:
+  scheduler:
+    image: ghcr.io/jacobfg/container-scheduler:0.1.0@sha256:776bf9f9cab4e7aea2161161d8d1884578b9fb989faf4f0a41f512b74f3ec7e6
+    restart: unless-stopped
+    user: '65532:65532'
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ['no-new-privileges:true']
+    environment:
+      DOCKER_HOST: tcp://scheduler-socket-proxy:2375
+      DOCKER_API_TIMEOUT: 15s
+      CONTAINER_LABEL_SELECTOR: container-scheduler.scope=libation
+      LABEL_PREFIX: ofelia
+    networks: [scheduler_socket_proxy]
+    depends_on:
+      scheduler-socket-proxy:
+        condition: service_healthy
+    mem_limit: 64m
+    memswap_limit: 64m
+    cpus: 0.5
+    cpu_shares: 256
+    logging:
+      driver: local
+      options: {max-size: '5m', max-file: '2'}
+    labels:
+      traefik.enable: 'false'
+      container-scheduler.scope: libation
+      ofelia.enabled: 'true'
+      ofelia.service: 'true'
+      ofelia.job-run.libation.schedule: '@every 4h'
+      ofelia.job-run.libation.container: libation
+      ofelia.job-run.libation.no-overlap: 'true'
+      ofelia.job-run.libation.delete: 'false'
+
+  scheduler-socket-proxy:
+    image: wollomatic/socket-proxy:1.13.1@sha256:3935b709275e4ec35d6ed5a5c4a1f0d01ed31eec5e7234efc3357ecd47689002
+    restart: unless-stopped
+    user: '0:0'
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ['no-new-privileges:true']
+    command:
+      - '-listenip=0.0.0.0'
+      - '-allowfrom=scheduler'
+      - '-allowHEAD=(/v[0-9]+[.][0-9]+)?/(_ping|version)'
+      - '-allowGET=(/v[0-9]+[.][0-9]+)?/(_ping|version|containers/json|containers/libation/json)'
+      - '-allowPOST=(/v[0-9]+[.][0-9]+)?/containers/libation/start'
+      - '-allowhealthcheck'
+      - '-watchdoginterval=60'
+      - '-stoponwatchdog'
+      - '-loglevel=warn'
+    environment: {GOMEMLIMIT: 48MiB}
+    volumes: ['/var/run/docker.sock:/var/run/docker.sock:ro']
+    networks: [scheduler_socket_proxy]
+    healthcheck:
+      test: [CMD, /healthcheck]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    mem_limit: 64m
+    memswap_limit: 64m
+    cpus: 0.5
+    logging:
+      driver: local
+      options: {max-size: '5m', max-file: '2'}
+    labels: {traefik.enable: 'false'}

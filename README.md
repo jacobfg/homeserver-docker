@@ -36,10 +36,15 @@ docker compose ps
 
 The updater authenticates to GHCR using `scripts/.env`, pulls normal services and
 Libation, prepares Libation without running it, and starts the normal services.
-It pauses Ofelia while checking/updating Libation; if a job is running, the update
+It pauses the scheduler while checking/updating Libation; if a job is running, the update
 is deferred and the previously running scheduler is restored. A plain
 `docker compose up -d` starts normal services, but does not prepare the scheduled
 Libation container on a fresh deployment. Use the updater for the initial start.
+
+The scheduler starts the existing Libation container every four hours, with the
+first run four hours after scheduler startup. Running jobs are skipped and missed
+runs are not replayed. Restart the scheduler after changing its job labels.
+The `ofelia.*` labels are compatibility configuration for `container-scheduler`.
 
 Shared networks are owned by the root project. Compose handles network creation;
 there are no deploy weights. Existing isolated networks, subnets and routing
@@ -58,6 +63,7 @@ config and secret declarations they consume. Networks remain in root `compose.ya
 | `backup.yml` | Duplicacy |
 | `portainer.yml` | Portainer and its socket proxy |
 | `metrics.yml` | InfluxDB |
+| `scheduler.yml` | Container scheduler and restricted socket proxy |
 | `web.yml` | Homer and static web server |
 
 Application configuration lives under `config/traefik`, `config/blocky`,
