@@ -45,6 +45,21 @@ The scheduler starts the existing Libation container every four hours, with the
 first run four hours after scheduler startup. Running jobs are skipped and missed
 runs are not replayed. Restart the scheduler after changing its job labels.
 The `ofelia.*` labels are compatibility configuration for `container-scheduler`.
+Logs honour `TZ`. The image provides its own healthcheck through a private Unix
+socket; the scheduler's tmpfs mount makes that socket writable with a read-only
+root filesystem.
+
+To run Libation early and reset only its four-hour timer:
+
+```bash
+docker compose exec -T scheduler /container-scheduler run-now libation
+docker compose exec -T scheduler /container-scheduler healthcheck
+```
+
+A successful run-now command means the request was queued; check scheduler logs
+for the start, skip, or error result. Running jobs are still skipped. Use
+`run-now --all` to explicitly trigger every configured job. The image healthcheck
+checks scheduler responsiveness, not job success or Docker availability.
 
 Shared networks are owned by the root project. Compose handles network creation;
 there are no deploy weights. Existing isolated networks, subnets and routing

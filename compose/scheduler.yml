@@ -1,10 +1,12 @@
 services:
   scheduler:
     container_name: scheduler
-    image: ghcr.io/jacobfg/container-scheduler:0.1.1@sha256:5c1a67cc2fa4c27007f4bee96c8e79daf9bbdabea636d5a09f369c59b37b52c8
+    image: ghcr.io/jacobfg/container-scheduler:0.1.2@sha256:506e46984d3dcca105b5c64d2196a2bedcbd2cc5f8987cc742390ee3d1b6d105
     restart: unless-stopped
     user: '65532:65532'
     read_only: true
+    tmpfs:
+      - /run/container-scheduler:uid=65532,gid=65532,mode=0700,size=1m
     cap_drop:
       - ALL
     security_opt:
@@ -61,7 +63,7 @@ services:
     environment:
       - GOMEMLIMIT=48MiB
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro'
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - scheduler_socket_proxy
     healthcheck:
