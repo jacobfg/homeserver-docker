@@ -30,7 +30,8 @@ services:
       # Client Apps that can't handle auth reverse proxy
       - "traefik.http.routers.audiobookshelf-bypass-rtr.entrypoints=https"
       - "traefik.http.routers.audiobookshelf-bypass-rtr.priority=99"
-      - "traefik.http.routers.audiobookshelf-bypass-rtr.rule=Host(`audiobookshelf.$DOMAINNAME_CLOUD_SERVER`) && (ClientIP(`$ABS_BYPASS1_CIDR`) || ClientIP(`$ABS_BYPASS2_CIDR`) || ClientIP(`192.168.92.0/24`)) && ((PathPrefix(`/api/`) && HeaderRegexp(`Authorization`, `^Bearer\\s+{{env \"ABS_TOKEN_PREFIX\"}}.+`)) || !PathPrefix(`/api/`)) "
+      - "traefik.http.routers.audiobookshelf-bypass-rtr.rule=Host(`audiobookshelf.$DOMAINNAME_CLOUD_SERVER`) && (ClientIP(`$ABS_BYPASS1_CIDR`) || ClientIP(`$ABS_BYPASS2_CIDR`) || ClientIP(`192.168.92.0/24`))"
+      # breaks OIDC clients - "traefik.http.routers.audiobookshelf-bypass-rtr.rule=Host(`audiobookshelf.$DOMAINNAME_CLOUD_SERVER`) && (ClientIP(`$ABS_BYPASS1_CIDR`) || ClientIP(`$ABS_BYPASS2_CIDR`) || ClientIP(`192.168.92.0/24`)) && ((PathPrefix(`/api/`) && HeaderRegexp(`Authorization`, `^Bearer\\s+{{env \"ABS_TOKEN_PREFIX\"}}.+`)) || !PathPrefix(`/api/`)) "
       - "traefik.http.routers.audiobookshelf-bypass-rtr.tls=true"
       - "traefik.http.routers.audiobookshelf-bypass-rtr.middlewares=chain-no-auth@file"
       - "traefik.http.routers.audiobookshelf-bypass-rtr.service=audiobookshelf-svc"
