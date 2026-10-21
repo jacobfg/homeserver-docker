@@ -1,7 +1,7 @@
 services:
   scheduler:
     container_name: scheduler
-    image: ghcr.io/jacobfg/container-scheduler:0.1.2@sha256:506e46984d3dcca105b5c64d2196a2bedcbd2cc5f8987cc742390ee3d1b6d105
+    image: ghcr.io/jacobfg/container-scheduler:0.1.3@sha256:afe0814ac4db186ceb126dc3a55641e15ba50874d2a98a9f9a8febb19339da91
     restart: unless-stopped
     user: '65532:65532'
     read_only: true
