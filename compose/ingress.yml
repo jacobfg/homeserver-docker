@@ -70,7 +70,7 @@ services:
       - --accessLog.fields.queryParameters.defaultMode=drop
       - --accessLog.fields.names.ClientUsername=drop
       # Paths may contain HA webhook IDs or other credentials; omit derived request lines too.
-      - --accessLog.fields.names.RequestPath=drop
+      # - --accessLog.fields.names.RequestPath=drop # Add after DEBUGGING removed
       - --accessLog.fields.names.RequestLine=drop
       - --providers.docker=true
       - --providers.docker.endpoint=tcp://traefik-socket-proxy:2375
