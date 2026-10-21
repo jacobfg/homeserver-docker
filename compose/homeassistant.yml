@@ -41,7 +41,8 @@ services:
       # Main LAN API clients use HA api direct - aka Garmin iOS app
       - "traefik.http.routers.homeassistant-lan-api-rtr.entrypoints=https"
       - "traefik.http.routers.homeassistant-lan-api-rtr.priority=99"
-      - "traefik.http.routers.homeassistant-lan-api-rtr.rule=Host(`homeassistant.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`$ABS_BYPASS1_CIDR`) && PathPrefix(`/api/`) && HeaderRegexp(`Authorization`, `^Bearer\\s+.+`)"
+      - "traefik.http.routers.homeassistant-lan-api-rtr.rule=Host(`homeassistant.$DOMAINNAME_CLOUD_SERVER`) && ClientIP(`$ABS_BYPASS1_CIDR`)
+      # - && PathPrefix(`/api/`) && HeaderRegexp(`Authorization`, `^Bearer\\s+.+`)"
       - "traefik.http.routers.homeassistant-lan-api-rtr.tls=true"
       - "traefik.http.routers.homeassistant-lan-api-rtr.middlewares=chain-no-auth@file"
       - "traefik.http.routers.homeassistant-lan-api-rtr.service=homeassistant-svc"
