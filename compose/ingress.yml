@@ -63,6 +63,7 @@ services:
       # Keep status, router, client address and timing metadata for all HTTP statuses.
       - --accessLog.fields.defaultMode=keep
       - --accessLog.fields.headers.defaultMode=drop # Omit cookies, authorization and API keys
+      - --accessLog.fields.headers.names.Authorization=keep
       - --accessLog.fields.queryParameters.defaultMode=drop
       - --accessLog.fields.names.ClientUsername=drop
       # Paths may contain HA webhook IDs or other credentials; omit derived request lines too.
