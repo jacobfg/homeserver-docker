@@ -146,6 +146,7 @@ services:
       - ABS_BYPASS1_CIDR # Source restrictions for the file-based Garmin routes.
       - ABS_BYPASS3_CIDR
       - ABS_BYPASS4_CIDR
+      - ABS_TOKEN_PREFIX # prefix matching tokens
       - DOMAINNAME_CLOUD_SERVER # Passing the domain name to the traefik container to be able to use the variable in rules.
       - DOCKER_SERVER_IP # Passing the docker server IP to the traefik container to be able to use the variable in rules.
     secrets:
