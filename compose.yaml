@@ -33,6 +33,10 @@ networks:
     name: fittools_internal
     internal: true # Dedicated backend network shared only by Traefik and Fittools.
     driver: bridge
+  static_web_internal:
+    name: static_web_internal
+    internal: true # Dedicated backend network shared only by Traefik and static-web-server.
+    driver: bridge
   socket_proxy:
     name: socket_proxy
     internal: true

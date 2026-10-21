@@ -125,6 +125,34 @@ when deploying, so the new config mounts/environment and removed labels take
 effect. Verify Garmin catalogue/downloads on both ports and the Home Assistant
 and static-file routes on port 8443 from their allowed source networks.
 
+### Static file server security
+
+Static Web Server runs as UID/GID `65532:65532` on port 8080, with all Linux
+capabilities dropped, no privilege escalation, and a read-only root filesystem
+and content mount. Its dedicated `static_web_internal` network is internal and
+shared only with Traefik; no host port is published. This isolates it from the
+shared proxy network and external routing, but is not a one-way firewall:
+it can still reach Traefik and the host's bridge interface.
+Directory listing, hidden-file serving and symlink traversal are disabled.
+Runtime error logs are retained with bounded Docker local logging.
+
+Before deploying, ensure `$VOLUME_DIR/static-web-server/public` and its served
+subdirectories grant UID/GID `65532:65532` read/traverse access and files grant
+read access, using existing permissions or targeted ACLs. Host ownership does
+not need to change. Content that relies on symlinks must use regular files.
+Only place intended web content in this directory; the source-restricted IoT
+routes bypass Authelia for `/iot/` on both HTTPS listeners.
+
+Validate and recreate both services together to apply the network and port change:
+
+```bash
+docker compose config --quiet
+docker compose up -d traefik static-web-server
+```
+
+Verify authenticated static requests and IoT downloads on ports 443 and 8443,
+including rejected access from outside the allowed source networks.
+
 ### On-demand Portainer
 
 From any directory, invoke these scripts by their repository path:

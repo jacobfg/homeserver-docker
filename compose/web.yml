@@ -37,6 +37,10 @@ services:
       - "traefik.http.services.homer-svc.loadbalancer.server.port=8080"
 
   static-web-server:
+    user: "65532:65532" # Host content must be readable/traversable by this UID/GID.
+    read_only: true
+    cap_drop:
+      - ALL
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
@@ -53,14 +57,22 @@ services:
     volumes:
       # Serve files without allowing the container to modify them; update files on the host.
       - $VOLUME_DIR/static-web-server/public:/public:ro
-    # environment:
-    #   - SERVER_LOG_LEVEL=info
+    environment:
+      - SERVER_PORT=8080 # Unprivileged listener; TLS terminates at Traefik.
+      - SERVER_ROOT=/public
+      - SERVER_DIRECTORY_LISTING=false
+      - SERVER_IGNORE_HIDDEN_FILES=true
+      - SERVER_DISABLE_SYMLINKS=true
     logging:
-      driver: none
+      driver: local
+      options:
+        max-size: "5m"
+        max-file: "2"
     networks:
-      - t2_proxy
+      - static_web_internal
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=static_web_internal"
       ## HTTP Routers
       - "traefik.http.routers.staticserver-rtr.entrypoints=https"
       - "traefik.http.routers.staticserver-rtr.priority=1"
@@ -70,7 +82,7 @@ services:
       - "traefik.http.routers.staticserver-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.staticserver-rtr.service=staticserver-svc"
-      - "traefik.http.services.staticserver-svc.loadbalancer.server.port=80"
+      - "traefik.http.services.staticserver-svc.loadbalancer.server.port=8080"
       ## IoT ACCESS ; other clients use Authelia above.
       ## HTTP Routers
       - "traefik.http.routers.staticserver-api-rtr.entrypoints=https"

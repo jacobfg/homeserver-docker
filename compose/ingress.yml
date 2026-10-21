@@ -99,6 +99,7 @@ services:
         ipv4_address: 192.168.92.254
       traefik_socket_proxy:
       fittools_internal:
+      static_web_internal:
     depends_on:
       - traefik-socket-proxy
     ports:
