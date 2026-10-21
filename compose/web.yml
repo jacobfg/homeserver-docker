@@ -75,7 +75,7 @@ services:
       ## HTTP Routers
       - "traefik.http.routers.staticserver-api-rtr.entrypoints=https"
       - "traefik.http.routers.staticserver-api-rtr.priority=99"
-      - "traefik.http.routers.staticserver-api-rtr.rule=Host(`static.$DOMAINNAME_CLOUD_SERVER`) && (ClientIP(`$ABS_BYPASS3_CIDR`) || ClientIP(`$ABS_BYPASS1_CIDR`))"
+      - "traefik.http.routers.staticserver-api-rtr.rule=Host(`static.$DOMAINNAME_CLOUD_SERVER`) && (ClientIP(`$ABS_BYPASS3_CIDR`) || ClientIP(`$ABS_BYPASS1_CIDR`)) && PathPrefix(`/iot/`)"
       - "traefik.http.routers.staticserver-api-rtr.tls=true"
       ## Middlewares
       - "traefik.http.routers.staticserver-api-rtr.middlewares=chain-no-auth@file"
