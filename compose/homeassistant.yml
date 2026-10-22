@@ -68,7 +68,7 @@ services:
         reservations:
           memory: 192M # Soft reservation, not preallocated RAM.
     cpu_shares: 2048 # Prioritise automation flows under CPU contention.
-    image: nodered/node-red:4.1.16-22-minimal@sha256:f6521466afda096c229838a27ae7622d3db39b449e40901a16a4acad68cf4af9
+    image: nodered/node-red:4.1.17-22-minimal@sha256:79fe8afd82f59ee1c09cd7b516ba045b6a4f49e604fcf5e1806cce7d6fdbbab5
     container_name: node-red
     environment:
       - TZ
