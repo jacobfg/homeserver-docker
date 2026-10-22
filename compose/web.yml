@@ -2,11 +2,13 @@
 services:
   # Homer
   homer:
+    extends:
+      file: base.yml
+      service: base
     networks:
       - t2_proxy
-    security_opt:
-      - no-new-privileges:true
-    restart: unless-stopped
+    # logging:
+    #   driver: none
     deploy:
       resources:
         limits:
@@ -20,7 +22,6 @@ services:
     volumes:
       - $VOLUME_DIR/homer/assets/:/www/assets:ro
       - $VOLUME_DIR/homer/custom-assets/:/www/custom-assets:ro
-    user: $PUID:$PGID
     environment:
       - INIT_ASSETS=0 # default
       - IPV6_DISABLE=1
@@ -37,13 +38,10 @@ services:
       - "traefik.http.services.homer-svc.loadbalancer.server.port=8080"
 
   static-web-server:
+    extends:
+      file: base.yml
+      service: base-logged
     user: "65532:65532" # Host content must be readable/traversable by this UID/GID.
-    read_only: true
-    cap_drop:
-      - ALL
-    security_opt:
-      - no-new-privileges:true
-    restart: unless-stopped
     deploy:
       resources:
         limits:
@@ -63,11 +61,6 @@ services:
       - SERVER_DIRECTORY_LISTING=false
       - SERVER_IGNORE_HIDDEN_FILES=true
       - SERVER_DISABLE_SYMLINKS=true
-    logging:
-      driver: local
-      options:
-        max-size: "5m"
-        max-file: "2"
     networks:
       - static_web_internal
     labels:

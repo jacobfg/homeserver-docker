@@ -1,0 +1,20 @@
+services:
+  base:
+    cap_drop:
+      - ALL
+    user: $PUID:$PGID
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    environment:
+     - TZ
+    restart: unless-stopped
+
+  base-logged:
+    extends:
+      service: base
+    logging:
+      driver: local
+      options:
+        max-size: "5m"
+        max-file: "2"

@@ -27,6 +27,7 @@ networks:
       config:
         - subnet: 192.168.90.0/24
   traefik_socket_proxy:
+    name: traefik_only
     internal: true
     driver: bridge
   fittools_internal:
@@ -51,8 +52,9 @@ networks:
     ipam:
       config:
         - subnet: 192.168.92.0/24
-
   scheduler_socket_proxy:
+    name: scheduler
     internal: true
   monitor_socket_proxy:
+    name: resource-monitor
     internal: true

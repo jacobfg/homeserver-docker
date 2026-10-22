@@ -1,5 +1,8 @@
 services:
   libation:
+    extends:
+      file: base.yml
+      service: base
     # Explicitly created by the updater; ordinary `compose up` must not run this job.
     profiles: [scheduled]
     # Background imports/conversion can run more slowly when interactive services are busy.
@@ -14,9 +17,7 @@ services:
     container_name: libation
     image: rmcrackan/libation:14.2.2@sha256:fe188ac3c4ce63cc305971c76e648748341427e16bcf884011da8a384fd3908c
     restart: "no" # The scheduler starts each run; do not loop after successful completion.
-    user: $PUID:$PGID
     environment:
-      - TZ
       - LIBATION_DB_DIR=/db
       - SLEEP_TIME=-1 # Run one scan/download cycle, then release process memory.
     volumes:
