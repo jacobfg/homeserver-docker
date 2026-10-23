@@ -36,6 +36,7 @@ services:
       - $VOLUME_DIR/libation/db:/db
       - $VOLUME_DIR/audiobookshelf/audiobooks/$ABS_LIBRARY1_DIR:/data:ro
       - $VOLUME_DIR/libation/logs:/logs
+      - $VOLUME_DIR/libation/tmp:/tmp # shuld it be tmpfs?
     networks:
       - t2_proxy
     labels:
