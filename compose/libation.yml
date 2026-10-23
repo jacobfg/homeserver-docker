@@ -26,8 +26,8 @@ services:
       - LIBATION_DB_DIR=/db
       - SLEEP_TIME=-1 # Run one scan/download cycle, then release process memory.
     configs:
-      - source: libation_account_settings
-        target: /config/AccountSettings.json
+      - source: libation_accounts_settings
+        target: /config/AccountsSettings.json
       - source: libation_settings
         target: /config/Settings.json
     volumes:
@@ -44,8 +44,8 @@ services:
 configs:
   libation_settings:
     file: ../config/libation/settings.json
-  libation_account_settings:
-    file: ../config/libation/accountsettings.json
+  libation_accounts_settings:
+    file: ../config/libation/accountssettings.json
 
 secrets:
   libation_key:
