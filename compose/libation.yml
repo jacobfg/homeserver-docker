@@ -17,6 +17,8 @@ services:
     container_name: libation
     image: rmcrackan/libation:14.2.2@sha256:fe188ac3c4ce63cc305971c76e648748341427e16bcf884011da8a384fd3908c
     restart: "no" # The scheduler starts each run; do not loop after successful completion.
+    tmpfs:
+      - /run/container-scheduler:uid=$PUID,gid=$PGID,mode=0700,size=1m
     environment:
       - LIBATION_DB_DIR=/db
       - SLEEP_TIME=-1 # Run one scan/download cycle, then release process memory.
