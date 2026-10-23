@@ -27,9 +27,9 @@ services:
       - SLEEP_TIME=-1 # Run one scan/download cycle, then release process memory.
     configs:
       - source: libation_account_settings
-        target: /config/AccountSettings.yml
+        target: /config/AccountSettings.json
       - source: libation_settings
-        target: /config/Settings.yml
+        target: /config/Settings.json
     volumes:
       # use secrets ?
       # - $VOLUME_DIR/libation/config:/config
