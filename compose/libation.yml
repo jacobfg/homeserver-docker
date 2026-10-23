@@ -19,16 +19,34 @@ services:
     restart: "no" # The scheduler starts each run; do not loop after successful completion.
     tmpfs:
       - /config-internal:uid=$PUID,gid=$PGID,mode=0700,size=1m
+    secrets:
+      - libation_key
     environment:
+      - LIBATION_MASTER_KEY_FILE=/run/secrets/libation_key
       - LIBATION_DB_DIR=/db
       - SLEEP_TIME=-1 # Run one scan/download cycle, then release process memory.
+    configs:
+      - source: libation_account_settings
+        target: /config/AccountSettings.yml
+      - source: libation_settings
+        target: /config/Settings.yml
     volumes:
       # use secrets ?
-      - $VOLUME_DIR/libation/config:/config
+      # - $VOLUME_DIR/libation/config:/config
       - $VOLUME_DIR/libation/db:/db
-      - $VOLUME_DIR/audiobookshelf/audiobooks/$ABS_LIBRARY1_DIR:/data
+      - $VOLUME_DIR/audiobookshelf/audiobooks/$ABS_LIBRARY1_DIR:/data:ro
       - $VOLUME_DIR/libation/logs:/logs
     networks:
       - t2_proxy
     labels:
       - "traefik.enable=false"
+
+configs:
+  libation_settings:
+    file: ../config/libation/settings.json
+  libation_account_settings:
+    file: ../config/libation/accountsettings.json
+
+secrets:
+  libation_key:
+    file: $SECRETS_DIR/libation_key
