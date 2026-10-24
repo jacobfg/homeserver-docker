@@ -103,7 +103,7 @@ services:
           memory: 16M # Soft reservation, not preallocated RAM.
     cpu_shares: 2048 # Prioritise MQTT delivery under CPU contention.
     container_name: mosquitto
-    image: eclipse-mosquitto:2.0.22@sha256:199ea8ef2e35ec2b1b37e59cfd1dbae538ed4dfa4a2251a121a52215a6248a21
+    image: eclipse-mosquitto:2.0.22@sha256:09b62ff32c2e7b64d4b431b9a89236073289b68db273de2b089edeb9b0d92b5c
     networks:
       t2_proxy:
         ipv4_address: 192.168.90.252 # You can specify a static IP
