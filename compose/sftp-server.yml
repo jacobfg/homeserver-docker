@@ -52,13 +52,15 @@ services:
       - "SFTPGO_COMMON__DEFENDER__OBSERVATION_TIME=30"
       # OpenID Connect (OIDC)
       - SFTPGO_HTTPD__BINDINGS__0__OIDC__CLIENT_ID
-      - SFTPGO_HTTPD__BINDINGS__0__OIDC__CLIENT_SECRET
+      - SFTPGO_HTTPD__BINDINGS__0__OIDC__CLIENT_SECRET_FILE=/run/secrets/sftp_oidc_client_secret_file
       - SFTPGO_HTTPD__BINDINGS__0__OIDC__CONFIG_URL
       - SFTPGO_HTTPD__BINDINGS__0__OIDC__REDIRECT_BASE_URL
       - SFTPGO_HTTPD__BINDINGS__0__OIDC__USERNAME_FIELD
       - SFTPGO_HTTPD__BINDINGS__0__OIDC__SCOPES
       - SFTPGO_HTTPD__BINDINGS__0__OIDC__ROLE_FIELD
       # - SFTPGO_HTTPD__BINDINGS__0__OIDC__ROLE_MAPPING
+    secrets:
+      - sftp_oidc_client_secret_file
     volumes:
       - $VOLUME_DIR/sftpgo/data:/srv/sftpgo/data
       - $VOLUME_DIR/sftpgo/backups:/srv/sftpgo/backups
@@ -87,3 +89,7 @@ services:
       - "traefik.http.services.sftpgo-https.loadbalancer.server.port=2222"
     extra_hosts:
       - "auth.$DOMAINNAME_CLOUD_SERVER:192.168.90.254"
+
+secrets:
+  sftp_oidc_client_secret_file:
+    file: $SECRETS_DIR/sftp_oidc_client_secret_file
