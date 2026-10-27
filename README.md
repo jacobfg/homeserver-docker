@@ -75,6 +75,7 @@ config and secret declarations they consume. Networks remain in root `compose.ya
 | `ingress.yml` | Traefik, its socket proxy, Blocky DNS |
 | `auth.yml` | Authelia |
 | `homeassistant.yml` | Home Assistant, Node-RED, Mosquitto, Zigbee2MQTT |
+| `music.yml` | Music Assistant |
 | `backup.yml` | Duplicacy |
 | `portainer.yml` | Portainer and its socket proxy |
 | `metrics.yml` | InfluxDB |
@@ -90,6 +91,54 @@ host bind mounts. The audiobook, SFTP, Libation and other modules also live unde
 Diagnostic build assets live in `gitops/diagnostics/`, Terraform lives in
 `gitops/sftp-server/`, and operational helpers remain in `scripts/`. Run all
 Compose commands through the root project, rather than targeting module files.
+
+### Music Assistant
+
+Music Assistant is available at `https://music.$DOMAINNAME_CLOUD_SERVER` through
+the existing Traefik TLS and Authelia middleware. Ensure DNS and the Authelia
+access policy cover this hostname. Before starting it, create
+`$VOLUME_DIR/music-assistant/data` with write access for `$PUID:$PGID`.
+The module inherits the non-root user, dropped capabilities, read-only root
+filesystem, no-new-privileges and bounded local logs from `base-logged`.
+Only `/data` and a bounded `/tmp` tmpfs are writable.
+
+As required by the [upstream installation guide](https://www.music-assistant.io/installation/),
+host networking enables LAN speaker discovery and streaming. Direct LAN access
+to port 8095 bypasses Authelia; configure Music Assistant's own authentication.
+Players also need the stream server (port 8097 by default) and provider-specific
+ports. Use `http://$DOCKER_SERVER_IP:8095` for the Home Assistant integration.
+Keep these listeners on the trusted LAN rather than forwarding them from the internet.
+
+For local music, uncomment the read-only `/media` bind mount in `compose/music.yml`
+and select it in the filesystem provider. Mount network shares on the host;
+in-container SMB/NFS mounting is intentionally not granted elevated privileges.
+The initial 4 GiB memory ceiling needs checking against real library scans and
+concurrent playback. Start and inspect the service from the repository root:
+
+```bash
+docker compose config --quiet
+docker compose up -d music-assistant
+docker compose logs --tail=100 music-assistant
+```
+
+To connect [Audiobookshelf as a music provider](https://www.music-assistant.io/music-providers/audiobookshelf/),
+add it in Music Assistant under **Settings > Music providers** with server URL
+`https://audiobookshelf.$DOMAINNAME_CLOUD_SERVER`. The `extra_hosts` entry in
+`music.yml` resolves that hostname to `$DOCKER_SERVER_IP`, keeping HTTPS local.
+The Docker host's source IP must fall within the existing Audiobookshelf LAN
+bypass CIDRs (`ABS_BYPASS1_CIDR` or `ABS_BYPASS2_CIDR`) so provider requests reach
+Audiobookshelf without an Authelia redirect. Audiobookshelf still validates the API key.
+
+Create a dedicated Audiobookshelf API key for the user whose libraries and
+listening progress Music Assistant should use, then enter it in the provider's
+**Token** field. Use a current API key rather than a legacy user token.
+The credential placeholder is `$SECRETS_DIR/music_assistant_audiobookshelf_token`;
+store the real key there outside version control. Optional Compose secret
+declarations are commented in `music.yml` and can be enabled after creating the
+file. They mount it at `/run/secrets/music_assistant_audiobookshelf_token`;
+they do not configure the provider automatically or enable a `TOKEN_FILE`
+environment variable. Music Assistant saves provider settings in its persistent
+`/data` directory; protect that directory and its backups as credentials.
 
 ### Dashboard and Garmin routes
 

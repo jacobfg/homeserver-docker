@@ -1,0 +1,51 @@
+# Included by the root compose.yaml; run Compose from the repository root.
+services:
+  music-assistant:
+    extends:
+      file: base.yml
+      service: base-logged
+    container_name: music-assistant
+    image: ghcr.io/music-assistant/server:2.10.8@sha256:661e88bea76a9e79f38feca791f6c7373376ab60766ee01f56b66418ca243b68
+    # Required for multicast discovery and direct streaming to LAN players.
+    network_mode: host
+    extra_hosts:
+      # Resolve the ABS HTTPS endpoint locally, preserving its TLS hostname.
+      - "audiobookshelf.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+    init: true
+    deploy:
+      resources:
+        limits:
+          memory: 4G # Initial ceiling; validate library scans and concurrent transcoding.
+        reservations:
+          memory: 512M # Soft reservation, not preallocated RAM.
+    cpu_shares: 1024 # Keep home automation's higher priority under contention.
+    environment:
+      - HOME=/data
+      - LOG_LEVEL=info
+    # Optional secret placeholder; create the file before uncommenting this
+    # and the top-level declaration below. MA does not load this file itself:
+    # enter its contents in Settings > Music providers > Audiobookshelf > Token.
+    # secrets:
+    #   - music_assistant_audiobookshelf_token
+    volumes:
+      # Pre-create this directory writable by PUID:PGID.
+      - $VOLUME_DIR/music-assistant/data:/data
+      # Optional local music: mount on the host, then expose read-only here.
+      # - $VOLUME_DIR/music-assistant/music:/media:ro
+    tmpfs:
+      - /tmp:uid=$PUID,gid=$PGID,mode=1777,size=256m
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.music-assistant-rtr.entrypoints=https"
+      - "traefik.http.routers.music-assistant-rtr.rule=Host(`music.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.music-assistant-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.music-assistant-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.music-assistant-rtr.service=music-assistant-svc"
+      - "traefik.http.services.music-assistant-svc.loadbalancer.server.url=http://$DOCKER_SERVER_IP:8095/"
+
+# secrets:
+#   music_assistant_audiobookshelf_token:
+#     file: $SECRETS_DIR/music_assistant_audiobookshelf_token
