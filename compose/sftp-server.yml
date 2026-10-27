@@ -70,6 +70,7 @@ services:
       - $VOLUME_DIR/audiobookshelf/audiobooks/${ABS_LIBRARY2_DIR:?Set ABS_LIBRARY2_DIR}:/srv/sftpgo/audiobooks/library2
       - $VOLUME_DIR/audiobookshelf/audiobooks/${ABS_LIBRARY3_DIR:?Set ABS_LIBRARY3_DIR}:/srv/sftpgo/audiobooks/library3
       - $VOLUME_DIR/audiobookshelf/audiobooks/${ABS_LIBRARY4_DIR:?Set ABS_LIBRARY4_DIR}:/srv/sftpgo/audiobooks/library4
+      - $VOLUME_DIR/music-assistant/music:/srv/sftpgo/music
     labels:
       - "traefik.enable=true"
       # sftp - allow trusted subnets and printer in IoT network
