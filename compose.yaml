@@ -5,6 +5,7 @@ include:
   - compose/ingress.yml
   - compose/auth.yml
   - compose/homeassistant.yml
+  - compose/music.yml
   - compose/backup.yml
   - compose/portainer.yml
   - compose/metrics.yml
