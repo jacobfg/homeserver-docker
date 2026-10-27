@@ -36,5 +36,7 @@ services:
       - "traefik.http.routers.music-assistant-rtr.service=music-assistant-svc"
       - "traefik.http.services.music-assistant-svc.loadbalancer.server.url=http://$DOCKER_SERVER_IP:8095/"
     extra_hosts:
-      # Resolve the ABS HTTPS endpoint locally, preserving its TLS hostname.
-      - "audiobookshelf.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
+      # Both services share the host network; HA is reachable over loopback.
+      - "homeassistant:127.0.0.1"
+      # Use Traefik's internal ABS bridge and existing source-subnet bypass.
+      - "audiobookshelf.$DOMAINNAME_CLOUD_SERVER:192.168.92.254"

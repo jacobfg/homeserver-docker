@@ -19,6 +19,7 @@ services:
     network_mode: host
     extra_hosts:
       - "mosquitto:192.168.90.252" # Host networking cannot use Docker service DNS.
+      - "music-assistant:127.0.0.1" # Both services share the host network.
     environment:
       - TZ
     volumes:
