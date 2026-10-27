@@ -106,8 +106,16 @@ As required by the [upstream installation guide](https://www.music-assistant.io/
 host networking enables LAN speaker discovery and streaming. Direct LAN access
 to port 8095 bypasses Authelia; configure Music Assistant's own authentication.
 Players also need the stream server (port 8097 by default) and provider-specific
-ports. Use `http://$DOCKER_SERVER_IP:8095` for the Home Assistant integration.
+ports. Use `http://music-assistant:8095` for the Home Assistant integration.
 Keep these listeners on the trusted LAN rather than forwarding them from the internet.
+
+Home Assistant and Music Assistant both use host networking. Their Compose
+`extra_hosts` entries map each other's service names to `127.0.0.1`, so API
+traffic stays on loopback. If configuring Home Assistant access in Music
+Assistant, use `http://homeassistant:8123`. These URLs bypass Traefik/Authelia;
+the destination application's authentication still applies. Keep Music
+Assistant's advertised streaming address set to the host's LAN IP so speakers
+can reach it. No host interface or route commands are required after reboot.
 
 For local music, uncomment the read-only `/media` bind mount in `compose/music.yml`
 and select it in the filesystem provider. Mount network shares on the host;
@@ -124,10 +132,12 @@ docker compose logs --tail=100 music-assistant
 To connect [Audiobookshelf as a music provider](https://www.music-assistant.io/music-providers/audiobookshelf/),
 add it in Music Assistant under **Settings > Music providers** with server URL
 `https://audiobookshelf.$DOMAINNAME_CLOUD_SERVER`. The `extra_hosts` entry in
-`music.yml` resolves that hostname to `$DOCKER_SERVER_IP`, keeping HTTPS local.
-The Docker host's source IP must fall within the existing Audiobookshelf LAN
-bypass CIDRs (`ABS_BYPASS1_CIDR` or `ABS_BYPASS2_CIDR`) so provider requests reach
-Audiobookshelf without an Authelia redirect. Audiobookshelf still validates the API key.
+`music.yml` resolves that hostname to Traefik's `192.168.92.254` address on
+`abs_green_internal`, preserving the HTTPS hostname while keeping traffic on
+the Docker host. The host reaches this bridge directly, using its bridge-side
+source address in `192.168.92.0/24`, which the existing Audiobookshelf bypass
+router allows without an Authelia redirect. Audiobookshelf still validates the
+API key. This does not require expanding the LAN bypass CIDRs.
 
 Create a dedicated Audiobookshelf API key for the user whose libraries and
 listening progress Music Assistant should use, then enter it in the provider's
