@@ -15,7 +15,7 @@ services:
           memory: 128M # Soft reservation, not preallocated RAM.
     cpu_shares: 256 # Lower relative priority under contention (default is 1024).
     container_name: libation
-    image: rmcrackan/libation:14.2.2@sha256:fe188ac3c4ce63cc305971c76e648748341427e16bcf884011da8a384fd3908c
+    image: rmcrackan/libation:14.2.3@sha256:d01e844a291352813f3e5bad63db1d22444c6bd23c553fd3c9fac1a742b000a2
     restart: "no" # The scheduler starts each run; do not loop after successful completion.
     tmpfs:
       - /config-internal:uid=$PUID,gid=$PGID,mode=0700,size=1m
