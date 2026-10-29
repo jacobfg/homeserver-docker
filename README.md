@@ -82,6 +82,9 @@ config and secret declarations they consume. Networks remain in root `compose.ya
 | `scheduler.yml` | Container scheduler and restricted socket proxy |
 | `web.yml` | Homer and static web server |
 
+For one-time backup storage cleanup, see the
+[Duplicacy Web cleanup guide](docs/duplicacy-cleanup.md).
+
 Application configuration lives under `config/traefik`, `config/blocky`,
 `config/authelia` and `config/garmin-media-sidecar`. The entire `config/` directory
 and root `.env` remain git-crypt protected. Existing application data stays in its
