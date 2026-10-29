@@ -39,7 +39,6 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-    # command: # CLI arguments
     # Allow for Server-side widget credentials; missing keys disable their Homer API routes.
     entrypoint: >
       /bin/sh -c "
@@ -55,7 +54,8 @@ services:
           echo "Missing /run/secrets/homer_homeassistant_token"
           exit 1
         fi;
-      exec traefik \
+        exec traefik
+      command: # CLI arguments
       - --global.checkNewVersion=false
       - --global.sendAnonymousUsage=false
       - --entryPoints.https.address=:443
