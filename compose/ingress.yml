@@ -146,8 +146,6 @@ services:
         target: /rules/tls-opts.yml
       - source: traefik_rules_printerscanner
         target: /rules/printerscanner.yml
-      - source: traefik_printerscanner_certificate
-        target: /certs/printerscanner.pem
       - source: traefik_rules_middlewares_chains
         target: /rules/middlewares-chains.yml
       - source: traefik_rules_middlewares
@@ -165,6 +163,7 @@ services:
       - ABS_BYPASS3_CIDR
       - ABS_BYPASS4_CIDR
       - PRINTER_SCANNER_IP
+      - PRINTER_SCANNER_NAME
       - IMMICH_IP
       - ABS_TOKEN_PREFIX # prefix matching tokens
       - DOMAINNAME_CLOUD_SERVER # Passing the domain name to the traefik container to be able to use the variable in rules.
@@ -173,6 +172,7 @@ services:
       - cf_dns_api_key
       - homer_portainer_api_key
       - homer_homeassistant_token
+      - traefik_printerscanner_pem
     labels:
       - "traefik.enable=true"
       # HTTP Routers
@@ -300,8 +300,6 @@ configs:
     file: ../config/traefik/rules/tls-opts.yml
   traefik_rules_printerscanner:
     file: ../config/traefik/rules/printerscanner.yml
-  traefik_printerscanner_certificate:
-    file: ../config/traefik/certs/printerscanner.pem
   traefik_rules_middlewares_chains:
     file: ../config/traefik/rules/middlewares-chains.yml
   traefik_rules_middlewares:
@@ -320,3 +318,5 @@ secrets:
     file: $SECRETS_DIR/homer_homeassistant_token
   homer_portainer_api_key:
     file: $SECRETS_DIR/homer_portainer_api_key
+  traefik_printerscanner_pem:
+    file: $SECRETS_DIR/traefik_printerscanner_pem
