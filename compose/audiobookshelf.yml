@@ -145,5 +145,7 @@ services:
 configs:
   garmin_media_sidecar_config:
     file: ../config/garmin-media-sidecar/config.yml
+
+secrets:
   abs_green_sidecar_abs_token:
     file: $SECRETS_DIR/abs_green_sidecar_abs_token
