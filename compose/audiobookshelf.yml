@@ -101,13 +101,15 @@ services:
       # Direct Docker-network access: no Traefik or Authelia loop for polling,
       # token validation, or source-media downloads.
       - ABS_URL=https://audiobookshelf.$DOMAINNAME_CLOUD_SERVER
-      - ABS_TOKEN=$ABS_GREEN_SIDECAR_ABS_TOKEN
+      - ABS_TOKEN_FILE=/run/secrets/abs_green_sidecar_abs_token
       - SIDECAR_CONFIG=/app/config.yaml
       - CACHE_DIR=/app/cache
       - POLL_INTERVAL_SECONDS=300
       - AUTH_CACHE_SECONDS=300
       - CACHE_CHUNK_MINUTES=30
       - CACHE_BITRATE=96k
+    secrets:
+      - abs_green_sidecar_abs_token
     configs:
       - source: garmin_media_sidecar_config
         target: /app/config.yaml
@@ -143,3 +145,5 @@ services:
 configs:
   garmin_media_sidecar_config:
     file: ../config/garmin-media-sidecar/config.yml
+  abs_green_sidecar_abs_token:
+    file: $SECRETS_DIR/abs_green_sidecar_abs_token

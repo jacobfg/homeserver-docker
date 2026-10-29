@@ -39,7 +39,23 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-    command: # CLI arguments
+    # command: # CLI arguments
+    # Allow for Server-side widget credentials; missing keys disable their Homer API routes.
+    entrypoint: >
+      /bin/sh -c "
+        if [ -f /run/secrets/homer_portainer_api_key ]; then
+          export HOMER_PORTAINER_API_KEY=\$$(cat /run/secrets/homer_portainer_api_key);
+        else
+          echo "Missing /run/secrets/homer_portainer_api_key"
+          exit 1
+        fi;
+        if [ -f /run/secrets/homer_homeassistant_token ]; then
+          export HOMER_HOMEASSISTANT_TOKEN=\$$(cat /run/secrets/homer_homeassistant_token);
+        else
+          echo "Missing /run/secrets/homer_homeassistant_token"
+          exit 1
+        fi;
+      exec traefik \
       - --global.checkNewVersion=false
       - --global.sendAnonymousUsage=false
       - --entryPoints.https.address=:443
@@ -145,17 +161,17 @@ services:
       - CF_DNS_API_TOKEN_FILE=/run/secrets/cf_dns_api_key
       - CF_ZONE_API_TOKEN_FILE=/run/secrets/cf_dns_api_key
       - GOMEMLIMIT=384MiB # Go soft memory target; leave headroom below the container limit.
-      # Server-side widget credentials; missing keys disable their Homer API routes.
-      - HOMER_PORTAINER_API_KEY=${HOMER_PORTAINER_API_KEY:-}
-      - HOMER_HOMEASSISTANT_TOKEN=${HOMER_HOMEASSISTANT_TOKEN:-}
       - ABS_BYPASS1_CIDR # Source restrictions for the file-based Garmin routes.
       - ABS_BYPASS3_CIDR
       - ABS_BYPASS4_CIDR
+      - PRINTER_SCANNER_IP
       - ABS_TOKEN_PREFIX # prefix matching tokens
       - DOMAINNAME_CLOUD_SERVER # Passing the domain name to the traefik container to be able to use the variable in rules.
       - DOCKER_SERVER_IP # Passing the docker server IP to the traefik container to be able to use the variable in rules.
     secrets:
       - cf_dns_api_key
+      - homer_portainer_api_key
+      - homer_homeassistant_token
     labels:
       - "traefik.enable=true"
       # HTTP Routers
@@ -297,3 +313,9 @@ configs:
 secrets:
   cf_dns_api_key:
     file: $SECRETS_DIR/cf_dns_api_key
+  # homer_homeassistant:
+  #   file: $SECRETS_DIR/homer_homeassistant
+  homer_homeassistant_token:
+    file: $SECRETS_DIR/homer_homeassistant_token
+  homer_portainer_api_key:
+    file: $SECRETS_DIR/homer_portainer_api_key
