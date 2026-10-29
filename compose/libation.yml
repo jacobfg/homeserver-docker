@@ -19,20 +19,30 @@ services:
     restart: "no" # The scheduler starts each run; do not loop after successful completion.
     tmpfs:
       - /config-internal:uid=$PUID,gid=$PGID,mode=0700,size=1m
+      - /config:uid=$PUID,gid=$PGID,mode=0700,size=1m
     secrets:
       - libation_key
+      - libation_accountssettings
     environment:
       - LIBATION_MASTER_KEY_FILE=/run/secrets/libation_key
       - LIBATION_DB_DIR=/db
       - SLEEP_TIME=-1 # Run one scan/download cycle, then release process memory.
+    # Work around to keep accountssettings as a docker secret
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        if [ -f /run/secrets/libation_accountssettings ]; then
+          cp /run/secrets/libation_accountssettings /config/AccountsSettings.json
+        else
+          echo "Missing /run/secrets/libation_accountssettings"
+          exit 1
+        fi
+        exec /libation/liberate.sh "$$@"
     configs:
-      - source: libation_accounts_settings
-        target: /config/AccountsSettings.json
       - source: libation_settings
         target: /config/Settings.json
     volumes:
-      # use secrets ?
-      # - $VOLUME_DIR/libation/config:/config
       - $VOLUME_DIR/libation/db:/db
       - $VOLUME_DIR/audiobookshelf/audiobooks/$ABS_LIBRARY1_DIR:/data
       - $VOLUME_DIR/libation/logs:/logs
@@ -45,9 +55,9 @@ services:
 configs:
   libation_settings:
     file: ../config/libation/settings.json
-  libation_accounts_settings:
-    file: ../config/libation/accountssettings.json
 
 secrets:
   libation_key:
     file: $SECRETS_DIR/libation_key
+  libation_accountssettings:
+    file: $SECRETS_DIR/libation_accountssettings.json
