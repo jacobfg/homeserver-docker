@@ -55,7 +55,7 @@ services:
           exit 1
         fi;
         exec traefik
-      command: # CLI arguments
+    command: # CLI arguments
       - --global.checkNewVersion=false
       - --global.sendAnonymousUsage=false
       - --entryPoints.https.address=:443
