@@ -15,7 +15,7 @@ services:
     cpu_shares: 256 # Lower relative priority under contention (default is 1024).
     container_name: duplicacy
     hostname: 4eb908d4f748 # for licensing
-    image: saspus/duplicacy-web:v1.8.3@sha256:88f02b89d563a959ac66bfefa79ec35bbed86a4b74fc4a95190cf0edb810aab5
+    image: saspus/duplicacy-web:v1.8.3@sha256:35f40697ca770957efc47a6889b2c1c127450d975ab662388786dbf18c9c16a3
     environment:
       - TZ
       - USR_ID=0
