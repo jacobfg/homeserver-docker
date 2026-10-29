@@ -39,22 +39,25 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-    # Allow for Server-side widget credentials; missing keys disable their Homer API routes.
-    entrypoint: >
-      /bin/sh -c "
+    # Load server-side widget credentials; missing secret files prevent startup.
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
         if [ -f /run/secrets/homer_portainer_api_key ]; then
-          export HOMER_PORTAINER_API_KEY=\$$(cat /run/secrets/homer_portainer_api_key);
+          export HOMER_PORTAINER_API_KEY="$$(cat /run/secrets/homer_portainer_api_key)"
         else
           echo "Missing /run/secrets/homer_portainer_api_key"
           exit 1
-        fi;
+        fi
         if [ -f /run/secrets/homer_homeassistant_token ]; then
-          export HOMER_HOMEASSISTANT_TOKEN=\$$(cat /run/secrets/homer_homeassistant_token);
+          export HOMER_HOMEASSISTANT_TOKEN="$$(cat /run/secrets/homer_homeassistant_token)"
         else
           echo "Missing /run/secrets/homer_homeassistant_token"
           exit 1
-        fi;
-        exec traefik
+        fi
+        exec traefik "$$@"
+      - traefik
     command: # CLI arguments
       - --global.checkNewVersion=false
       - --global.sendAnonymousUsage=false
