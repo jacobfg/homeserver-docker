@@ -1,7 +1,7 @@
 services:
   fittools:
     container_name: fittools
-    image: ghcr.io/jacobfg/fittools:0.2.3@sha256:298b8fc56c4a75d057e94d1bfe564c61de1e2d00fef32a396f3d65e40e9c6073
+    image: ghcr.io/jacobfg/fittools:0.2.4@sha256:1bc78ba459032a93f5cefc5652dbeaeb84fed83ebd58bac4c8ce28452d9a5ac4
     restart: unless-stopped
     user: $PUID:$PGID
     deploy:
