@@ -1,0 +1,81 @@
+# TLS 1.2-compatible routes on :8443 only; :443 routes remain in Compose labels.
+# Preserve source CIDRs and backend token authentication on every route.
+http:
+  routers:
+    audiobookshelf-garmin-api-rtr-tls12:
+      entryPoints:
+      - garmin-https
+      priority: 100
+      # && HeaderRegexp(`Authorization`, `^Bearer\s+{{env "ABS_TOKEN_PREFIX"}}.+`)
+      rule: Host(`garmin-abs.{{env "DOMAINNAME_CLOUD_SERVER"}}`) && (ClientIP(`{{env "ABS_BYPASS1_CIDR"}}`) || ClientIP(`{{env "ABS_BYPASS4_CIDR"}}`)) && PathPrefix(`/api/`)
+      tls:
+        options: garmin-tls@file
+      middlewares:
+      - chain-no-auth@file
+      service: audiobookshelf-svc@docker
+    abs-green-garmin-proxy-rtr-tls12:
+      entryPoints:
+      - garmin-https
+      priority: 100
+      rule: Host(`garmin-abs.{{env "DOMAINNAME_CLOUD_SERVER"}}`) && (ClientIP(`{{env "ABS_BYPASS1_CIDR"}}`) || ClientIP(`{{env "ABS_BYPASS4_CIDR"}}`)) && PathPrefix(`/audiobookshelf/`)
+      tls:
+        options: garmin-tls@file
+      middlewares:
+      - chain-no-auth@file
+      service: abs-green-proxy-svc@docker
+    garmin-media-catalogue-rtr-tls12:
+      entryPoints:
+      - garmin-https
+      priority: 200
+      rule: Host(`garmin-abs.{{env "DOMAINNAME_CLOUD_SERVER"}}`) && (ClientIP(`{{env "ABS_BYPASS1_CIDR"}}`) || ClientIP(`{{env "ABS_BYPASS4_CIDR"}}`)) && (Path(`/audiobookshelf/playlists`)
+        || Path(`/audiobookshelf/playlist`) || Path(`/audiobookshelf/book`) || PathPrefix(`/garmin/playlist-status/`))
+      tls:
+        options: garmin-tls@file
+      middlewares:
+      - chain-no-auth@file
+      service: garmin-media-svc@docker
+    garmin-media-download-rtr-tls12:
+      entryPoints:
+      - garmin-https
+      priority: 200
+      rule: Host(`garmin-abs.{{env "DOMAINNAME_CLOUD_SERVER"}}`) && (ClientIP(`{{env "ABS_BYPASS1_CIDR"}}`) || ClientIP(`{{env "ABS_BYPASS4_CIDR"}}`)) && PathRegexp(`^/api/items/[^/]+/file/[^/]+/download`)
+      tls:
+        options: garmin-tls@file
+      middlewares:
+      - chain-no-auth@file
+      service: garmin-media-svc@docker
+    homeassistant-lan-api--rtr-tls12:
+      entryPoints:
+      - garmin-https
+      priority: 200
+      rule: Host(`homeassistant.{{env "DOMAINNAME_CLOUD_SERVER"}}`) && (ClientIP(`{{env "ABS_BYPASS4_CIDR"}}`) || ClientIP(`{{env "ABS_BYPASS1_CIDR"}}`)) && PathPrefix(`/api/`)
+      tls:
+        options: garmin-tls@file
+      middlewares:
+      - chain-no-auth@file
+      service: homeassistant-svc@docker
+    staticserver-api-rtr-tls12:
+      entryPoints:
+      - garmin-https
+      priority: 200
+      rule: Host(`static.{{env "DOMAINNAME_CLOUD_SERVER"}}`) && (ClientIP(`{{env "ABS_BYPASS4_CIDR"}}`) || ClientIP(`{{env "ABS_BYPASS1_CIDR"}}`)) && PathPrefix(`/iot/`)
+      tls:
+        options: garmin-tls@file
+      middlewares:
+      - chain-no-auth@file
+      service: staticserver-svc@docker
+tls:
+  options:
+    garmin-tls:
+      minVersion: VersionTLS12
+      sniStrict: true
+      alpnProtocols:
+      - h2
+      - http/1.1
+      cipherSuites:
+      - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+      - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+      - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+      - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+      - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256
+      - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256

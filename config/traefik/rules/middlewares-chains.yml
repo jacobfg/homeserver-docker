@@ -1,0 +1,38 @@
+http:
+  middlewares:
+    chain-homer:
+      chain:
+        middlewares:
+          - middlewares-rate-limit
+          - middlewares-secure-headers
+          - middlewares-authelia
+          - middlewares-homer-config
+          - middlewares-compress
+
+    middlewares-homer-config:
+      plugin:
+        homerconfig:
+          enabled: true
+
+    chain-no-auth:
+      chain:
+        middlewares:
+          - middlewares-rate-limit
+          - middlewares-secure-headers
+          - middlewares-compress
+
+    chain-api-no-auth:
+      chain:
+        middlewares:
+          # - middlewares-api-no-auth
+          - middlewares-rate-limit
+          - middlewares-secure-headers
+          - middlewares-compress
+
+    chain-authelia:
+      chain:
+        middlewares:
+          - middlewares-rate-limit
+          - middlewares-secure-headers
+          - middlewares-authelia
+          - middlewares-compress

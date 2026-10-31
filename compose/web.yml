@@ -32,7 +32,7 @@ services:
       - "traefik.http.routers.homer-rtr.rule=Host(`home.$DOMAINNAME_CLOUD_SERVER`)"
       - "traefik.http.routers.homer-rtr.tls=true"
       ## Middlewares
-      - "traefik.http.routers.homer-rtr.middlewares=chain-authelia@file"
+      - "traefik.http.routers.homer-rtr.middlewares=chain-homer@file"
       ## HTTP Services
       - "traefik.http.routers.homer-rtr.service=homer-svc"
       - "traefik.http.services.homer-svc.loadbalancer.server.port=8080"

@@ -175,6 +175,53 @@ endpoint; GET and HEAD are supported. Keep `url` as the normal application URL.
 For example, a Node-RED Ping tile uses `endpoint: /services/nodered` alongside
 its existing `url`. Append any existing custom health path to the new endpoint.
 
+#### Personal Homer dashboards
+
+Homer requests `/assets/config.yml`. After Authelia authenticates the request,
+the local `homerconfig` Traefik plugin uses `Remote-User` to request
+`/assets/config.<username>.yml` from Homer. Only a 404 triggers one retry for
+`/assets/config.yml`; other errors propagate. There is no `.yaml` alias.
+
+Keep a default `config.yml` in `$VOLUME_DIR/homer/assets`, and optionally add
+complete personal configurations such as `config.alice.yml`. Filenames are
+case-sensitive and must match the Authelia username exactly. Supported usernames
+contain ASCII letters, digits, `_`, `@`, `.`, or `-`, excluding `.` and `..`.
+Personal files replace the default rather than merging with it. All files must
+be readable by Homer. Changes to these files need no Traefik restart.
+
+Direct browser requests for `config.<username>.yml` return 404, including requests
+for the caller's own file. Config responses disable caching and conditional/range
+requests, so switching accounts fetches a fresh config. Other page configs and
+assets remain shared. Personalisation does not grant or revoke access to widget
+APIs or applications; keep secrets out of dashboard files.
+
+The source in `plugins/homerconfig` is mounted read-only into Traefik and loaded
+in local plugin mode. Deploy the repository including this directory, then run
+`docker compose up -d --force-recreate traefik homer` to load the plugin and new
+Homer router labels. Plugin source changes require recreating Traefik. Verify a
+user with a personal file and one without, direct-file rejection, and logout/login
+switching in the same browser. Reload the dashboard after switching accounts;
+an already-rendered page is not cleared automatically on logout. Clear old site
+data once during rollout if an existing browser/service worker retains old config.
+
+Validation:
+
+```sh
+(cd plugins/homerconfig && go test -race ./...)
+python3 -m unittest discover -s scripts/tests -p 'test_homer*.py'
+RUN_HOMER_INTEGRATION=1 python3 -m unittest discover -s scripts/tests -p test_homer_plugin_integration.py
+docker compose config --quiet
+```
+
+The opt-in integration test needs Go and a running Docker daemon. It uses the
+pinned production Traefik image, the real middleware chain, and an isolated mock
+authentication/backend service; it does not access live accounts or assets.
+For rollback, restore Homer's router to `chain-authelia@file`, remove the
+`chain-homer`/`middlewares-homer-config` definitions and Traefik's local-plugin
+argument/mount, then recreate Traefik and Homer. Homer will serve the default
+again; remove personal files from the assets directory first if they must remain
+inaccessible under the original static-file routing.
+
 Homer's live configuration resides in `$VOLUME_DIR/homer/assets`, not this
 repository. The Homer-specific CORS middleware and references have been removed.
 Update the ESPHome, Node-RED, Authelia, Duplicacy and Fittools tile endpoints to

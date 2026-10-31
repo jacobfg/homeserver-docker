@@ -1,0 +1,34 @@
+http:
+  middlewares:
+    content-type:
+      contentType:
+        autoDetect: false
+
+  routers:
+    printerscanner-rtr:
+      entrypoints: https
+      priority: 1
+      rule: "Host(`printerscanner.{{env "DOMAINNAME_CLOUD_SERVER"}}`)"
+      service: printerscanner-svc
+      tls: true
+      middlewares:
+        - chain-authelia@file
+
+  services:
+    printerscanner-svc:
+      loadBalancer:
+        serversTransport: printerscanner-tls
+        passHostHeader: true
+        servers:
+          - url: "https://{{env "PRINTER_SCANNER_IP"}}"
+
+  serversTransports:
+    printerscanner-tls:
+      # Connect to the fixed IP, but verify the DNS identity in the printer certificate.
+      serverName: {{env "PRINTER_SCANNER_NAME"}}
+      # The printer selects RSA or ECDSA certificates based on the TLS client.
+      # Trust both self-signed public certificates only for this transport.
+      # Verify their fingerprints independently; update on certificate replacement.
+      rootCAs:
+        - /run/secrets/traefik_printerscanner_pem
+      insecureSkipVerify: false
