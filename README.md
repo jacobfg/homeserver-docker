@@ -198,7 +198,15 @@ APIs or applications; keep secrets out of dashboard files.
 The source in `plugins/homerconfig` is mounted read-only into Traefik and loaded
 in local plugin mode. Deploy the repository including this directory, then run
 `docker compose up -d --force-recreate traefik homer` to load the plugin and new
-Homer router labels. Plugin source changes require recreating Traefik. Verify a
+Homer router labels. Plugin source changes require recreating Traefik. The
+`scripts/update-docker-compose-services.bash` helper checks resolved local-plugin
+bind mounts after its normal Compose update. If a file or directory was modified
+at or after Traefik's startup second, it force-recreates only Traefik with
+`--no-deps`. This uses shell, `jq`, `find`, and `stat`; no Python runtime or extra
+binary is required. Directory timestamps also detect deletions. Timestamps are
+compared at whole-second precision, conservatively reloading changes within the
+startup second. A normal Compose update that already recreated Traefik after
+that second does not trigger another recreation. Verify a
 user with a personal file and one without, direct-file rejection, and logout/login
 switching in the same browser. Reload the dashboard after switching accounts;
 an already-rendered page is not cleared automatically on logout. Clear old site

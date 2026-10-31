@@ -13,6 +13,18 @@ selected="$(jq -er '[.services | to_entries[] |
 services=()
 while IFS= read -r service; do services+=("$service"); done <<< "$selected"
 
+# Local plugins are loaded at startup, but bind-mounted edits do not change
+# Compose's service hash. Use resolved mount sources, including paths with spaces.
+plugin_sources="$(jq -r '.services.traefik.volumes // [] | .[] |
+    select(.type == "bind") |
+    select(.target == "/plugins-local" or (.target | startswith("/plugins-local/"))) |
+    .source' <<< "$model")"
+plugin_dirs=()
+while IFS= read -r source; do
+    [[ -n "$source" ]] || continue
+    plugin_dirs+=("$source")
+done <<< "$plugin_sources"
+
 # Registry credentials stay separate from Compose's root application environment.
 # Read only these two dotenv keys; do not evaluate the file as shell code.
 credentials="$(docker compose --project-directory "$SCRIPT_DIR" \
@@ -62,6 +74,35 @@ fi
 compose --profile '*' up --no-start --no-deps libation
 compose --profile '*' up -d --remove-orphans "${services[@]}"
 scheduler_paused=false
+
+# Inspect after up: an image/config update may already have reloaded the plugins.
+# Recreate only Traefik, without touching its dependencies or optional profiles.
+if (( ${#plugin_dirs[@]} )); then
+    traefik_id="$(compose ps --status running --quiet traefik)"
+    if [[ -z "$traefik_id" ]]; then
+        echo "Traefik is not running after the update; cannot verify plugin loading." >&2
+        exit 1
+    fi
+    traefik_started="$(docker inspect --format '{{.State.StartedAt}}' "$traefik_id")"
+    # jq parses UTC timestamps without fractional seconds. stat's portable
+    # formats have whole-second precision, so include the startup second to
+    # avoid missing a plugin edit just after startup within that second.
+    started_seconds="$(jq -ner --arg started "$traefik_started" '
+        $started | sub("\\.[0-9]+Z$"; "Z") | fromdateiso8601')"
+    if stat -c '%Y' / >/dev/null 2>&1; then
+        stat_args=(-c '%Y') # GNU and BusyBox stat (Linux).
+    else
+        stat_args=(-f '%m') # BSD stat (macOS).
+    fi
+    # Include directories to detect deletions. Do not stop at the first match:
+    # traversal/stat failures must fail the update rather than hide unread files.
+    plugins_newer="$(find "${plugin_dirs[@]}" -exec stat "${stat_args[@]}" {} + |
+        jq -s --argjson started "$started_seconds" 'any(.[]; . >= $started)')"
+    if [[ "$plugins_newer" == true ]]; then
+        echo "Local plugin files changed at or after Traefik's startup second; recreating Traefik."
+        compose --profile '*' up -d --no-deps --force-recreate traefik
+    fi
+fi
 
 # Keep human-readable image tags alongside the pinned digest references.
 images="$(jq -r '.services | to_entries[] |
