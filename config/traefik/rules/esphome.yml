@@ -1,0 +1,17 @@
+http:
+  routers:
+    esphome-rtr:
+      entrypoints: https
+      priority: 1
+      rule: "Host(`esphome.{{env "DOMAINNAME_CLOUD_SERVER"}}`)"
+      service: esphome-svc
+      tls: true
+      middlewares:
+        - chain-authelia@file
+
+  services:
+    esphome-svc:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: "http://{{env "DOCKER_SERVER_IP"}}:6052/"

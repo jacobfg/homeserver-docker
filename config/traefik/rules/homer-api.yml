@@ -1,0 +1,72 @@
+# Same-origin Homer endpoints. Authenticate before stripping prefixes or injecting keys.
+# Each entry specifies its backend, public prefix, path suffix, matcher and HEAD support.
+# PathRegexp suffixes are grouped and anchored; their literal prefixes are escaped.
+# Keys are scoped to these widget routes, never the applications' normal routers.
+{{- $widgets := dict
+  "homeassistant" (dict "service" "homeassistant-svc@docker" "prefix" "/services/homeassistant" "path" "/api/" "match" "Path" "head" false "credential" "HOMER_HOMEASSISTANT_TOKEN")
+  "portainer" (dict "service" "portainer-svc@docker" "prefix" "/services/portainer" "path" "/api/(status|endpoints|endpoints/[0-9]+/docker/containers/json)" "match" "PathRegexp" "head" false "credential" "HOMER_PORTAINER_API_KEY")
+  "traefik" (dict "service" "api@internal" "prefix" "/services/traefik" "path" "/api/version" "match" "Path" "head" false)
+  "immich" (dict "service" "immich-svc@file" "prefix" "/services/immich" "path" "/api/" "match" "PathPrefix" "head" false)
+  "esphome" (dict "service" "esphome-svc@file" "prefix" "/services/esphome" "path" "" "match" "Path" "head" true)
+  "music" (dict "service" "music-assistant-svc@docker" "prefix" "/services/music" "path" "" "match" "Path" "head" true)
+  "nodered" (dict "service" "nodered-svc@docker" "prefix" "/services/nodered" "path" "" "match" "Path" "head" true)
+  "authelia" (dict "service" "authelia-svc@docker" "prefix" "/services/auth" "path" "" "match" "Path" "head" true)
+  "duplicacy" (dict "service" "duplicacy-svc@docker" "prefix" "/services/duplicacy" "path" "" "match" "Path" "head" true)
+  "fittools" (dict "service" "fittools-svc@docker" "prefix" "/services/fittools" "path" "/healthz" "match" "Path" "head" true)
+  "sftp" (dict "service" "sftpgo-https@docker" "prefix" "/services/sftp" "path" "/healthz" "match" "Path" "head" true)
+  "zigbee2mqtt" (dict "service" "zigbee2mqtt-svc@docker" "prefix" "/services/zigbee2mqtt" "path" "" "match" "Path" "head" true)
+  "influxdb" (dict "service" "influxdb-svc@docker" "prefix" "/services/influxdb" "path" "" "match" "Path" "head" true)
+}}
+http:
+  routers:
+    homer-rss-rtr:
+      entryPoints: [https]
+      priority: 98
+      rule: Host(`home.{{env "DOMAINNAME_CLOUD_SERVER"}}`) && Path(`/dashboard-endpoint`) && Method(`GET`)
+      tls: {}
+      middlewares: [chain-authelia@file]
+      service: nodered-svc@docker
+    {{- range $name, $widget := $widgets }}
+    {{- if or (not $widget.credential) (env $widget.credential) }}
+    homer-{{ $name }}-rtr:
+      entryPoints: [https]
+      priority: 100
+      {{- $path := printf "%s%s" $widget.prefix $widget.path }}
+      {{- if eq $widget.match "PathRegexp" }}
+      {{- $path = printf "^%s(%s)$" (regexQuoteMeta $widget.prefix) $widget.path }}
+      {{- end }}
+      rule: Host(`home.{{env "DOMAINNAME_CLOUD_SERVER"}}`) && {{ $widget.match }}(`{{ $path }}`) && {{ if $widget.head }}(Method(`GET`) || Method(`HEAD`)){{ else }}Method(`GET`){{ end }}
+      tls: {}
+      middlewares:
+        - chain-authelia@file
+        - homer-{{ $name }}-strip@file
+        {{- if $widget.credential }}
+        - homer-{{ $name }}-key@file
+        {{- end }}
+      service: {{ $widget.service }}
+    {{- end }}
+    {{- end }}
+  middlewares:
+    {{- range $name, $widget := $widgets }}
+    homer-{{ $name }}-strip:
+      stripPrefix:
+        prefixes:
+          - {{ $widget.prefix }}
+    {{- end }}
+    # Missing keys omit the corresponding widget router and credential middleware.
+    {{- if env "HOMER_PORTAINER_API_KEY" }}
+    homer-portainer-key:
+      headers:
+        customRequestHeaders:
+          X-API-Key: {{ env "HOMER_PORTAINER_API_KEY" | printf "%q" }}
+          Authorization: ""
+          Cookie: ""
+    {{- end }}
+    {{- if env "HOMER_HOMEASSISTANT_TOKEN" }}
+    homer-homeassistant-key:
+      headers:
+        customRequestHeaders:
+          Authorization: {{ printf "Bearer %s" (env "HOMER_HOMEASSISTANT_TOKEN") | printf "%q" }}
+          X-API-Key: ""
+          Cookie: ""
+    {{- end }}

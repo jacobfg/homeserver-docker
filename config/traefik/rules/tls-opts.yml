@@ -1,0 +1,16 @@
+tls:
+  options:
+    # Harden both the fallback policy and the named HTTPS entryPoint policy.
+    default: &modern-tls
+      minVersion: VersionTLS13
+      # Go manages TLS 1.3 cipher suites and curve defaults; no overrides needed.
+      # Applies to incoming HTTPS, not HA's HTTP :8123 or backend TLS transports.
+      sniStrict: true
+      alpnProtocols: [h2, http/1.1]
+      # DNS-01 is used; add acme-tls/1 if switching to TLS-ALPN-01.
+    tls-opts: *modern-tls
+    dot-tls:
+      minVersion: VersionTLS13
+      sniStrict: true
+      # DNS-over-TLS has its own ALPN; HTTPS protocols must not be advertised here.
+      alpnProtocols: [dot]

@@ -59,6 +59,7 @@ services:
         exec traefik "$$@"
       - traefik
     command: # CLI arguments
+      - --experimental.localplugins.homerconfig.modulename=github.com/jacobfg/homerconfig
       - --global.checkNewVersion=false
       - --global.sendAnonymousUsage=false
       - --entryPoints.https.address=:443
@@ -156,6 +157,7 @@ services:
       - source: traefik_rules_immich
         target: /rules/immich.yml
     volumes:
+      - ../plugins/homerconfig:/plugins-local/src/github.com/jacobfg/homerconfig:ro
       - $VOLUME_DIR/traefik/acme/acme.json:/acme.json # Preserve existing certificates; owner 65532:65532, mode 0600.
     environment:
       - TZ

@@ -1,0 +1,6 @@
+displayName: Homer personal configuration
+type: middleware
+import: github.com/jacobfg/homerconfig
+summary: Select an authenticated user's Homer config with a default fallback.
+testData:
+  enabled: true

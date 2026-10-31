@@ -43,9 +43,16 @@ elif "ps" in args:
         print("scheduler-id")
     elif args[-1] == "libation":
         print("job-id")
+    elif args[-1] == "traefik" and os.environ.get("TRAEFIK_RUNNING", "true") == "true":
+        print("traefik-id")
 elif args[0] == "inspect":
-    print(os.environ.get("JOB_RUNNING", "false"))
+    if args[-1] == "traefik-id":
+        print(os.environ.get("TRAEFIK_STARTED", "2025-01-01T00:00:00.500000000Z"))
+    else:
+        print(os.environ.get("JOB_RUNNING", "false"))
 elif "--no-start" in args and os.environ.get("CREATE_FAIL") == "1":
+    sys.exit(1)
+elif "--force-recreate" in args and os.environ.get("RECREATE_FAIL") == "1":
     sys.exit(1)
 '''
 
@@ -151,6 +158,108 @@ class ComposeScripts(unittest.TestCase):
         self.assertNotEqual(self.run_script("update-docker-compose-services.bash", PULL_FAIL="1").returncode, 0)
         self.assertFalse(self.actions("stop"))
         self.assertFalse(self.actions("up"))
+
+    def plugin_mount(self):
+        directory = self.root / "plugin source/nested"
+        directory.mkdir(parents=True)
+        source = directory / "plugin.go"
+        source.write_text("package plugin\n")
+        self.plugin_old_ns = 1735689600_000000000  # 2025-01-01 UTC
+        for entry in (source, directory, directory.parent):
+            os.utime(entry, ns=(self.plugin_old_ns, self.plugin_old_ns))
+        model = json.loads(self.model.read_text())
+        model["services"]["traefik"]["volumes"] = [
+            {"type": "bind", "source": str(directory.parent),
+             "target": "/plugins-local/src/example/plugin"},
+            {"type": "bind", "source": "/unrelated/missing", "target": "/rules"}]
+        self.model.write_text(json.dumps(model))
+        return source
+
+    def test_newer_plugin_recreates_only_traefik_after_normal_update(self):
+        source = self.plugin_mount()
+        os.utime(source, ns=(self.plugin_old_ns + 900000000,) * 2)
+        result = self.run_script("update-docker-compose-services.bash")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.actions("up")[-1],
+                         ["up", "-d", "--no-deps", "--force-recreate", "traefik"])
+        calls = self.calls()
+        update = next(i for i, c in enumerate(calls) if "--remove-orphans" in c)
+        inspect = next(i for i, c in enumerate(calls) if c[-1] == "traefik-id")
+        self.assertLess(update, inspect)
+        self.assertIn("at or after Traefik", result.stdout)
+
+    def test_older_plugin_does_not_recreate(self):
+        source = self.plugin_mount()
+        for ns in (self.plugin_old_ns, self.plugin_old_ns + 500000000):
+            os.utime(source, ns=(ns, ns))
+            result = self.run_script("update-docker-compose-services.bash",
+                                     TRAEFIK_STARTED="2025-01-01T00:00:01.500000000Z")
+            self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertFalse(any("--force-recreate" in c for c in self.calls()))
+
+    def test_startup_second_conservatively_recreates(self):
+        self.plugin_mount()
+        result = self.run_script("update-docker-compose-services.bash")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("--force-recreate", self.actions("up")[-1])
+
+    @unittest.skipUnless(shutil.which("gstat") and shutil.which("gfind"), "GNU tools not separately installed")
+    def test_plugin_check_with_gnu_find_and_stat(self):
+        (self.bin / "stat").symlink_to(shutil.which("gstat"))
+        (self.bin / "find").symlink_to(shutil.which("gfind"))
+        self.test_newer_plugin_recreates_only_traefik_after_normal_update()
+
+    def test_plugin_stat_failure_stops_update(self):
+        self.plugin_mount()
+        stat = self.bin / "stat"
+        stat.write_text('#!/bin/sh\nif [ "$3" = / ]; then exit 0; fi\nexit 1\n')
+        stat.chmod(0o755)
+        result = self.run_script("update-docker-compose-services.bash")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertFalse(any("--force-recreate" in c for c in self.calls()))
+        self.assertFalse(self.actions("prune"))
+
+    def test_already_restarted_traefik_does_not_recreate_again(self):
+        source = self.plugin_mount()
+        os.utime(source, ns=(self.plugin_old_ns + 900000000,) * 2)
+        result = self.run_script("update-docker-compose-services.bash",
+                                 TRAEFIK_STARTED="2025-01-01T00:00:01Z")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertFalse(any("--force-recreate" in c for c in self.calls()))
+
+    def test_deleted_plugin_file_recreates_from_directory_mtime(self):
+        source = self.plugin_mount()
+        source.unlink()
+        result = self.run_script("update-docker-compose-services.bash")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("--force-recreate", self.actions("up")[-1])
+
+    def test_missing_mount_or_invalid_start_time_fails_without_recreation(self):
+        source = self.plugin_mount()
+        result = self.run_script("update-docker-compose-services.bash", TRAEFIK_STARTED="invalid")
+        self.assertNotEqual(result.returncode, 0)
+        source.unlink()
+        source.parent.rmdir()
+        source.parent.parent.rmdir()
+        result = self.run_script("update-docker-compose-services.bash")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertFalse(any("--force-recreate" in c for c in self.calls()))
+        self.assertFalse(self.actions("prune"))
+
+    def test_plugin_recreation_failure_stops_cleanup(self):
+        source = self.plugin_mount()
+        os.utime(source, ns=(self.plugin_old_ns + 900000000,) * 2)
+        result = self.run_script("update-docker-compose-services.bash", RECREATE_FAIL="1")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertFalse(self.actions("prune"))
+        self.assertFalse(self.actions("start"))
+
+    def test_stopped_traefik_is_reported(self):
+        self.plugin_mount()
+        result = self.run_script("update-docker-compose-services.bash", TRAEFIK_RUNNING="false")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("Traefik is not running", result.stderr)
+        self.assertFalse(any("--force-recreate" in c for c in self.calls()))
 
     def esphome_config(self):
         config = self.root / "host volume/esphome/config"

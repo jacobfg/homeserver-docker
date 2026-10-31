@@ -1,0 +1,28 @@
+http:
+  routers:
+    immich-rtr:
+      entrypoints: https
+      priority: 1
+      rule: "Host(`photos.{{env "DOMAINNAME_CLOUD_SERVER"}}`)"
+      service: immich-svc
+      tls: true
+      middlewares:
+        - chain-authelia@file
+
+    # Main LAN clients (including the mobile app) use Immich authentication directly.
+    immich-local-rtr:
+      entrypoints: https
+      priority: 99
+      rule: "Host(`photos.{{env "DOMAINNAME_CLOUD_SERVER"}}`) && ClientIP(`{{env "ABS_BYPASS1_CIDR"}}`)"
+      service: immich-svc
+      tls: true
+      middlewares:
+        - chain-no-auth@file
+
+  services:
+    immich-svc:
+      loadBalancer:
+        # passHostHeader: true
+        servers:
+          # - url: "http://{{env "DOCKER_SERVER_IP"}}:8123/"
+          - url: "http://{{env "IMMICH_IP"}}:2283/"

@@ -4,3 +4,6 @@ secrets/**
 config/**
 gitops/sftp-server/*/**
 !gitops/sftp-server/tests/**
+!config/traefik/
+!config/traefik/rules/
+!config/traefik/rules/*
