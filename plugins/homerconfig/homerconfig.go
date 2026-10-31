@@ -81,7 +81,7 @@ func (m *middleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	first := newResponse(w, true)
 	m.next.ServeHTTP(first, request)
 	first.finish()
-	if first.status != http.StatusNotFound {
+	if !fallbackStatus(first.status) {
 		return
 	}
 	// Re-enter only the downstream handler, not authentication or this middleware.
@@ -93,17 +93,21 @@ func (m *middleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	second.finish()
 }
 
-// response isolates attempt headers and discards only the first 404. Other
+func fallbackStatus(status int) bool {
+	return status == http.StatusForbidden || status == http.StatusNotFound
+}
+
+// response isolates attempt headers and discards only the first 403 or 404. Other
 // responses stream without buffering the configuration in memory.
 type response struct {
-	target     http.ResponseWriter
-	header     http.Header
-	status     int
-	discard404 bool
+	target          http.ResponseWriter
+	header          http.Header
+	status          int
+	discardFallback bool
 }
 
 func newResponse(w http.ResponseWriter, discard bool) *response {
-	return &response{target: w, header: w.Header().Clone(), discard404: discard}
+	return &response{target: w, header: w.Header().Clone(), discardFallback: discard}
 }
 func (w *response) Header() http.Header { return w.header }
 func (w *response) WriteHeader(status int) {
@@ -111,7 +115,7 @@ func (w *response) WriteHeader(status int) {
 		return
 	}
 	w.status = status
-	if w.discard404 && status == http.StatusNotFound {
+	if w.discardFallback && fallbackStatus(status) {
 		return
 	}
 	for key := range w.target.Header() {
@@ -127,7 +131,7 @@ func (w *response) WriteHeader(status int) {
 }
 func (w *response) Write(b []byte) (int, error) {
 	w.finish()
-	if w.discard404 && w.status == http.StatusNotFound {
+	if w.discardFallback && fallbackStatus(w.status) {
 		return len(b), nil
 	}
 	return w.target.Write(b)
@@ -139,7 +143,7 @@ func (w *response) finish() {
 }
 func (w *response) Flush() {
 	w.finish()
-	if w.discard404 && w.status == http.StatusNotFound {
+	if w.discardFallback && fallbackStatus(w.status) {
 		return
 	}
 	if flusher, ok := w.target.(http.Flusher); ok {

@@ -34,6 +34,9 @@ func main() {
       w.Write([]byte("title: Alice\n#" + strings.Repeat("x", 4096)))
     case "/assets/config.yml":
       w.Write([]byte("title: Default\n#" + strings.Repeat("x", 4096)))
+    case "/assets/config.forbidden.yml":
+      w.Header().Set("X-Discarded", "yes")
+      http.Error(w, "forbidden", 403)
     case "/assets/config.error.yml": w.WriteHeader(503)
     default: w.Header().Set("X-Discarded", "yes"); http.NotFound(w, r)
     }
@@ -120,7 +123,8 @@ class HomerPluginIntegrationTest(unittest.TestCase):
             return response.status, response.headers, body
 
     def test_selection_fallback_auth_and_compression(self):
-        for user, title in (("alice", b"title: Alice"), ("bob", b"title: Default")):
+        for user, title in (("alice", b"title: Alice"), ("bob", b"title: Default"),
+                            ("forbidden", b"title: Default")):
             status, headers, body = self.fetch("/assets/config.yml?v=1", user,
                                                **{"Accept-Encoding": "gzip", "Remote-User": "error",
                                                   "If-None-Match": "old", "Range": "bytes=0-1"})

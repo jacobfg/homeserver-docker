@@ -21,7 +21,7 @@ func handler(next http.HandlerFunc) http.Handler {
 func TestSelectionAndFallback(t *testing.T) {
 	for _, method := range []string{"GET", "HEAD"} {
 		for _, firstStatus := range []int{200, 404, 403, 500, 502} {
-			for _, fallbackStatus := range []int{200, 404} {
+			for _, fallbackStatus := range []int{200, 403, 404, 500} {
 				t.Run(fmt.Sprintf("%s/%d/%d", method, firstStatus, fallbackStatus), func(t *testing.T) {
 					var paths []string
 					h := handler(func(w http.ResponseWriter, r *http.Request) {
@@ -56,7 +56,7 @@ func TestSelectionAndFallback(t *testing.T) {
 					h.ServeHTTP(w, r)
 					wantPaths := []string{"/assets/config.Alice@example.org.yml"}
 					wantStatus := firstStatus
-					if firstStatus == 404 {
+					if firstStatus == 403 || firstStatus == 404 {
 						wantPaths = append(wantPaths, defaultPath)
 						wantStatus = fallbackStatus
 						if w.Header().Get("X-First") != "" {

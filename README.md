@@ -179,7 +179,7 @@ its existing `url`. Append any existing custom health path to the new endpoint.
 
 Homer requests `/assets/config.yml`. After Authelia authenticates the request,
 the local `homerconfig` Traefik plugin uses `Remote-User` to request
-`/assets/config.<username>.yml` from Homer. Only a 404 triggers one retry for
+`/assets/config.<username>.yml` from Homer. A backend 403 or 404 triggers one retry for
 `/assets/config.yml`; other errors propagate. There is no `.yaml` alias.
 
 Keep a default `config.yml` in `$VOLUME_DIR/homer/assets`, and optionally add
