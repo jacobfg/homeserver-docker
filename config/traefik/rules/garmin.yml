@@ -28,7 +28,7 @@ http:
       - garmin-https
       priority: 200
       rule: Host(`garmin-abs.{{env "DOMAINNAME_CLOUD_SERVER"}}`) && (ClientIP(`{{env "ABS_BYPASS1_CIDR"}}`) || ClientIP(`{{env "ABS_BYPASS4_CIDR"}}`)) && (Path(`/audiobookshelf/playlists`)
-        || Path(`/audiobookshelf/playlist`) || Path(`/audiobookshelf/book`) || PathPrefix(`/garmin/playlist-status/`))
+        || Path(`/audiobookshelf/playlist`) || Path(`/audiobookshelf/book`))
       tls:
         options: garmin-tls@file
       middlewares:
