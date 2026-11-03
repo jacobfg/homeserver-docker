@@ -88,7 +88,7 @@ services:
 
   garmin_media_sidecar:
     container_name: garmin_media_sidecar
-    image: ghcr.io/jacobfg/audiobooksgreengarminsidecar:0.2.3@sha256:4ab811a7a693b032747cd8151c2829c0096fd85ee816cbd6d8b11b9a7bd81e3c
+    image: ghcr.io/jacobfg/audiobooksgreengarminsidecar:go-beta-playlist-events@sha256:8cb86200f20bee1da1c61e82bf6d204a7ddb410ea905e6a3babcbf41570ea77e
     restart: unless-stopped
     user: $PUID:$PGID
     deploy:
@@ -108,11 +108,13 @@ services:
       - AUTH_CACHE_SECONDS=300
       - CACHE_CHUNK_MINUTES=30
       - CACHE_BITRATE=96k
+      - STAGING_RETENTION_SECONDS=14400
+      - PLAYLIST_NAMES=Garmin
     secrets:
       - abs_green_sidecar_abs_token
-    configs:
-      - source: garmin_media_sidecar_config
-        target: /app/config.yaml
+    # configs:
+    #   - source: garmin_media_sidecar_config
+    #     target: /app/config.yaml
     volumes:
       - $VOLUME_DIR/abs_green_sidecar/cache:/app/cache
     networks:
@@ -125,7 +127,7 @@ services:
       ## Virtual playlist catalogue and Garmin chunk manifest.
       - "traefik.http.routers.garmin-media-catalogue-rtr.entrypoints=https"
       - "traefik.http.routers.garmin-media-catalogue-rtr.priority=200"
-      - "traefik.http.routers.garmin-media-catalogue-rtr.rule=Host(`garmin-abs.$DOMAINNAME_CLOUD_SERVER`) && (ClientIP(`$ABS_BYPASS1_CIDR`) || ClientIP(`$ABS_BYPASS4_CIDR`)) && (Path(`/audiobookshelf/playlists`) || Path(`/audiobookshelf/playlist`) || Path(`/audiobookshelf/book`) || PathPrefix(`/garmin/playlist-status/`))"
+      - "traefik.http.routers.garmin-media-catalogue-rtr.rule=Host(`garmin-abs.$DOMAINNAME_CLOUD_SERVER`) && (ClientIP(`$ABS_BYPASS1_CIDR`) || ClientIP(`$ABS_BYPASS4_CIDR`)) && (Path(`/audiobookshelf/playlists`) || Path(`/audiobookshelf/playlist`) || Path(`/audiobookshelf/book`) || PathPrefix(`/garmin/playlist-status/`) || (Path(`/garmin/status`) && HeaderRegexp(`Authorization`, `^Bearer\\s+${ABS_TOKEN_PREFIX:?ABS_TOKEN_PREFIX must be set}.+`)))"
       # - && HeaderRegexp(`Authorization`, `^Bearer\\s+${ABS_TOKEN_PREFIX:?ABS_TOKEN_PREFIX must be set}.+`)"
       - "traefik.http.routers.garmin-media-catalogue-rtr.tls=true"
       - "traefik.http.routers.garmin-media-catalogue-rtr.middlewares=chain-no-auth@file"
@@ -142,9 +144,9 @@ services:
     extra_hosts:
       - "audiobookshelf.$DOMAINNAME_CLOUD_SERVER:192.168.92.254" # doesn't have access to lan ip
 
-configs:
-  garmin_media_sidecar_config:
-    file: ../config/garmin-media-sidecar/config.yml
+# configs:
+#   garmin_media_sidecar_config:
+#     file: ../config/garmin-media-sidecar/config.yml
 
 secrets:
   abs_green_sidecar_abs_token:
