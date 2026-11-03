@@ -13,7 +13,7 @@ services:
           memory: 512M # Soft reservation; validate longer-term integration and recorder workloads.
     cpu_shares: 2048 # Prioritise home automation over background jobs under contention.
     container_name: homeassistant
-    image: homeassistant/home-assistant:2026.10.4@sha256:23f4dfbb69ce76315dbc4de7915504f1c2dcecd7ca2648113a493a385972e133
+    image: docker.io/homeassistant/home-assistant:2026.10.4@sha256:23f4dfbb69ce76315dbc4de7915504f1c2dcecd7ca2648113a493a385972e133
     # depends_on:
     #   - influxdb
     network_mode: host
@@ -69,7 +69,7 @@ services:
         reservations:
           memory: 192M # Soft reservation, not preallocated RAM.
     cpu_shares: 2048 # Prioritise automation flows under CPU contention.
-    image: nodered/node-red:4.1.17-22-minimal@sha256:79fe8afd82f59ee1c09cd7b516ba045b6a4f49e604fcf5e1806cce7d6fdbbab5
+    image: docker.io/nodered/node-red:4.1.17-22-minimal@sha256:79fe8afd82f59ee1c09cd7b516ba045b6a4f49e604fcf5e1806cce7d6fdbbab5
     container_name: node-red
     environment:
       - TZ
@@ -104,7 +104,7 @@ services:
           memory: 16M # Soft reservation, not preallocated RAM.
     cpu_shares: 2048 # Prioritise MQTT delivery under CPU contention.
     container_name: mosquitto
-    image: eclipse-mosquitto:2.0.22@sha256:09b62ff32c2e7b64d4b431b9a89236073289b68db273de2b089edeb9b0d92b5c
+    image: docker.io/eclipse-mosquitto:2.0.22@sha256:09b62ff32c2e7b64d4b431b9a89236073289b68db273de2b089edeb9b0d92b5c
     networks:
       t2_proxy:
         ipv4_address: 192.168.90.252 # You can specify a static IP
@@ -128,7 +128,7 @@ services:
           memory: 128M # Soft reservation, not preallocated RAM.
     cpu_shares: 2048 # Prioritise device control under CPU contention.
     container_name: zigbee2mqtt
-    image: koenkk/zigbee2mqtt:2.14.3@sha256:fb4a6b0f6868ad1cd6a9996479802b2420e599c3463b62bbff8c8cd9a908f43a
+    image: docker.io/koenkk/zigbee2mqtt:2.14.3@sha256:fb4a6b0f6868ad1cd6a9996479802b2420e599c3463b62bbff8c8cd9a908f43a
     volumes:
       - $VOLUME_DIR/zigbee2mqtt/data:/app/data
       - /run/udev:/run/udev:ro
