@@ -13,8 +13,6 @@ MODEL = {"name": "homeserver-docker", "services": {
     "scheduler": {"image": "example/scheduler:v1"},
     "scheduler-socket-proxy": {"image": "example/socket:v1"},
     "libation": {"profiles": ["scheduled"], "image": "example/job:v1"},
-    "portainer": {"profiles": ["portainer"]},
-    "socket-proxy": {"profiles": ["portainer"]},
     "resource-monitor": {"profiles": ["diagnostics"]},
     "esphome": {"profiles": ["disabled"]},
 }}
@@ -63,7 +61,7 @@ class ComposeScripts(unittest.TestCase):
         self.addCleanup(self.tmp.cleanup)
         self.root = Path(self.tmp.name)
         (self.root / "scripts").mkdir()
-        for name in ("compose-common.bash", "portainer.bash", "update-docker-compose-services.bash", "esphome-clean.sh"):
+        for name in ("compose-common.bash", "update-docker-compose-services.bash", "esphome-clean.sh"):
             shutil.copyfile(SCRIPTS / name, self.root / "scripts" / name)
         (self.root / "scripts/.env").write_text("")
         (self.root / "compose.yaml").write_text("name: homeserver-docker\n")
@@ -89,33 +87,12 @@ class ComposeScripts(unittest.TestCase):
     def actions(self, command):
         return [c[c.index(command):] for c in self.calls() if command in c]
 
-    def test_portainer_group_is_dynamic_and_repeatable(self):
-        model = json.loads(self.model.read_text())
-        model["services"]["extra-debug-tool"] = {"profiles": ["portainer"]}
-        self.model.write_text(json.dumps(model))
-        for action in ("start", "start", "stop", "stop"):
-            result = self.run_script("portainer.bash", action)
-            self.assertEqual(result.returncode, 0, result.stderr)
-        for call in self.actions("up"):
-            self.assertEqual(set(call[2:]), {"portainer", "socket-proxy", "extra-debug-tool"})
-        for call in self.actions("stop"):
-            self.assertEqual(set(call[1:]), {"portainer", "socket-proxy", "extra-debug-tool"})
-        for call in self.calls():
-            if "version" not in call:
-                self.assertIn(str(self.root / "compose.yaml"), call)
-
-    def test_portainer_empty_group_fails_without_mutation(self):
-        self.model.write_text('{"services": {}}')
-        self.assertNotEqual(self.run_script("portainer.bash", "start").returncode, 0)
-        self.assertFalse(self.actions("up"))
-
     def test_config_failure_fails_without_mutation(self):
-        for script, args in (("portainer.bash", ["stop"]), ("update-docker-compose-services.bash", [])):
-            self.assertNotEqual(self.run_script(script, *args, CONFIG_FAIL="1").returncode, 0)
+        self.assertNotEqual(self.run_script("update-docker-compose-services.bash", CONFIG_FAIL="1").returncode, 0)
         self.assertTrue(all("config" in c or "version" in c for c in self.calls()))
 
     def test_old_compose_rejected_before_actions(self):
-        result = self.run_script("portainer.bash", "start", COMPOSE_TEST_VERSION="2.20.0")
+        result = self.run_script("update-docker-compose-services.bash", COMPOSE_TEST_VERSION="2.20.0")
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("2.40.3+", result.stderr)
         self.assertEqual(self.calls(), [["compose", "version", "--short"]])

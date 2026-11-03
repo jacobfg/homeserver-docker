@@ -77,7 +77,6 @@ config and secret declarations they consume. Networks remain in root `compose.ya
 | `homeassistant.yml` | Home Assistant, Node-RED, Mosquitto, Zigbee2MQTT |
 | `music.yml` | Music Assistant |
 | `backup.yml` | Duplicacy |
-| `portainer.yml` | Portainer and its socket proxy |
 | `metrics.yml` | InfluxDB |
 | `scheduler.yml` | Container scheduler and restricted socket proxy |
 | `web.yml` | Homer and static web server |
@@ -168,8 +167,8 @@ feed and same-origin widget API routes. Set the widget's `endpoint` to the path
 below, keeping its `url` pointed at the application's normal hostname.
 
 The routes authenticate with Authelia before stripping the service prefix.
-Backend API credentials are still required where applicable. Portainer must be
-running for its widget to work. The message URL remains `/dashboard-endpoint`.
+Backend API credentials are still required where applicable. The message URL
+remains `/dashboard-endpoint`.
 Status widgets can probe the backend root through their `/services/<name>`
 endpoint; GET and HEAD are supported. Keep `url` as the normal application URL.
 For example, a Node-RED Ping tile uses `endpoint: /services/nodered` alongside
@@ -270,28 +269,10 @@ docker compose up -d traefik static-web-server
 Verify authenticated static requests and IoT downloads on ports 443 and 8443,
 including rejected access from outside the allowed source networks.
 
-### On-demand Portainer
+### Optional services
 
-From any directory, invoke these scripts by their repository path:
-
-```bash
-./scripts/portainer.bash start
-./scripts/portainer.bash stop
-```
-
-The helper selects every service in the `portainer` profile, including its socket
-proxy. Both remain off by default and after Docker/host restarts; data and the
-existing Portainer URL are preserved. Routine updates do not start or recreate
-these services. To refresh their images explicitly from the repository root:
-
-```bash
-docker compose --profile portainer pull portainer socket-proxy
-./scripts/portainer.bash start
-```
-
-Use the helper to stop the group: `docker compose --profile portainer down` would
-also stop the normal services. The same applies to the `diagnostics` profile;
-see [resource monitoring](gitops/diagnostics/README.md) for targeted cleanup. ESPHome and
+For targeted cleanup of the `diagnostics` profile,
+see [resource monitoring](gitops/diagnostics/README.md). ESPHome and
 Apprise remain under the existing `disabled` profile; Libation uses `scheduled`.
 Do not use `--profile '*' up` to deploy, because it would start every optional job.
 
@@ -304,7 +285,6 @@ git pull --ff-only
 
 | Helper | Purpose |
 | --- | --- |
-| `scripts/portainer.bash start\|stop` | Start or stop the Portainer group |
 | `scripts/stop-rm-start.bash SERVICE...` | Recreate selected Compose services |
 | `scripts/esphome-clean.sh` | Remove ESPHome build caches from the configured host volume |
 | `scripts/gitops.bash COMMAND...` | Run Terraform for SFTPGo; see [GitOps instructions](gitops/sftp-server/README.md) |

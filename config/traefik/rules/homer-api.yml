@@ -1,10 +1,8 @@
 # Same-origin Homer endpoints. Authenticate before stripping prefixes or injecting keys.
 # Each entry specifies its backend, public prefix, path suffix, matcher and HEAD support.
-# PathRegexp suffixes are grouped and anchored; their literal prefixes are escaped.
 # Keys are scoped to these widget routes, never the applications' normal routers.
 {{- $widgets := dict
   "homeassistant" (dict "service" "homeassistant-svc@docker" "prefix" "/services/homeassistant" "path" "/api/" "match" "Path" "head" false "credential" "HOMER_HOMEASSISTANT_TOKEN")
-  "portainer" (dict "service" "portainer-svc@docker" "prefix" "/services/portainer" "path" "/api/(status|endpoints|endpoints/[0-9]+/docker/containers/json)" "match" "PathRegexp" "head" false "credential" "HOMER_PORTAINER_API_KEY")
   "traefik" (dict "service" "api@internal" "prefix" "/services/traefik" "path" "/api/version" "match" "Path" "head" false)
   "immich" (dict "service" "immich-svc@file" "prefix" "/services/immich" "path" "/api/" "match" "PathPrefix" "head" false)
   "esphome" (dict "service" "esphome-svc@file" "prefix" "/services/esphome" "path" "" "match" "Path" "head" true)
@@ -32,9 +30,6 @@ http:
       entryPoints: [https]
       priority: 100
       {{- $path := printf "%s%s" $widget.prefix $widget.path }}
-      {{- if eq $widget.match "PathRegexp" }}
-      {{- $path = printf "^%s(%s)$" (regexQuoteMeta $widget.prefix) $widget.path }}
-      {{- end }}
       rule: Host(`home.{{env "DOMAINNAME_CLOUD_SERVER"}}`) && {{ $widget.match }}(`{{ $path }}`) && {{ if $widget.head }}(Method(`GET`) || Method(`HEAD`)){{ else }}Method(`GET`){{ end }}
       tls: {}
       middlewares:
@@ -54,14 +49,6 @@ http:
           - {{ $widget.prefix }}
     {{- end }}
     # Missing keys omit the corresponding widget router and credential middleware.
-    {{- if env "HOMER_PORTAINER_API_KEY" }}
-    homer-portainer-key:
-      headers:
-        customRequestHeaders:
-          X-API-Key: {{ env "HOMER_PORTAINER_API_KEY" | printf "%q" }}
-          Authorization: ""
-          Cookie: ""
-    {{- end }}
     {{- if env "HOMER_HOMEASSISTANT_TOKEN" }}
     homer-homeassistant-key:
       headers:

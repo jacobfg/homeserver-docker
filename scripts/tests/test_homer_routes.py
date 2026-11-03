@@ -6,7 +6,6 @@ Run: python3 -m unittest discover -s scripts/tests -p test_homer_routes.py
 import json
 import os
 from pathlib import Path
-import re
 import subprocess
 import tempfile
 import unittest
@@ -15,11 +14,10 @@ import unittest
 ROOT = Path(__file__).resolve().parents[2]
 RENDERER = r'''
 package main
-import ("os"; "text/template"; "fmt"; "regexp")
+import ("os"; "text/template"; "fmt")
 func main() {
   funcs := template.FuncMap{
     "env": os.Getenv,
-    "regexQuoteMeta": regexp.QuoteMeta,
     "dict": func(args ...any) (map[string]any, error) {
       if len(args)%2 != 0 { return nil, fmt.Errorf("odd dict arguments") }
       result := map[string]any{}
@@ -48,9 +46,8 @@ class HomerRoutesTest(unittest.TestCase):
         subprocess.run(["go", "build", "-o", str(cls.binary), str(source)],
                        env=env, check=True, capture_output=True)
 
-    def render(self, portainer="test-portainer", homeassistant="test-ha"):
+    def render(self, homeassistant="test-ha"):
         env = dict(os.environ, DOMAINNAME_CLOUD_SERVER="example.test",
-                   HOMER_PORTAINER_API_KEY=portainer,
                    HOMER_HOMEASSISTANT_TOKEN=homeassistant)
         rendered = subprocess.check_output(
             [str(self.binary), str(ROOT / "config/traefik/rules/homer-api.yml")],
@@ -62,50 +59,21 @@ class HomerRoutesTest(unittest.TestCase):
         return json.loads(parsed)["http"]
 
     def test_credentials_follow_auth_and_strip(self):
-        config = self.render('dummy-"quoted"-key', "test-ha")
-        for name in ("portainer", "homeassistant"):
-            self.assertEqual(config["routers"][f"homer-{name}-rtr"]["middlewares"],
-                             ["chain-authelia@file", f"homer-{name}-strip@file",
-                              f"homer-{name}-key@file"])
-        portainer = config["middlewares"]["homer-portainer-key"]["headers"]["customRequestHeaders"]
-        self.assertEqual(portainer, {"X-API-Key": 'dummy-"quoted"-key',
-                                     "Authorization": "", "Cookie": ""})
+        config = self.render('dummy-"quoted"-key')
+        self.assertEqual(config["routers"]["homer-homeassistant-rtr"]["middlewares"],
+                         ["chain-authelia@file", "homer-homeassistant-strip@file",
+                          "homer-homeassistant-key@file"])
         ha = config["middlewares"]["homer-homeassistant-key"]["headers"]["customRequestHeaders"]
-        self.assertEqual(ha, {"Authorization": "Bearer test-ha", "X-API-Key": "", "Cookie": ""})
+        self.assertEqual(ha, {"Authorization": 'Bearer dummy-"quoted"-key',
+                             "X-API-Key": "", "Cookie": ""})
 
-    def test_missing_keys_remove_only_their_routes(self):
-        for portainer, ha in (("", ""), ("", "present"), ("present", "")):
-            config = self.render(portainer, ha)
-            for name, key in (("portainer", portainer), ("homeassistant", ha)):
-                self.assertEqual(f"homer-{name}-rtr" in config["routers"], bool(key))
-                self.assertEqual(f"homer-{name}-key" in config["middlewares"], bool(key))
+    def test_missing_key_removes_only_its_route(self):
+        for key in ("", "present"):
+            config = self.render(key)
+            self.assertEqual("homer-homeassistant-rtr" in config["routers"], bool(key))
+            self.assertEqual("homer-homeassistant-key" in config["middlewares"], bool(key))
             self.assertIn("homer-traefik-rtr", config["routers"])
             self.assertIn("homer-rss-rtr", config["routers"])
-
-    def test_portainer_path_allowlist(self):
-        rule = self.render()["routers"]["homer-portainer-rtr"]["rule"]
-        self.assertTrue(rule.startswith('Host(`home.example.test`) && '))
-        self.assertTrue(rule.endswith(' && Method(`GET`)'))
-        self.assertNotIn("PathPrefix", rule)
-        exact = re.findall(r"Path\(`([^`]+)`\)", rule)
-        self.assertEqual(exact, [])
-        patterns = re.findall(r"PathRegexp\(`([^`]+)`\)", rule)
-        self.assertEqual(len(patterns), 1)
-        allowed = re.compile(patterns[0])
-        self.assertTrue(patterns[0].startswith("^"))
-        self.assertTrue(patterns[0].endswith("$"))
-        for path in ("/services/portainer/api/status", "/services/portainer/api/endpoints",
-                     "/services/portainer/api/endpoints/12/docker/containers/json"):
-            self.assertIsNotNone(allowed.search(path))
-        for path in ("/extra/services/portainer/api/status",
-                     "/services/portainer/api/status/extra",
-                     "/services/portainer/api/endpoints/12",
-                     "/services/portainer/api/endpoints/12/docker/containers/json/extra",
-                     "/services/portainer/api/endpoints/12/docker/containers/abc/json",
-                     "/services/portainer/api/endpoints/12/docker/containers/abc/logs",
-                     "/services/portainer/api/endpoints/12/docker/containers/abc/exec",
-                     "/services/portainer/api/endpoints/../docker/containers/json"):
-            self.assertIsNone(allowed.search(path))
 
     def test_other_sensitive_routes_stay_exact(self):
         routers = self.render()["routers"]

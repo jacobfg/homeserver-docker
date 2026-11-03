@@ -44,12 +44,6 @@ services:
       - /bin/sh
       - -c
       - |
-        if [ -f /run/secrets/homer_portainer_api_key ]; then
-          export HOMER_PORTAINER_API_KEY="$$(cat /run/secrets/homer_portainer_api_key)"
-        else
-          echo "Missing /run/secrets/homer_portainer_api_key"
-          exit 1
-        fi
         if [ -f /run/secrets/homer_homeassistant_token ]; then
           export HOMER_HOMEASSISTANT_TOKEN="$$(cat /run/secrets/homer_homeassistant_token)"
         else
@@ -175,7 +169,6 @@ services:
       - DOCKER_SERVER_IP # Passing the docker server IP to the traefik container to be able to use the variable in rules.
     secrets:
       - cf_dns_api_key
-      - homer_portainer_api_key
       - homer_homeassistant_token
       - traefik_printerscanner_pem
     labels:
@@ -284,7 +277,6 @@ services:
       - "music.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
       - "influxdb.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
       - "nodered.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
-      - "portainer.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
       - "printerscanner.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
       - "sftp.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
       - "static.$DOMAINNAME_CLOUD_SERVER:$DOCKER_SERVER_IP"
@@ -321,7 +313,5 @@ secrets:
   #   file: $SECRETS_DIR/homer_homeassistant
   homer_homeassistant_token:
     file: $SECRETS_DIR/homer_homeassistant_token
-  homer_portainer_api_key:
-    file: $SECRETS_DIR/homer_portainer_api_key
   traefik_printerscanner_pem:
     file: $SECRETS_DIR/traefik_printerscanner_pem
