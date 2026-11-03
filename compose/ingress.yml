@@ -7,7 +7,7 @@ services:
       - no-new-privileges:true
     restart: always
     container_name: traefik
-    image: traefik:v3.7.17@sha256:30ff62491aacdb862ceb8c9edcf2627da638d7deafdd4b6dab32fe34f8aa3e90
+    image: docker.io/traefik:v3.7.17@sha256:30ff62491aacdb862ceb8c9edcf2627da638d7deafdd4b6dab32fe34f8aa3e90
     # Initial budget; validate under concurrent uploads, streaming and stack updates.
     deploy:
       resources:
@@ -246,7 +246,7 @@ services:
         reservations:
           memory: 32M # Soft reservation, not preallocated RAM.
     cpu_shares: 2048 # Prioritise DNS under CPU contention; no hard CPU ceiling.
-    image: spx01/blocky:v0.35.0@sha256:4f165b63db0d76c96ecc47c7a8f57caeedc003a912bdce29abb0e283ce02e16b
+    image: docker.io/spx01/blocky:v0.35.0@sha256:4f165b63db0d76c96ecc47c7a8f57caeedc003a912bdce29abb0e283ce02e16b
     container_name: blocky
     restart: always
     ports:
