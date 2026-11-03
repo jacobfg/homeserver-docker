@@ -112,9 +112,6 @@ services:
       - PLAYLIST_NAMES=Garmin
     secrets:
       - abs_green_sidecar_abs_token
-    # configs:
-    #   - source: garmin_media_sidecar_config
-    #     target: /app/config.yaml
     volumes:
       - $VOLUME_DIR/abs_green_sidecar/cache:/app/cache
     networks:
@@ -143,10 +140,6 @@ services:
       - "traefik.http.services.garmin-media-svc.loadbalancer.server.port=8082"
     extra_hosts:
       - "audiobookshelf.$DOMAINNAME_CLOUD_SERVER:192.168.92.254" # doesn't have access to lan ip
-
-# configs:
-#   garmin_media_sidecar_config:
-#     file: ../config/garmin-media-sidecar/config.yml
 
 secrets:
   abs_green_sidecar_abs_token:
