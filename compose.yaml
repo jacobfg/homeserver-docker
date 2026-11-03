@@ -7,7 +7,6 @@ include:
   - compose/homeassistant.yml
   - compose/music.yml
   - compose/backup.yml
-  - compose/portainer.yml
   - compose/metrics.yml
   - compose/web.yml
   - compose/audiobookshelf.yml
@@ -39,13 +38,6 @@ networks:
     name: static_web_internal
     internal: true # Dedicated backend network shared only by Traefik and static-web-server.
     driver: bridge
-  socket_proxy:
-    name: socket_proxy
-    internal: true
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 192.168.91.0/24
   abs_green_internal:
     name: abs_green_internal
     internal: true
