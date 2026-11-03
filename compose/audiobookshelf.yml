@@ -88,7 +88,7 @@ services:
 
   garmin_media_sidecar:
     container_name: garmin_media_sidecar
-    image: ghcr.io/jacobfg/audiobooksgreengarminsidecar:go-beta-playlist-events@sha256:8cb86200f20bee1da1c61e82bf6d204a7ddb410ea905e6a3babcbf41570ea77e
+    image: ghcr.io/jacobfg/audiobooksgreengarminsidecar:0.2.5@sha256:8cd3d58da0c1bdbc4acdc00d5042561e7ca267401b08403ab1b111782bb9a50f
     restart: unless-stopped
     user: $PUID:$PGID
     deploy:
