@@ -3,7 +3,7 @@ services:
     profiles:
       - disabled
     container_name: apprise-api
-    image: lscr.io/linuxserver/apprise-api:2.0.2@sha256:9aa26811ca489c4b450575bdc6dda6c4033f83d6383629854c5486a79b164ed8
+    image: lscr.io/linuxserver/apprise-api:2.1.0@sha256:b732c62450bfc805cbf0ad68f46137c144d8936bbd661857feb8879b3edcce7b
     restart: unless-stopped
     environment:
       - PUID
