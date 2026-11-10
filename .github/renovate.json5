@@ -51,6 +51,19 @@
       matchDatasources: [
         'docker',
       ],
+      // Docker Hub exposes tag publication timestamps, so wait a day before
+      // opening image update PRs. GHCR does not expose equivalent timestamps,
+      // therefore it is deliberately not covered by this safety delay.
+      matchRegistryUrls: [
+        'https://index.docker.io',
+      ],
+      minimumReleaseAge: '1 day',
+      internalChecksFilter: 'strict',
+    },
+    {
+      matchDatasources: [
+        'docker',
+      ],
       versioning: 'regex:^v?(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$',
     },
     {
@@ -66,6 +79,17 @@
       // Calendar versions (YYYY.M.release, YY.MM.release, or YYYY.MM.DD).
       // Omit major so year changes are minor; month/release changes are patches.
       versioning: 'regex:^v?(?<minor>\\d+)\\.(?<patch>\\d+)\\.(?<build>\\d+)$',
+    },
+    {
+      description: 'Wait for Home Assistant monthly point releases',
+      matchDatasources: [
+        'docker',
+      ],
+      matchPackageNames: [
+        'homeassistant/home-assistant',
+      ],
+      // Do not propose YYYY.MM.0; only accept YYYY.MM.1 or newer.
+      allowedVersions: '/^\\d+\\.\\d+\\.(?!0$)\\d+$/',
     },
     {
       matchDatasources: [
