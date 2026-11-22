@@ -89,7 +89,8 @@
         'homeassistant/home-assistant',
       ],
       // Do not propose YYYY.MM.0; only accept YYYY.MM.1 or newer.
-      allowedVersions: '/^\\d+\\.\\d+\\.(?!0$)\\d+$/',
+      // Use RE2-compatible syntax; lookahead assertions are not supported.
+      allowedVersions: '/^\\d+\\.\\d+\\.[1-9]\\d*$/',
     },
     {
       matchDatasources: [
