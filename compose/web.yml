@@ -17,7 +17,7 @@ services:
         reservations:
           memory: 16M # Soft reservation, not preallocated RAM.
     cpu_shares: 1024 # Normal relative priority under contention, within the CPU ceiling.
-    image: docker.io/b4bz/homer:v26.08.3@sha256:febc8967c9f7648ec37633ef3ae1ec90dbe8b7c46fecab80299f08f05be7ecb6
+    image: docker.io/b4bz/homer:v26.11.4@sha256:92032ac8bcb812283bfe93750d0fe6ce52a6010699a0de46fdcbf2164e56a970
     container_name: homer
     volumes:
       - $VOLUME_DIR/homer/assets/:/www/assets:ro
